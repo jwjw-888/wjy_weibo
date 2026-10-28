@@ -20,7 +20,14 @@ async function loadAllow(env, request) {
 }
 
 // 暂存区：浏览器把抓到的资料传上来，Claude 再取走整理。只有 10 个固定位置、每个最多 90 MB。
+const CORS = {"Access-Control-Allow-Origin": "https://weibo.com", "Access-Control-Allow-Methods": "GET, PUT, POST, DELETE, OPTIONS", "Access-Control-Allow-Headers": "content-type", "Access-Control-Max-Age": "86400"};
 async function staging(request, env, url) {
+  if (request.method === "OPTIONS") return new Response(null, {status: 204, headers: CORS});
+  const res = await stagingInner(request, env, url);
+  const h = new Headers(res.headers); for (const [k, v] of Object.entries(CORS)) h.set(k, v);
+  return new Response(res.body, {status: res.status, headers: h});
+}
+async function stagingInner(request, env, url) {
   const slot = url.pathname.slice("/staging/".length);
   if (!/^[0-9]$/.test(slot)) return json({error: "slot must be 0-9"}, 400);
   const key = "staging/" + slot;
