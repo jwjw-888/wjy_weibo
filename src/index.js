@@ -19,11 +19,34 @@ async function loadAllow(env, request) {
   return map;
 }
 
+// 暂存区：浏览器把抓到的资料传上来，Claude 再取走整理。只有 10 个固定位置、每个最多 90 MB。
+async function staging(request, env, url) {
+  const slot = url.pathname.slice("/staging/".length);
+  if (!/^[0-9]$/.test(slot)) return json({error: "slot must be 0-9"}, 400);
+  const key = "staging/" + slot;
+  if (request.method === "PUT" || request.method === "POST") {
+    const len = +(request.headers.get("content-length") || 0);
+    if (len > 90 * 1024 * 1024) return json({error: "too large"}, 413);
+    const body = await request.arrayBuffer();
+    if (body.byteLength > 90 * 1024 * 1024) return json({error: "too large"}, 413);
+    await env.BUCKET.put(key, body, {httpMetadata: {contentType: "application/octet-stream"}, customMetadata: {at: new Date().toISOString()}});
+    return json({slot, status: "stored", size: body.byteLength});
+  }
+  if (request.method === "GET") {
+    const obj = await env.BUCKET.get(key);
+    if (!obj) return json({slot, status: "empty"}, 404);
+    return new Response(obj.body, {headers: {"content-type": "application/octet-stream", "cache-control": "no-store", "x-stored-at": (obj.customMetadata || {}).at || ""}});
+  }
+  if (request.method === "DELETE") { await env.BUCKET.delete(key); return json({slot, status: "deleted"}); }
+  return json({error: "method"}, 405);
+}
+
 const json = (obj, status = 200) => new Response(JSON.stringify(obj), {status, headers: {"content-type": "application/json; charset=utf-8", "cache-control": "no-store"}});
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname.startsWith("/staging/")) return staging(request, env, url);
     if (!url.pathname.startsWith("/r2-archive/")) return env.ASSETS.fetch(request);
     if (request.method !== "POST") return json({error: "use POST"}, 405);
     const key = decodeURIComponent(url.pathname.slice("/r2-archive/".length));

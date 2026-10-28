@@ -34,3 +34,7 @@
 ## 原图存进 R2
 `src/index.js` 提供 `POST /r2-archive/<路径>`（例如 `/r2-archive/img/xxx.jpg`），网站会把该图从微博图床抓下来存进 R2 bucket `jwjw`。
 只接受 `posts.json` 里已有的图片。存好之后，把该图在 `posts.json` 的 `r2:false` 拿掉，「查看原图」就会改用 R2。
+
+## 暂存区（更新用）
+`/staging/0`～`/staging/9`：浏览器用 PUT 上传抓到的资料（每个最多 90 MB），Claude 用 GET 取回后再 DELETE。
+资料存在 R2 的 `staging/` 底下，不会直接显示在网站上。
