@@ -908,8 +908,9 @@
 "video": {
 "title": "吴谨言等人的共创视频",
 "duration": 12,
-"cover": "cover/4c35efacly1ift7ky2ow5j21400u0my1.jpg",
-"coverOrig": "https://wx1.sinaimg.cn/orj480/4c35efacly1ift7ky2ow5j21400u0my1.jpg"
+"cover": "cover/video-20260805-custom.jpg",
+"coverOrig": "",
+"noplay": true
 },
 "reposts": 10235,
 "comments": 10792,

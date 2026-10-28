@@ -14,7 +14,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-10-28-24">
+<meta name="site-build" content="2026-10-28-25">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -96,6 +96,7 @@ mark{background:#ffe27a;color:#333;border-radius:2px}
 .play{position:absolute;inset:auto 6px 6px auto;background:rgba(0,0,0,.55);color:#fff;font-size:11.5px;border-radius:10px;padding:1px 8px;display:flex;align-items:center;gap:4px}
 .play::before{content:"";border-left:7px solid #fff;border-top:4.5px solid transparent;border-bottom:4.5px solid transparent}
 .pics.vid .pic::after{content:"";position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:rgba(0,0,0,.45) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M9 7v10l8-5z'/%3E%3C/svg%3E") center/26px no-repeat}
+.pics.vid .pic.noplay::after{display:none}
 .vnote{font-size:12px;color:var(--muted);margin-top:4px}
 .rt{margin:10px -16px 0;background:var(--sunken);padding:10px 16px 12px;min-width:0}
 .rt .text{margin-top:0;font-size:14px}
@@ -232,7 +233,7 @@ function rich(text, q) {
 let gallery = [];
 function picsHtml(o) {
   const items = [...o.pics];
-  if (o.video && !items.length && !o.skipVideo) items.push({src: o.video.cover, orig: o.video.coverOrig, isVideo: true, dur: o.video.duration});
+  if (o.video && !items.length && !o.skipVideo) items.push({src: o.video.cover, orig: o.video.coverOrig, isVideo: true, dur: o.video.duration, noplay: o.video.noplay, nolink: !o.video.coverOrig});
   if (!items.length) return "";
   const n = items.length;
   const cls = n === 1 ? "n1" : n === 2 ? "n2" : n === 4 ? "n4" : "";
@@ -244,7 +245,7 @@ function picsHtml(o) {
     const ar = n === 1 && d ? ` style="aspect-ratio:${Math.max(ratio, 0.45).toFixed(4)}"` : "";
     const longPic = n === 1 && ratio < 0.45 ? '<span class="play long">长图</span>' : "";
     const badge = p.isVideo && p.dur ? `<span class="play">${dur(p.dur)}</span>` : "";
-    return `<button class="pic" data-g="${start}" data-i="${i}"${ar} aria-label="${p.isVideo ? "视频封面" : "图片"} ${i+1}/${n}"><img loading="lazy" src="thumbs/${esc(p.src)}" alt="">${badge}${longPic}</button>`;
+    return `<button class="pic${p.noplay ? " noplay" : ""}" data-g="${start}" data-i="${i}"${ar} aria-label="${p.isVideo ? "视频封面" : "图片"} ${i+1}/${n}"><img loading="lazy" src="thumbs/${esc(p.src)}" alt="">${badge}${longPic}</button>`;
   }).join("");
   const vnote = items.some(p => p.isVideo) ? `<div class="vnote">视频未存档，仅保存封面${o.video && o.video.title ? "（" + esc(o.video.title) + "）" : ""}</div>` : "";
   return `<div class="pics ${cls}${items.some(p => p.isVideo) ? " vid" : ""}">${cells}</div>${vnote}`;
