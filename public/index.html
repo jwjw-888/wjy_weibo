@@ -131,7 +131,7 @@ details.hot .list{display:grid;gap:8px;margin-top:6px}
 </div></div>
 <div class="wrap">
   <main class="feed" id="feed"></main>
-  <p class="note">本页为粉丝自制存档，文字与图片版权归原作者所有。视频未存档，只保存封面截图，点「原微博」可在微博查看。转评赞数字为备份当时的数据。部分较早的微博，吴谨言本人主页已看不到，内容来自 @盐圈大管家 的「小吴老师的半年可见」转载，每条底部都有注明。每条微博保存点赞前 5 名的热门评论，以及吴谨言本人回复过的评论。</p>
+  <p class="note">本页为粉丝自制存档，文字与图片版权归原作者所有。视频未存档，只保存封面截图，点「原微博」可在微博查看。转评赞数字为备份当时的数据。部分较早的微博，吴谨言本人主页已看不到，内容来自 @盐圈大管家 的「小吴老师的半年可见」转载。每条微博保存点赞前 5 名的热门评论，以及吴谨言本人回复过的评论。</p>
 </div>
 
 <div class="lb" id="lb" hidden>
@@ -204,7 +204,7 @@ function postHtml(p, q) {
     ${p.text ? `<div class="text">${rich(p.text, q)}</div>` : ""}
     ${picsHtml(p.rt && p.video && p.rt.video && p.rt.video.cover === p.video.cover ? {...p, skipVideo: true} : p)}${rt}
     ${p.note ? `<div class="vnote">注：${esc(p.note)}</div>` : ""}
-    ${p.archive ? `<div class="foot"><span>原微博已设为半年可见，内容由 @${esc(p.via.user)} 于 ${ymd(p.via.time)} 转载整理</span><a href="${p.via.url}" target="_blank" rel="noopener noreferrer">转载微博 ↗</a></div>` : `<div class="foot"><span>转发 ${num(p.reposts)}</span><span>评论 ${num(p.comments)}</span><span>赞 ${num(p.likes)}</span><a href="${p.url}" target="_blank" rel="noopener noreferrer">原微博 ↗</a></div>`}
+    ${p.archive ? "" : `<div class="foot"><span>转发 ${num(p.reposts)}</span><span>评论 ${num(p.comments)}</span><span>赞 ${num(p.likes)}</span><a href="${p.url}" target="_blank" rel="noopener noreferrer">原微博 ↗</a></div>`}
     ${commentsHtml(p, q)}
   </article>`;
 }
