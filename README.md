@@ -48,3 +48,8 @@
 - GitHub Pages：https://jwjw-888.github.io/wjy_weibo/
 推送到 main 后两边都会自动更新。网页里的路径都要用相对路径（不要以 / 开头），GitHub Pages 才能正常显示。
 两个网址的「查看原图」都连 R2。
+
+## 加速（2026-10-28）
+- 资料改成一个压缩档 `data/all.json`：**每次修改 data/ 下任何 JSON 后都要执行 `python3 tools/bundle.py`**。
+- 动态里的图片用小缩图 `thumbs-s/`（短边 320、长边 ≤900，q74）；点开大图仍用 `thumbs/`。新增图片时两种都要产生。
+- sw.js 会把缩图/头像/表情存进手机，第二次打开直接从本地读。

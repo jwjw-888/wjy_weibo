@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>吴谨言微博备份</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preload" href="data/all.json" as="fetch" crossorigin>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/icon3-32.png">
 <link rel="apple-touch-icon" href="icons/icon3-180.png">
@@ -14,7 +15,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-10-28-29">
+<meta name="site-build" content="2026-10-28-30">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -245,7 +246,7 @@ function picsHtml(o) {
     const ar = n === 1 && d ? ` style="aspect-ratio:${Math.max(ratio, 0.45).toFixed(4)}"` : "";
     const longPic = n === 1 && ratio < 0.45 ? '<span class="play long">长图</span>' : "";
     const badge = p.isVideo && p.dur ? `<span class="play">${dur(p.dur)}</span>` : "";
-    return `<button class="pic${p.noplay ? " noplay" : ""}" data-g="${start}" data-i="${i}"${ar} aria-label="${p.isVideo ? "视频封面" : "图片"} ${i+1}/${n}"><img loading="lazy" src="thumbs/${esc(p.src)}" alt="">${badge}${longPic}</button>`;
+    return `<button class="pic${p.noplay ? " noplay" : ""}" data-g="${start}" data-i="${i}"${ar} aria-label="${p.isVideo ? "视频封面" : "图片"} ${i+1}/${n}"><img loading="lazy" decoding="async" src="thumbs-s/${esc(p.src)}" alt="">${badge}${longPic}</button>`;
   }).join("");
   const vnote = items.some(p => p.isVideo) ? `<div class="vnote">视频未存档，仅保存封面${o.video && o.video.title ? "（" + esc(o.video.title) + "）" : ""}</div>` : "";
   return `<div class="pics ${cls}${items.some(p => p.isVideo) ? " vid" : ""}">${cells}</div>${vnote}`;
@@ -420,7 +421,7 @@ $("chips").addEventListener("click", e => {
 let timer; $("q").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(() => { render(); toTop(); }, 150); });
 $("month").addEventListener("change", () => { render(); toTop(); });
 
-Promise.all([fetch("data/posts.json").then(r => r.json()), fetch("data/dims.json").then(r => r.json()), fetch("data/comments.json").then(r => r.ok ? r.json() : {}).catch(() => ({})), fetch("data/emoji.json").then(r => r.ok ? r.json() : {}).catch(() => ({})), fetch("data/links.json").then(r => r.ok ? r.json() : {}).catch(() => ({}))]).then(([d, dims, cm, emo, links]) => {
+fetch("data/all.json").then(r => r.json()).then(({d, dims, cm, emo, links}) => {
   DATA = d; DATA.dims = dims; DATA.comments = cm; EMO = emo; LINKS = links;
   if (DATA.avatar) $("pavatar").outerHTML = `<img class="avatar" src="${esc(DATA.avatar)}" alt="吴谨言头像">`;
   DATA.posts.sort((a, b) => b.time.localeCompare(a.time) || ((b.via && b.via.time) || "").localeCompare((a.via && a.via.time) || ""));
@@ -429,7 +430,7 @@ Promise.all([fetch("data/posts.json").then(r => r.json()), fetch("data/dims.json
   const byYear = {};
   months.forEach(k => { const y = k.slice(0, 4); (byYear[y] = byYear[y] || []).push(k); });
   $("month").insertAdjacentHTML("beforeend", Object.keys(byYear).sort().reverse().map(y => `<optgroup label="${y}年">` + byYear[y].sort().reverse().map(k => `<option value="${k}">${y}年${+k.slice(5)}月</option>`).join("") + "</optgroup>").join(""));
-  new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) more(); }, {rootMargin: "1200px"}).observe($("loadmore"));
+  new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) more(); }, {rootMargin: "800px"}).observe($("loadmore"));
   const picN = DATA.posts.reduce((a, p) => a + p.pics.filter(x => !x.isVideo).length + (p.rt ? p.rt.pics.length : 0), 0);
   $("meta").innerHTML = `<span><b>${DATA.posts.length}</b> 条微博</span><span><b>${picN}</b> 张图片</span><span>${ymd(times[0])} 至 ${ymd(times[times.length-1])}</span><span>最近备份 ${ymd(DATA.fetchedAt)}</span>`;
   render();
