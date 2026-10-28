@@ -15,7 +15,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-10-28-35">
+<meta name="site-build" content="2026-10-29-1">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -53,7 +53,17 @@ a{color:var(--link);text-decoration:none}
 .search{display:flex;gap:8px}
 .search input,.search select{font:inherit;font-size:14px;border:0;background:var(--sunken);color:var(--fg);border-radius:16px;padding:7px 14px;min-width:0}
 .search input{flex:1}
-.search select{flex:0 0 auto;max-width:42%}
+.search select{display:none}
+.mbtn{flex:0 0 auto;font:inherit;font-size:14px;border:0;background:var(--sunken);color:var(--fg);border-radius:16px;padding:7px 12px 7px 14px;cursor:pointer;white-space:nowrap}
+.mbtn::after{content:"";display:inline-block;width:6px;height:6px;margin-left:8px;border:solid var(--muted);border-width:0 1.5px 1.5px 0;transform:translateY(-3px) rotate(45deg)}
+.mpanel{position:absolute;right:12px;top:calc(100% - 4px);width:min(300px,calc(100% - 24px));background:var(--card);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.18),0 0 0 1px var(--line);padding:10px;z-index:6}
+.myears{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.myears::-webkit-scrollbar{display:none}
+.mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding-top:10px}
+.mgrid button,.mall{font:inherit;font-size:13.5px;border:0;background:var(--sunken);color:var(--fg);border-radius:8px;padding:7px 0;cursor:pointer}
+.mgrid button:disabled{background:transparent;color:var(--muted);opacity:.45;cursor:default}
+.mgrid button[aria-pressed="true"]{background:var(--accent);color:#fff;font-weight:600}
+.mall{width:100%;margin-top:8px;background:transparent;color:var(--soft)}
 .chips{display:flex;gap:4px;margin-top:8px;overflow-x:auto;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:0 0 auto;font:inherit;font-size:13px;border:0;background:transparent;color:var(--soft);border-radius:14px;padding:3px 12px;cursor:pointer}
@@ -176,8 +186,10 @@ details.hot .list{display:grid;gap:10px;margin-top:10px}
   <div class="bar">
     <div class="search">
       <input id="q" type="search" placeholder="搜索微博、话题、评论" autocomplete="off">
-      <select id="month" aria-label="按月份筛选"><option value="">全部月份</option></select>
+      <select id="month" aria-label="按月份筛选" hidden><option value="">全部月份</option></select>
+      <button class="mbtn" id="mbtn" type="button" aria-haspopup="true" aria-expanded="false">全部月份</button>
     </div>
+    <div class="mpanel" id="mpanel" hidden><div class="myears" id="myears"></div><div class="mgrid" id="mgrid"></div><button class="mall" id="mall" type="button">显示全部月份</button></div>
     <div class="chips" id="chips" role="group" aria-label="类型筛选">
       <button class="chip" data-f="all" aria-pressed="true">全部</button>
       <button class="chip" data-f="orig" aria-pressed="false">原创</button>
@@ -427,7 +439,29 @@ $("chips").addEventListener("click", e => {
   render(); toTop();
 });
 let timer; $("q").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(() => { render(); toTop(); }, 150); });
-$("month").addEventListener("change", () => { render(); toTop(); });
+$("month").addEventListener("change", () => { mLabel(); render(); toTop(); });
+// 月份选择：小面板（年份一排 + 12 个月格子），代替手机上满版的下拉选单
+const MP = {years: {}, y: ""};
+function mLabel() { const v = $("month").value; $("mbtn").textContent = v ? `${v.slice(0, 4)}年${+v.slice(5)}月` : "全部月份"; }
+function mDraw() {
+  const ys = Object.keys(MP.years).sort().reverse();
+  $("myears").innerHTML = ys.map(y => `<button class="chip" data-y="${y}" aria-pressed="${y === MP.y}">${y}</button>`).join("");
+  const has = new Set(MP.years[MP.y] || []), cur = $("month").value;
+  $("mgrid").innerHTML = Array.from({length: 12}, (_, i) => { const k = `${MP.y}-${String(i + 1).padStart(2, "0")}`; return `<button data-k="${k}"${has.has(k) ? "" : " disabled"} aria-pressed="${k === cur}">${i + 1}月</button>`; }).join("");
+}
+function mOpen(open) {
+  $("mpanel").hidden = !open; $("mbtn").setAttribute("aria-expanded", open);
+  if (open) { MP.y = ($("month").value || "").slice(0, 4) || Object.keys(MP.years).sort().pop(); mDraw(); const b = $("myears").querySelector('[aria-pressed="true"]'); if (b) b.scrollIntoView({inline: "center", block: "nearest"}); }
+}
+function mSet(k) { $("month").value = k; $("month").dispatchEvent(new Event("change")); mLabel(); mOpen(false); }
+$("mbtn").addEventListener("click", e => { e.stopPropagation(); mOpen($("mpanel").hidden); });
+$("myears").addEventListener("click", e => { const b = e.target.closest("[data-y]"); if (b) { MP.y = b.dataset.y; mDraw(); } });
+$("mgrid").addEventListener("click", e => { const b = e.target.closest("[data-k]"); if (b && !b.disabled) mSet(b.dataset.k); });
+$("mall").addEventListener("click", () => mSet(""));
+$("mpanel").addEventListener("click", e => e.stopPropagation());
+document.addEventListener("click", () => { if (!$("mpanel").hidden) mOpen(false); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("mpanel").hidden) mOpen(false); });
+
 
 fetch("data/all.json").then(r => r.json()).then(({d, dims, cm, emo, links}) => {
   DATA = d; DATA.dims = dims; DATA.comments = cm; EMO = emo; LINKS = links;
@@ -437,6 +471,7 @@ fetch("data/all.json").then(r => r.json()).then(({d, dims, cm, emo, links}) => {
   const months = [...new Set(DATA.posts.map(p => monthKey(p.time)))];
   const byYear = {};
   months.forEach(k => { const y = k.slice(0, 4); (byYear[y] = byYear[y] || []).push(k); });
+  MP.years = byYear;
   $("month").insertAdjacentHTML("beforeend", Object.keys(byYear).sort().reverse().map(y => `<optgroup label="${y}年">` + byYear[y].sort().reverse().map(k => `<option value="${k}">${y}年${+k.slice(5)}月</option>`).join("") + "</optgroup>").join(""));
   new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) more(); }, {rootMargin: "800px"}).observe($("loadmore"));
   const picN = DATA.posts.reduce((a, p) => a + p.pics.filter(x => !x.isVideo).length + (p.rt ? p.rt.pics.length : 0), 0);
