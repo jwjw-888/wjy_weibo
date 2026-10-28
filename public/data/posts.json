@@ -635,7 +635,14 @@
 "source": "微博直播平台",
 "region": "海南",
 "text": "#明星生日汇#   http://t.cn/AXN3joMK ​​​",
-"pics": [],
+"pics": [
+{
+"src": "img/live-20260816-custom.jpg",
+"orig": "",
+"nolink": true,
+"r2": false
+}
+],
 "video": null,
 "reposts": 116,
 "comments": 31752,
