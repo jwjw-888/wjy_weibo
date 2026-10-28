@@ -5,7 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>吴谨言微博备份</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="site-build" content="2026-10-28-16">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1c1c1c" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="谨言微博">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="site-build" content="2026-10-28-17">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -381,6 +390,7 @@ Promise.all([fetch("data/posts.json").then(r => r.json()), fetch("data/dims.json
   $("meta").innerHTML = `<span><b>${DATA.posts.length}</b> 条微博</span><span><b>${picN}</b> 张图片</span><span>${ymd(times[0])} 至 ${ymd(times[times.length-1])}</span><span>最近备份 ${ymd(DATA.fetchedAt)}</span>`;
   render();
 }).catch(() => { $("feed").innerHTML = `<div class="empty">数据载入失败，请重新整理页面</div>`; });
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
 
 </body>
