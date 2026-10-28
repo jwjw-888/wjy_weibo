@@ -1064,8 +1064,9 @@
 "video": {
 "title": "吴谨言的微博视频",
 "duration": 35,
-"cover": "cover/4c35efacly1ifoi2ogaokj21hc0u0an5.jpg",
-"coverOrig": "https://wx2.sinaimg.cn/orj480/4c35efacly1ifoi2ogaokj21hc0u0an5.jpg"
+"cover": "cover/video-20260801-custom.jpg",
+"coverOrig": "",
+"noplay": true
 },
 "reposts": 10207,
 "comments": 10825,
