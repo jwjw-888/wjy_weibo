@@ -11,7 +11,7 @@ async function loadAllow(env, request) {
   const map = new Map();
   for (const p of data.posts) {
     for (const q of [p, p.rt].filter(Boolean)) {
-      for (const x of q.pics || []) if (x.orig && !x.nolink) map.set(x.src, x.orig);
+      for (const x of q.pics || []) { if (x.orig && !x.nolink) map.set(x.src, x.orig); if (x.custom) map.set(x.src, "custom"); }
       if (q.video && q.video.coverOrig) map.set(q.video.cover, q.video.coverOrig);
     }
   }
@@ -95,6 +95,19 @@ export default {
     if (url.pathname.startsWith("/staging/")) return staging(request, env, url);
     if (url.pathname === "/usage") return usage(env);
     if (url.pathname === "/r2-live") return liveArchive(request, env);
+    // 用户上传的替换原图：先 PUT 到暂存区，再搬到 posts.json 里标了 custom 的路径。
+    if (url.pathname === "/r2-promote" && request.method === "POST") {
+      const slot = url.searchParams.get("slot") || "", key = url.searchParams.get("key") || "";
+      if (!/^[0-9]$/.test(slot)) return json({error: "slot"}, 400);
+      const map = await loadAllow(env, request);
+      if (map.get(key) !== "custom") return json({key, status: "not-allowed"}, 403);
+      const obj = await env.BUCKET.get("staging/" + slot);
+      if (!obj) return json({status: "staging-empty"}, 404);
+      const ct = key.endsWith(".webp") ? "image/webp" : key.endsWith(".png") ? "image/png" : "image/jpeg";
+      await env.BUCKET.put(key, obj.body, {httpMetadata: {contentType: ct}});
+      await env.BUCKET.delete("staging/" + slot);
+      return json({key, status: "saved"});
+    }
     if (url.pathname.startsWith("/r2-live/") && request.method === "GET") {
       const key = "live/" + url.pathname.slice("/r2-live/".length);
       if (!/^live\/[A-Za-z0-9]+\.mov$/.test(key)) return json({error: "bad key"}, 400);
