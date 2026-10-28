@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>吴谨言微博备份</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="site-build" content="2026-10-28-7">
+<meta name="site-build" content="2026-10-28-8">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -86,7 +86,7 @@ mark{background:#ffe27a;color:#333;border-radius:2px}
 /* comments */
 .cmts{background:var(--sunken);border-top:1px solid var(--line);padding:10px 16px 12px;display:grid;gap:10px;font-size:13.5px;min-width:0}
 .cmt{display:flex;gap:8px;min-width:0}
-.cmt .ava{width:28px;height:28px;border-radius:50%;background:var(--line);color:var(--soft);display:flex;align-items:center;justify-content:center;font-size:12px;flex:0 0 auto}
+.cmt .ava{width:28px;height:28px;border-radius:50%;object-fit:cover;background:var(--line);color:var(--soft);display:flex;align-items:center;justify-content:center;font-size:12px;flex:0 0 auto}
 .cmt .ava.me{background:linear-gradient(135deg,#ffb36b,#ff7a3d);color:#fff;object-fit:cover}
 .cmt .c{min-width:0;flex:1}
 .cmt .c .t{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}
@@ -100,7 +100,8 @@ details.hot summary::-webkit-details-marker{display:none}
 details.hot summary::after{content:" ›";}
 details.hot[open] summary::after{content:" ⌄";}
 details.hot .list{display:grid;gap:10px;margin-top:10px}
-.cpic{display:block;margin-top:4px;padding:0;border:0;background:var(--line);border-radius:4px;overflow:hidden;width:96px;height:96px;cursor:zoom-in}
+.cpics{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.cpic{display:block;padding:0;border:0;background:var(--line);border-radius:4px;overflow:hidden;width:96px;height:96px;cursor:zoom-in}
 .cpic img{width:100%;height:100%;object-fit:cover;display:block}
 .empty{text-align:center;color:var(--muted);padding:48px 0;background:var(--card);border-radius:8px}
 .loadmore{text-align:center;color:var(--muted);font-size:13px;padding:12px 0 20px}
@@ -241,17 +242,22 @@ function postHtml(p, q) {
 }
 
 function cpicHtml(c) {
-  if (!c.picSrc) return "";
-  const g = gallery.length; gallery.push([{src: c.picSrc, orig: c.pic}]);
-  return `<button class="pic cpic" data-g="${g}" data-i="0" aria-label="评论图片"><img loading="lazy" src="thumbs/${esc(c.picSrc)}" alt=""></button>`;
+  const ids = c.pics || [];
+  if (!ids.length) return "";
+  const g = gallery.length; gallery.push(ids.map(id => ({src: "cmt/" + id + ".jpg", r2: false})));
+  return `<div class="cpics">${ids.map((id, i) => `<button class="pic cpic" data-g="${g}" data-i="${i}" aria-label="评论图片"><img loading="lazy" src="thumbs/cmt/${esc(id)}.jpg" alt=""></button>`).join("")}</div>`;
 }
 let curAvatar = "";
+function avaHtml(c, me) {
+  if (me) return curAvatar ? `<img class="ava me" src="${esc(curAvatar)}" alt="" loading="lazy">` : '<div class="ava me" aria-hidden="true">言</div>';
+  if (c.avatar) return `<img class="ava" src="avatars/u/${esc(c.avatar)}.jpg" alt="" loading="lazy">`;
+  return `<div class="ava" aria-hidden="true">${esc((c.user || "?").slice(0, 1))}</div>`;
+}
 function cmtHtml(c, q, me) {
-  const ava = me ? (curAvatar ? `<img class="ava me" src="${esc(curAvatar)}" alt="" loading="lazy">` : '<div class="ava me" aria-hidden="true">言</div>') : `<div class="ava" aria-hidden="true">${esc((c.user || "?").slice(0, 1))}</div>`;
-  return `<div class="cmt">${ava}<div class="c"><div class="t"><b>${esc(c.user)}</b>：${rich(c.text, q)}</div>${cpicHtml(c)}<div class="m"><span>${wbTime(c.time)}</span><span>赞 ${num(c.likes)}</span></div>`;
+  return `<div class="cmt">${avaHtml(c, me)}<div class="c"><div class="t"><b>${esc(c.user)}</b>：${rich(c.text, q)}</div>${cpicHtml(c)}<div class="m"><span>${wbTime(c.time)}</span><span>赞 ${num(c.likes)}</span></div>`;
 }
 function replyHtml(r, q) {
-  return `<div class="t"><b>${esc(r.user)}</b>：${rich(r.text, q)} <span class="m" style="display:inline;font-size:12px;color:var(--muted)">${wbTime(r.time)}</span></div>`;
+  return `<div class="t"><b>${esc(r.user)}</b>：${rich(r.text, q)} <span class="m" style="display:inline;font-size:12px;color:var(--muted)">${wbTime(r.time)}</span></div>${cpicHtml(r)}`;
 }
 function commentsHtml(p, q) {
   curAvatar = p.avatar || "";
