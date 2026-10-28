@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>吴谨言微博备份</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="site-build" content="2026-10-28-5">
+<meta name="site-build" content="2026-10-28-6">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -103,6 +103,7 @@ details.hot .list{display:grid;gap:10px;margin-top:10px}
 .cpic{display:block;margin-top:4px;padding:0;border:0;background:var(--line);border-radius:4px;overflow:hidden;width:96px;height:96px;cursor:zoom-in}
 .cpic img{width:100%;height:100%;object-fit:cover;display:block}
 .empty{text-align:center;color:var(--muted);padding:48px 0;background:var(--card);border-radius:8px}
+.loadmore{text-align:center;color:var(--muted);font-size:13px;padding:12px 0 20px}
 .note{font-size:12px;color:var(--muted);padding-block:8px 32px;margin:0 4px}
 /* lightbox */
 .lb{position:fixed;inset:0;z-index:20;background:var(--shade);display:flex;flex-direction:column;color:#fff;
@@ -148,7 +149,8 @@ details.hot .list{display:grid;gap:10px;margin-top:10px}
 </div>
 <div class="wrap">
   <main class="feed" id="feed"></main>
-  <p class="note">本页为粉丝自制存档，文字与图片版权归原作者所有。视频未存档，只保存封面截图，点「原微博」可在微博查看。转评赞数字为备份当时的数据。部分较早的微博，吴谨言本人主页已看不到，内容来自 @盐圈大管家 的「小吴老师的半年可见」转载。每条微博保存点赞前 5 名的热门评论，以及吴谨言本人回复过的评论。</p>
+  <div id="loadmore" class="loadmore" hidden>载入更多…</div>
+  <p class="note">本页为粉丝自制存档，文字与图片版权归原作者所有。视频未存档，只保存封面截图，点「原微博」可在微博查看。转评赞数字为备份当时的数据。吴谨言本人主页已看不到的较早微博，内容来自 @盐圈大管家 的「小吴老师的半年可见」转载，以及「吴谨言的微博书」（2010—2024年6月）。每条微博保存点赞前 5 名的热门评论，以及吴谨言本人回复过的评论。</p>
 </div>
 
 <div class="lb" id="lb" hidden>
@@ -288,16 +290,26 @@ function render() {
     return true;
   });
   gallery = [];
-  let html = "", cur = "";
-  const perMonth = {};
-  list.forEach(p => { const k = monthKey(p.time); perMonth[k] = (perMonth[k] || 0) + 1; });
-  for (const p of list) {
-    const k = monthKey(p.time);
-    if (k !== cur) { cur = k; const [y, mo] = k.split("-"); html += `<h2 class="month">${y}年${+mo}月<small>${perMonth[k]} 条</small></h2>`; }
-    html += postHtml(p, q);
-  }
-  $("feed").innerHTML = html || `<div class="empty">没有找到符合条件的微博</div>`;
+  view = {list, q, shown: 0, cur: ""};
+  view.perMonth = {};
+  list.forEach(p => { const k = monthKey(p.time); view.perMonth[k] = (view.perMonth[k] || 0) + 1; });
+  $("feed").innerHTML = list.length ? "" : `<div class="empty">没有找到符合条件的微博</div>`;
+  more();
   $("count").textContent = (q || m || filter !== "all") ? `找到 ${list.length} 条` : `共 ${list.length} 条，按时间从新到旧`;
+}
+let view = null;
+function more() {
+  if (!view || view.shown >= view.list.length) return;
+  let html = "";
+  const end = Math.min(view.list.length, view.shown + 30);
+  for (let i = view.shown; i < end; i++) {
+    const p = view.list[i], k = monthKey(p.time);
+    if (k !== view.cur) { view.cur = k; const [y, mo] = k.split("-"); html += `<h2 class="month">${y}年${+mo}月<small>${view.perMonth[k]} 条</small></h2>`; }
+    html += postHtml(p, view.q);
+  }
+  view.shown = end;
+  $("feed").insertAdjacentHTML("beforeend", html);
+  $("loadmore").hidden = view.shown >= view.list.length;
 }
 
 // lightbox
@@ -342,7 +354,10 @@ Promise.all([fetch("data/posts.json").then(r => r.json()), fetch("data/dims.json
   DATA.posts.sort((a, b) => b.time.localeCompare(a.time) || ((b.via && b.via.time) || "").localeCompare((a.via && a.via.time) || ""));
   const times = DATA.posts.map(p => p.time).sort();
   const months = [...new Set(DATA.posts.map(p => monthKey(p.time)))];
-  $("month").insertAdjacentHTML("beforeend", months.map(k => { const [y, m] = k.split("-"); return `<option value="${k}">${y}年${+m}月</option>`; }).join(""));
+  const byYear = {};
+  months.forEach(k => { const y = k.slice(0, 4); (byYear[y] = byYear[y] || []).push(k); });
+  $("month").insertAdjacentHTML("beforeend", Object.keys(byYear).sort().reverse().map(y => `<optgroup label="${y}年">` + byYear[y].sort().reverse().map(k => `<option value="${k}">${y}年${+k.slice(5)}月</option>`).join("") + "</optgroup>").join(""));
+  new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) more(); }, {rootMargin: "1200px"}).observe($("loadmore"));
   const picN = DATA.posts.reduce((a, p) => a + p.pics.filter(x => !x.isVideo).length + (p.rt ? p.rt.pics.length : 0), 0);
   $("meta").innerHTML = `<span><b>${DATA.posts.length}</b> 条微博</span><span><b>${picN}</b> 张图片</span><span>${ymd(times[0])} 至 ${ymd(times[times.length-1])}</span><span>最近备份 ${ymd(DATA.fetchedAt)}</span>`;
   render();
