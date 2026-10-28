@@ -30,3 +30,7 @@
 ## 共创微博
 共创微博在 `posts.json` 里有 `coop` 字段（共创者名字和头像），标题显示「A 与 B 的共创微博」。
 以后更新时，从微博的 `cooperate_info` 读取共创者。
+
+## 原图存进 R2
+`src/index.js` 提供 `POST /r2-archive/<路径>`（例如 `/r2-archive/img/xxx.jpg`），网站会把该图从微博图床抓下来存进 R2 bucket `jwjw`。
+只接受 `posts.json` 里已有的图片。存好之后，把该图在 `posts.json` 的 `r2:false` 拿掉，「查看原图」就会改用 R2。
