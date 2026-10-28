@@ -53,3 +53,10 @@
 - 资料改成一个压缩档 `data/all.json`：**每次修改 data/ 下任何 JSON 后都要执行 `python3 tools/bundle.py`**。
 - 动态里的缩图维持用 `thumbs/`（用户觉得小缩图不清楚，2026-10-28 改回）。
 - sw.js 会把缩图/头像/表情存进手机，第二次打开直接从本地读。
+
+## Live 图（2026-10-28 起）
+- Live 图要存（不算视频）。`/ajax/statuses/show` 的 `pic_infos[pid].type === "livephoto"`，`video` 是 video.weibo.com 播放链接（几小时后过期）。
+- 在 weibo.com 分页里把播放链接 POST 到 `/r2-live`（JSON `{url}`），worker 存原档到 R2 `live/<fid>.mov`；`GET /r2-live/<fid>.mov` 可取回。
+- 工作区取回后用 ffmpeg 转成 `public/live/<fid>.mp4`（短边 720、H.264 CRF25、faststart），posts.json 里该图加 `"live": "live/<fid>.mp4"`。
+- mix_media_info 有视频时，图片与视频依原微博顺序排列。
+- 2024/06 以前（微博书）的贴文已不可见，抓不到 Live 动态部分。

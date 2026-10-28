@@ -12,7 +12,7 @@ self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
-  if (url.origin === location.origin && /\/(thumbs-s|thumbs|avatars|emoji|icons)\//.test(url.pathname)) {
+  if (url.origin === location.origin && /\/(thumbs|avatars|emoji|icons|live)\//.test(url.pathname)) {
     e.respondWith(caches.open(IMG).then(c => c.match(req).then(hit => hit || fetch(req).then(res => { if (res.ok) c.put(req, res.clone()); return res; }))));
     return;
   }
