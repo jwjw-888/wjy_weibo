@@ -15,7 +15,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-10-29-1">
+<meta name="site-build" content="2026-10-29-2">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -63,7 +63,10 @@ a{color:var(--link);text-decoration:none}
 .mgrid button,.mall{font:inherit;font-size:13.5px;border:0;background:var(--sunken);color:var(--fg);border-radius:8px;padding:7px 0;cursor:pointer}
 .mgrid button:disabled{background:transparent;color:var(--muted);opacity:.45;cursor:default}
 .mgrid button[aria-pressed="true"]{background:var(--accent);color:#fff;font-weight:600}
-.mall{width:100%;margin-top:8px;background:transparent;color:var(--soft)}
+.mact{display:flex;gap:6px;margin-top:10px}
+.mact button{flex:1;font:inherit;font-size:13px;border:0;border-radius:8px;padding:7px 0;cursor:pointer;background:transparent;color:var(--soft)}
+.mact .mdone{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.myears .chip small{font-size:11px;margin-left:3px;color:var(--accent)}
 .chips{display:flex;gap:4px;margin-top:8px;overflow-x:auto;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:0 0 auto;font:inherit;font-size:13px;border:0;background:transparent;color:var(--soft);border-radius:14px;padding:3px 12px;cursor:pointer}
@@ -186,10 +189,9 @@ details.hot .list{display:grid;gap:10px;margin-top:10px}
   <div class="bar">
     <div class="search">
       <input id="q" type="search" placeholder="搜索微博、话题、评论" autocomplete="off">
-      <select id="month" aria-label="按月份筛选" hidden><option value="">全部月份</option></select>
       <button class="mbtn" id="mbtn" type="button" aria-haspopup="true" aria-expanded="false">全部月份</button>
     </div>
-    <div class="mpanel" id="mpanel" hidden><div class="myears" id="myears"></div><div class="mgrid" id="mgrid"></div><button class="mall" id="mall" type="button">显示全部月份</button></div>
+    <div class="mpanel" id="mpanel" hidden><div class="myears" id="myears"></div><div class="mgrid" id="mgrid"></div><div class="mact"><button type="button" id="myear">全选本年</button><button type="button" id="mall">清除</button><button type="button" id="mdone" class="mdone">完成</button></div></div>
     <div class="chips" id="chips" role="group" aria-label="类型筛选">
       <button class="chip" data-f="all" aria-pressed="true">全部</button>
       <button class="chip" data-f="orig" aria-pressed="false">原创</button>
@@ -345,10 +347,9 @@ function haystack(p) {
 
 function render() {
   const q = $("q").value.trim();
-  const m = $("month").value;
   const ql = q.toLowerCase();
   const list = DATA.posts.filter(p => {
-    if (m && monthKey(p.time) !== m) return false;
+    if (MSEL.size && !MSEL.has(monthKey(p.time))) return false;
     if (filter === "orig" && p.rt) return false;
     if (filter === "rt" && !p.rt) return false;
     if (filter === "pic" && !(p.pics.some(x => !x.isVideo) || (p.rt && p.rt.pics.length))) return false;
@@ -363,7 +364,7 @@ function render() {
   list.forEach(p => { const k = monthKey(p.time); view.perMonth[k] = (view.perMonth[k] || 0) + 1; });
   $("feed").innerHTML = list.length ? "" : `<div class="empty">没有找到符合条件的微博</div>`;
   more();
-  $("count").textContent = (q || m || filter !== "all") ? `找到 ${list.length} 条` : `共 ${list.length} 条，按时间从新到旧`;
+  $("count").textContent = (q || MSEL.size || filter !== "all") ? `找到 ${list.length} 条` : `共 ${list.length} 条，按时间从新到旧`;
 }
 let view = null;
 // 换月份、类型或搜索后，跳回列表开头，不然往下滑很远时会看到一片空白
@@ -439,25 +440,29 @@ $("chips").addEventListener("click", e => {
   render(); toTop();
 });
 let timer; $("q").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(() => { render(); toTop(); }, 150); });
-$("month").addEventListener("change", () => { mLabel(); render(); toTop(); });
-// 月份选择：小面板（年份一排 + 12 个月格子），代替手机上满版的下拉选单
-const MP = {years: {}, y: ""};
-function mLabel() { const v = $("month").value; $("mbtn").textContent = v ? `${v.slice(0, 4)}年${+v.slice(5)}月` : "全部月份"; }
+// 月份选择：小面板（年份一排 + 12 个月格子），可复选多个月份
+const MP = {years: {}, y: ""}, MSEL = new Set();
+const mName = k => `${k.slice(0, 4)}年${+k.slice(5)}月`;
+function mLabel() { $("mbtn").textContent = !MSEL.size ? "全部月份" : MSEL.size === 1 ? mName([...MSEL][0]) : `已选 ${MSEL.size} 个月`; }
 function mDraw() {
   const ys = Object.keys(MP.years).sort().reverse();
-  $("myears").innerHTML = ys.map(y => `<button class="chip" data-y="${y}" aria-pressed="${y === MP.y}">${y}</button>`).join("");
-  const has = new Set(MP.years[MP.y] || []), cur = $("month").value;
-  $("mgrid").innerHTML = Array.from({length: 12}, (_, i) => { const k = `${MP.y}-${String(i + 1).padStart(2, "0")}`; return `<button data-k="${k}"${has.has(k) ? "" : " disabled"} aria-pressed="${k === cur}">${i + 1}月</button>`; }).join("");
+  $("myears").innerHTML = ys.map(y => { const n = [...MSEL].filter(k => k.startsWith(y)).length; return `<button class="chip" data-y="${y}" aria-pressed="${y === MP.y}">${y}${n ? `<small>${n}</small>` : ""}</button>`; }).join("");
+  const has = new Set(MP.years[MP.y] || []);
+  $("mgrid").innerHTML = Array.from({length: 12}, (_, i) => { const k = `${MP.y}-${String(i + 1).padStart(2, "0")}`; return `<button data-k="${k}"${has.has(k) ? "" : " disabled"} aria-pressed="${MSEL.has(k)}">${i + 1}月</button>`; }).join("");
+  const all = (MP.years[MP.y] || []).every(k => MSEL.has(k));
+  $("myear").textContent = all ? "取消本年" : "全选本年";
 }
 function mOpen(open) {
   $("mpanel").hidden = !open; $("mbtn").setAttribute("aria-expanded", open);
-  if (open) { MP.y = ($("month").value || "").slice(0, 4) || Object.keys(MP.years).sort().pop(); mDraw(); const b = $("myears").querySelector('[aria-pressed="true"]'); if (b) b.scrollIntoView({inline: "center", block: "nearest"}); }
+  if (open) { MP.y = MP.y || Object.keys(MP.years).sort().pop(); mDraw(); const b = $("myears").querySelector('[aria-pressed="true"]'); if (b) b.scrollIntoView({inline: "center", block: "nearest"}); }
 }
-function mSet(k) { $("month").value = k; $("month").dispatchEvent(new Event("change")); mLabel(); mOpen(false); }
+function mApply() { mLabel(); mDraw(); render(); toTop(); }
 $("mbtn").addEventListener("click", e => { e.stopPropagation(); mOpen($("mpanel").hidden); });
 $("myears").addEventListener("click", e => { const b = e.target.closest("[data-y]"); if (b) { MP.y = b.dataset.y; mDraw(); } });
-$("mgrid").addEventListener("click", e => { const b = e.target.closest("[data-k]"); if (b && !b.disabled) mSet(b.dataset.k); });
-$("mall").addEventListener("click", () => mSet(""));
+$("mgrid").addEventListener("click", e => { const b = e.target.closest("[data-k]"); if (!b || b.disabled) return; const k = b.dataset.k; MSEL.has(k) ? MSEL.delete(k) : MSEL.add(k); mApply(); });
+$("myear").addEventListener("click", () => { const ks = MP.years[MP.y] || [], all = ks.every(k => MSEL.has(k)); ks.forEach(k => all ? MSEL.delete(k) : MSEL.add(k)); mApply(); });
+$("mall").addEventListener("click", () => { MSEL.clear(); mApply(); });
+$("mdone").addEventListener("click", () => mOpen(false));
 $("mpanel").addEventListener("click", e => e.stopPropagation());
 document.addEventListener("click", () => { if (!$("mpanel").hidden) mOpen(false); });
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("mpanel").hidden) mOpen(false); });
@@ -472,7 +477,6 @@ fetch("data/all.json").then(r => r.json()).then(({d, dims, cm, emo, links}) => {
   const byYear = {};
   months.forEach(k => { const y = k.slice(0, 4); (byYear[y] = byYear[y] || []).push(k); });
   MP.years = byYear;
-  $("month").insertAdjacentHTML("beforeend", Object.keys(byYear).sort().reverse().map(y => `<optgroup label="${y}年">` + byYear[y].sort().reverse().map(k => `<option value="${k}">${y}年${+k.slice(5)}月</option>`).join("") + "</optgroup>").join(""));
   new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) more(); }, {rootMargin: "800px"}).observe($("loadmore"));
   const picN = DATA.posts.reduce((a, p) => a + p.pics.filter(x => !x.isVideo).length + (p.rt ? p.rt.pics.length : 0), 0);
   $("meta").innerHTML = `<span><b>${DATA.posts.length}</b> 条微博</span><span><b>${picN}</b> 张图片</span><span>${ymd(times[0])} 至 ${ymd(times[times.length-1])}</span><span>最近备份 ${ymd(DATA.fetchedAt)}</span>`;
