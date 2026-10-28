@@ -48,12 +48,25 @@ async function stagingInner(request, env, url) {
   return json({error: "method"}, 405);
 }
 
+// 用量：统计 R2 里的文件总大小，给每周检查免费额度用。
+async function usage(env) {
+  let cursor, bytes = 0, objects = 0;
+  do {
+    const r = await env.BUCKET.list({cursor, limit: 1000});
+    for (const o of r.objects) { bytes += o.size; objects++; }
+    cursor = r.truncated ? r.cursor : undefined;
+  } while (cursor);
+  const freeBytes = 10 * 1024 ** 3;
+  return json({objects, bytes, gb: +(bytes / 1024 ** 3).toFixed(3), freeGb: 10, percent: +(bytes / freeBytes * 100).toFixed(1), at: new Date().toISOString()});
+}
+
 const json = (obj, status = 200) => new Response(JSON.stringify(obj), {status, headers: {"content-type": "application/json; charset=utf-8", "cache-control": "no-store"}});
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname.startsWith("/staging/")) return staging(request, env, url);
+    if (url.pathname === "/usage") return usage(env);
     if (!url.pathname.startsWith("/r2-archive/")) return env.ASSETS.fetch(request);
     if (request.method !== "POST") return json({error: "use POST"}, 405);
     const key = decodeURIComponent(url.pathname.slice("/r2-archive/".length));
