@@ -5,20 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>吴谨言微博备份</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="site-build" content="2026-10-28-13">
+<meta name="site-build" content="2026-10-28-14">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
-  --bg:#f1f2f5; --card:#ffffff; --sunken:#f7f7f8; --line:#eeeeee;
-  --fg:#333333; --muted:#939393; --soft:#636363; --link:#eb7350; --accent:#ff8200; --accent-soft:#fff3e8; --reply:#fbf3ee; --mine:#fff3b8;
+  --bg:#dcdee3; --card:#ffffff; --sunken:#f7f7f8; --line:#eeeeee;
+  --fg:#333333; --muted:#8a8a8a; --soft:#636363; --link:#eb7350; --accent:#ff8200; --accent-soft:#fff3e8; --reply:#fbf3ee; --mine:#fff3b8;
   --shade:rgba(0,0,0,.92);
   --body:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#101010; --card:#1c1c1c; --sunken:#262626; --line:#2c2c2c;
+  --bg:#070707; --card:#1c1c1c; --sunken:#262626; --line:#2c2c2c;
   --fg:#dadada; --muted:#8a8a8a; --soft:#a5a5a5; --link:#f08a6a; --accent:#ff9a33; --accent-soft:#33261a; --reply:#2b2320; --mine:#3d3414; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#101010; --card:#1c1c1c; --sunken:#262626; --line:#2c2c2c;
+  --bg:#070707; --card:#1c1c1c; --sunken:#262626; --line:#2c2c2c;
   --fg:#dadada; --muted:#8a8a8a; --soft:#a5a5a5; --link:#f08a6a; --accent:#ff9a33; --accent-soft:#33261a; --reply:#2b2320; --mine:#3d3414; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -50,7 +50,7 @@ a{color:var(--link);text-decoration:none}
 .chip[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
 .count{font-size:12px;color:var(--muted);margin-top:6px;padding-left:4px}
 /* feed */
-.month{font-size:12px;color:var(--muted);margin:14px 4px 6px;font-weight:400}
+.month{font-size:12px;color:var(--soft);margin:14px 4px 6px;font-weight:400}
 .month small{margin-left:6px}
 .feed{display:grid;gap:10px;padding-bottom:24px}
 article{background:var(--card);border-radius:8px;min-width:0;overflow:hidden}
