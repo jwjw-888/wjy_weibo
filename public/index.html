@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>吴谨言微博备份</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="site-build" content="2026-10-28-6">
+<meta name="site-build" content="2026-10-28-7">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -319,6 +319,7 @@ function showLb() {
   const p = lbItems[lbIdx];
   $("lbimg").src = "thumbs/" + p.src;
   $("lbn").textContent = lbItems.length > 1 ? `${lbIdx + 1} / ${lbItems.length}` : "";
+  $("lborig").hidden = p.r2 === false;
   $("lborig").href = origUrl(p);
   $("lborig").textContent = p.isVideo ? "查看封面原图" : "查看原图";
   $("prev").hidden = $("next").hidden = lbItems.length < 2;
