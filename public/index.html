@@ -14,7 +14,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-10-28-18">
+<meta name="site-build" content="2026-10-28-19">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -77,6 +77,8 @@ article{background:var(--card);border-radius:8px;min-width:0;overflow:hidden}
 .who .t span+span::before{content:"";margin-left:8px}
 .ext{color:var(--muted);font-size:12px;flex:0 0 auto}
 .text{margin:10px 0 0;font-size:15px;line-height:1.65;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}
+.lnk{color:var(--link);white-space:nowrap}
+.lnk::before{content:"";display:inline-block;width:1em;height:1em;margin-right:2px;vertical-align:-0.12em;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1'/%3E%3Cpath d='M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1'/%3E%3Cpath d='M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1'/%3E%3C/svg%3E") center/contain no-repeat}
 .emo{width:1.25em;height:1.25em;vertical-align:-0.22em;margin:0 1px;display:inline-block}
 mark{background:#ffe27a;color:#333;border-radius:2px}
 .pics{display:grid;gap:4px;margin-top:10px;grid-template-columns:repeat(3,1fr);max-width:min(100%,456px)}
@@ -186,7 +188,7 @@ details.hot .list{display:grid;gap:10px;margin-top:10px}
 const ORIGINAL_BASE = "https://pub-db270e9d94f24f01a0f04c10bbdc80af.r2.dev/";
 const TZ = "Asia/Shanghai";
 
-let DATA = null, filter = "all", EMO = null;
+let DATA = null, filter = "all", EMO = null, LINKS = null;
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmt = (iso, opt) => new Intl.DateTimeFormat("zh-CN", {timeZone: TZ, ...opt}).format(new Date(iso));
@@ -200,7 +202,8 @@ const origUrl = p => ORIGINAL_BASE && p.r2 !== false ? ORIGINAL_BASE + p.src : (
 function rich(text, q) {
   let h = esc(text || "");
   h = h.replace(/(https?:\/\/[A-Za-z0-9\-._~:\/?=&%+]+)|#([^#\n<]{1,40})#|@([\u4e00-\u9fa5\w\-]{1,30})/g, (m, url, topic, user) => {
-    if (url) return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+    if (url) return `<span class="lnk">${esc((LINKS || {})[url] || "网页链接")}</span>`;
+    if (topic && /\[超话\]$/.test(topic)) return `<a href="#" class="topic chao" data-topic="${topic}">${topic.replace(/\[超话\]$/, "")}超话</a>`;
     if (topic) return `<a href="#" class="topic" data-topic="${topic}">#${topic}#</a>`;
     return `<a href="https://weibo.com/n/${encodeURIComponent(user)}" target="_blank" rel="noopener noreferrer">@${user}</a>`;
   });
@@ -378,8 +381,8 @@ $("chips").addEventListener("click", e => {
 let timer; $("q").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(render, 150); });
 $("month").addEventListener("change", render);
 
-Promise.all([fetch("data/posts.json").then(r => r.json()), fetch("data/dims.json").then(r => r.json()), fetch("data/comments.json").then(r => r.ok ? r.json() : {}).catch(() => ({})), fetch("data/emoji.json").then(r => r.ok ? r.json() : {}).catch(() => ({}))]).then(([d, dims, cm, emo]) => {
-  DATA = d; DATA.dims = dims; DATA.comments = cm; EMO = emo;
+Promise.all([fetch("data/posts.json").then(r => r.json()), fetch("data/dims.json").then(r => r.json()), fetch("data/comments.json").then(r => r.ok ? r.json() : {}).catch(() => ({})), fetch("data/emoji.json").then(r => r.ok ? r.json() : {}).catch(() => ({})), fetch("data/links.json").then(r => r.ok ? r.json() : {}).catch(() => ({}))]).then(([d, dims, cm, emo, links]) => {
+  DATA = d; DATA.dims = dims; DATA.comments = cm; EMO = emo; LINKS = links;
   if (DATA.avatar) $("pavatar").outerHTML = `<img class="avatar" src="${esc(DATA.avatar)}" alt="吴谨言头像">`;
   DATA.posts.sort((a, b) => b.time.localeCompare(a.time) || ((b.via && b.via.time) || "").localeCompare((a.via && a.via.time) || ""));
   const times = DATA.posts.map(p => p.time).sort();
