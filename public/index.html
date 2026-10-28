@@ -14,7 +14,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-10-28-17">
+<meta name="site-build" content="2026-10-28-18">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -199,9 +199,11 @@ const origUrl = p => ORIGINAL_BASE && p.r2 !== false ? ORIGINAL_BASE + p.src : (
 
 function rich(text, q) {
   let h = esc(text || "");
-  h = h.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
-  h = h.replace(/#([^#\n<]{1,40})#/g, (m, t) => `<a href="#" class="topic" data-topic="${t}">#${t}#</a>`);
-  h = h.replace(/@([一-龥\w\-]{1,30})/g, (m, u) => `<a href="https://weibo.com/n/${encodeURIComponent(u)}" target="_blank" rel="noopener noreferrer">@${u}</a>`);
+  h = h.replace(/(https?:\/\/[A-Za-z0-9\-._~:\/?=&%+]+)|#([^#\n<]{1,40})#|@([\u4e00-\u9fa5\w\-]{1,30})/g, (m, url, topic, user) => {
+    if (url) return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+    if (topic) return `<a href="#" class="topic" data-topic="${topic}">#${topic}#</a>`;
+    return `<a href="https://weibo.com/n/${encodeURIComponent(user)}" target="_blank" rel="noopener noreferrer">@${user}</a>`;
+  });
   if (EMO) h = h.replace(/\[([^\[\]\s<]{1,8})\]/g, (m) => EMO[m] ? `<img class="emo" src="emoji/${EMO[m]}" alt="${m}" title="${m}">` : m);
   if (q) {
     const re = new RegExp("(" + q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi");
