@@ -126,13 +126,12 @@ details.hot .list{display:grid;gap:8px;margin-top:6px}
     <button class="chip" data-f="pic" aria-pressed="false">有图</button>
     <button class="chip" data-f="video" aria-pressed="false">视频</button>
     <button class="chip" data-f="reply" aria-pressed="false">她有回复</button>
-    <button class="chip" data-f="archive" aria-pressed="false">半年可见</button>
   </div>
   <div class="count" id="count"></div>
 </div></div>
 <div class="wrap">
   <main class="feed" id="feed"></main>
-  <p class="note">本页为粉丝自制存档，文字与图片版权归原作者所有。视频未存档，只保存封面截图，点「原微博」可在微博查看。转评赞数字为备份当时的数据。标有「半年可见」的微博，吴谨言本人主页已看不到，内容来自 @盐圈大管家 的「小吴老师的半年可见」转载。每条微博保存点赞前 5 名的热门评论，以及吴谨言本人回复过的评论。</p>
+  <p class="note">本页为粉丝自制存档，文字与图片版权归原作者所有。视频未存档，只保存封面截图，点「原微博」可在微博查看。转评赞数字为备份当时的数据。部分较早的微博，吴谨言本人主页已看不到，内容来自 @盐圈大管家 的「小吴老师的半年可见」转载，每条底部都有注明。每条微博保存点赞前 5 名的热门评论，以及吴谨言本人回复过的评论。</p>
 </div>
 
 <div class="lb" id="lb" hidden>
@@ -194,7 +193,6 @@ function postHtml(p, q) {
   const tags = [];
   if (p.top) tags.push('<span class="tag">置顶</span>');
   if (p.rt) tags.push('<span class="tag plain">转发</span>');
-  if (p.archive) tags.push('<span class="tag plain">半年可见</span>');
   const where = [p.region, p.source].filter(Boolean).map(esc).join(" · ");
   let rt = "";
   if (p.rt) {
@@ -251,7 +249,6 @@ function render() {
     if (filter === "rt" && !p.rt) return false;
     if (filter === "pic" && !(p.pics.some(x => !x.isVideo) || (p.rt && p.rt.pics.length))) return false;
     if (filter === "video" && !(p.video || p.pics.some(x => x.isVideo) || (p.rt && p.rt.video))) return false;
-    if (filter === "archive" && !p.archive) return false;
     if (filter === "reply" && !((DATA.comments || {})[p.id] && DATA.comments[p.id].author.length)) return false;
     if (ql && !haystack(p).includes(ql)) return false;
     return true;
