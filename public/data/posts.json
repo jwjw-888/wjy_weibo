@@ -1337,7 +1337,14 @@
 "source": "微博集卡活动",
 "region": "",
 "text": "小孟大人的人物图鉴正在掉落中✨http://t.cn/AX9k4SI2 ​​​",
-"pics": [],
+"pics": [
+{
+"src": "img/card-20260729-custom.jpg",
+"orig": "",
+"nolink": true,
+"r2": false
+}
+],
 "video": null,
 "reposts": 5085,
 "comments": 5375,
