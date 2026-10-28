@@ -73,3 +73,4 @@
 - 只换缩图（没有原图链接）：pics 项设 `nolink: true, r2: false`。
 - 连原图也换：pics 项设 `custom: true`，缩图放 `thumbs/<key>`；原图 `PUT /staging/N` 后 `POST /r2-promote?slot=N&key=<key>` 存进 R2 同名路径。
 - 显示成全黑但保留资料：pics 项加 `hide: true`（档案与原资料不删）。
+- 「原微博」链接只显示在发布未满半年（183 天）的微博，按浏览当天自动计算。

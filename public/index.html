@@ -15,7 +15,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-10-28-34">
+<meta name="site-build" content="2026-10-28-35">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -192,7 +192,7 @@ details.hot .list{display:grid;gap:10px;margin-top:10px}
 <div class="wrap">
   <main class="feed" id="feed"></main>
   <div id="loadmore" class="loadmore" hidden>载入更多…</div>
-  <p class="note">本页为粉丝自制存档，文字与图片版权归原作者所有。视频未存档，只保存封面截图，点「原微博」可在微博查看。转评赞数字为备份当时的数据。吴谨言本人主页已看不到的较早微博，内容来自 @盐圈大管家 的「小吴老师的半年可见」转载，以及「吴谨言的微博书」（2010—2024年6月）。每条微博保存点赞前 5 名的热门评论，以及吴谨言本人回复过的评论。</p>
+  <p class="note">本页为粉丝自制存档，文字与图片版权归原作者所有。视频未存档，只保存封面截图，半年内的微博可点「原微博」到微博查看。转评赞数字为备份当时的数据。吴谨言本人主页已看不到的较早微博，内容来自 @盐圈大管家 的「小吴老师的半年可见」转载，以及「吴谨言的微博书」（2010—2024年6月）。每条微博保存点赞前 5 名的热门评论，以及吴谨言本人回复过的评论。</p>
 </div>
 
 <div class="lb" id="lb" hidden>
@@ -217,6 +217,7 @@ const hm = iso => fmt(iso, {hour:"2-digit", minute:"2-digit", hour12:false});
 const monthKey = iso => ymd(iso).slice(0, 7);
 const num = n => n >= 10000 ? (n/10000).toFixed(1).replace(/\.0$/,"") + "万" : String(n);
 const dur = s => s ? `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}` : "";
+const HALF_YEAR = 183 * 864e5; // 「原微博」链接只给半年内的微博
 const origUrl = p => ORIGINAL_BASE && p.r2 !== false ? ORIGINAL_BASE + p.src : (p.orig || "");
 
 function rich(text, q) {
@@ -280,7 +281,7 @@ function postHtml(p, q) {
   return `<article id="p-${p.id}"><div class="pbody">
     <div class="head">${p.coop ? `<div class="coava">${p.coop.map(u => u.avatar ? `<img class="mini" src="avatars/u/${esc(u.avatar)}.jpg" alt="" loading="lazy">` : `<img class="mini" src="${esc(p.avatar)}" alt="" loading="lazy">`).join("")}</div>` : p.avatar ? `<img class="mini" src="${esc(p.avatar)}" alt="" loading="lazy">` : '<div class="mini" aria-hidden="true">言</div>'}
       <div class="who"><div class="n">${p.coop ? p.coop.map(u => esc(u.name)).join('<span class="co">与</span>') + '<span class="co">的共创微博</span>' : "吴谨言"}${p.top ? '<span class="top-tag">置顶</span>' : ""}</div><div class="t">${meta.join("")}</div></div>
-      ${p.url ? `<a class="ext" href="${p.url}" target="_blank" rel="noopener noreferrer">原微博 ↗</a>` : ""}</div>
+      ${p.url && Date.now() - Date.parse(p.time) < HALF_YEAR ? `<a class="ext" href="${p.url}" target="_blank" rel="noopener noreferrer">原微博 ↗</a>` : ""}</div>
     ${p.text ? `<div class="text">${rich(p.text, q)}</div>` : ""}
     ${picsHtml(p.rt && p.video && p.rt.video && p.rt.video.cover === p.video.cover ? {...p, skipVideo: true} : p)}${rt}
     ${p.note ? `<div class="vnote">注：${esc(p.note)}</div>` : ""}
