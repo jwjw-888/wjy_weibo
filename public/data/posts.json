@@ -677,8 +677,14 @@
 "top": false,
 "source": "生日动态",
 "region": "",
-"text": "http://t.cn/AXNmxyu0",
-"pics": [],
+"text": "",
+"pics": [
+{
+"src": "img/birthday-20260816.jpg",
+"nolink": true,
+"r2": false
+}
+],
 "video": null,
 "reposts": 2622,
 "comments": 3940,
