@@ -14,7 +14,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-10-28-26">
+<meta name="site-build" content="2026-10-28-27">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -347,6 +347,11 @@ function render() {
   $("count").textContent = (q || m || filter !== "all") ? `找到 ${list.length} 条` : `共 ${list.length} 条，按时间从新到旧`;
 }
 let view = null;
+// 换月份、类型或搜索后，跳回列表开头，不然往下滑很远时会看到一片空白
+function toTop() {
+  const y = document.querySelector(".profile").offsetHeight;
+  if (window.scrollY > y) window.scrollTo({top: y});
+}
 function clampTexts(els) {
   for (const el of els) {
     if (el.closest(".cmts")) continue;
@@ -410,10 +415,10 @@ $("chips").addEventListener("click", e => {
   const c = e.target.closest(".chip"); if (!c) return;
   filter = c.dataset.f;
   document.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === c));
-  render();
+  render(); toTop();
 });
-let timer; $("q").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(render, 150); });
-$("month").addEventListener("change", render);
+let timer; $("q").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(() => { render(); toTop(); }, 150); });
+$("month").addEventListener("change", () => { render(); toTop(); });
 
 Promise.all([fetch("data/posts.json").then(r => r.json()), fetch("data/dims.json").then(r => r.json()), fetch("data/comments.json").then(r => r.ok ? r.json() : {}).catch(() => ({})), fetch("data/emoji.json").then(r => r.ok ? r.json() : {}).catch(() => ({})), fetch("data/links.json").then(r => r.ok ? r.json() : {}).catch(() => ({}))]).then(([d, dims, cm, emo, links]) => {
   DATA = d; DATA.dims = dims; DATA.comments = cm; EMO = emo; LINKS = links;
