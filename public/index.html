@@ -14,7 +14,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-10-28-28">
+<meta name="site-build" content="2026-10-28-29">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -212,9 +212,7 @@ const hm = iso => fmt(iso, {hour:"2-digit", minute:"2-digit", hour12:false});
 const monthKey = iso => ymd(iso).slice(0, 7);
 const num = n => n >= 10000 ? (n/10000).toFixed(1).replace(/\.0$/,"") + "万" : String(n);
 const dur = s => s ? `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}` : "";
-// GitHub 网址（中国也能开）优先连微博图床的原图；Cloudflare 网址则连 R2
-const ON_GITHUB = /github\.io$/.test(location.hostname);
-const origUrl = p => ON_GITHUB && p.orig ? p.orig.replace(/^http:/, "https:") : ORIGINAL_BASE && p.r2 !== false ? ORIGINAL_BASE + p.src : (p.orig || "");
+const origUrl = p => ORIGINAL_BASE && p.r2 !== false ? ORIGINAL_BASE + p.src : (p.orig || "");
 
 function rich(text, q) {
   let h = esc(text || "");

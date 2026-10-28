@@ -47,4 +47,4 @@
 - Cloudflare：https://wjy-weibo.jwjw888.workers.dev/
 - GitHub Pages：https://jwjw-888.github.io/wjy_weibo/
 推送到 main 后两边都会自动更新。网页里的路径都要用相对路径（不要以 / 开头），GitHub Pages 才能正常显示。
-GitHub 网址底下，「查看原图」优先连微博图床（中国也能开）；Cloudflare 网址底下连 R2。
+两个网址的「查看原图」都连 R2。
