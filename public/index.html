@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>吴谨言微博备份</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="site-build" content="2026-10-28-12">
+<meta name="site-build" content="2026-10-28-13">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -58,7 +58,11 @@ article{background:var(--card);border-radius:8px;min-width:0;overflow:hidden}
 .head{display:flex;align-items:center;gap:10px}
 .mini{width:40px;height:40px;border-radius:50%;flex:0 0 auto;overflow:hidden;object-fit:cover;background:linear-gradient(135deg,#ffb36b,#ff7a3d);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600}
 .who{min-width:0;flex:1}
-.who .n{font-weight:700;font-size:14px;color:var(--fg);display:flex;align-items:center;gap:6px}
+.who .n .co{font-weight:400;color:var(--muted);margin:0 4px;white-space:nowrap}
+.coava{display:flex;flex:0 0 auto}
+.coava .mini+.mini{margin-left:-12px;border:2px solid var(--card)}
+.who .n{font-weight:700;font-size:14px;color:var(--fg);line-height:1.5}
+.who .n .top-tag{display:inline-block;margin-left:6px;vertical-align:1px}
 .top-tag{font-size:11px;font-weight:400;color:var(--accent);border:1px solid var(--accent);border-radius:3px;padding:0 4px;line-height:16px}
 .who .t{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .who .t span+span::before{content:"";margin-left:8px}
@@ -239,8 +243,8 @@ function postHtml(p, q) {
   }
   const acts = p.archive ? "" : `<div class="acts"><span>${ICON.rt}${p.reposts ? num(p.reposts) : "转发"}</span><span>${ICON.cm}${p.comments ? num(p.comments) : "评论"}</span><span>${ICON.lk}${p.likes ? num(p.likes) : "赞"}</span></div>`;
   return `<article id="p-${p.id}"><div class="pbody">
-    <div class="head">${p.avatar ? `<img class="mini" src="${esc(p.avatar)}" alt="" loading="lazy">` : '<div class="mini" aria-hidden="true">言</div>'}
-      <div class="who"><div class="n">吴谨言${p.top ? '<span class="top-tag">置顶</span>' : ""}</div><div class="t">${meta.join("")}</div></div>
+    <div class="head">${p.coop ? `<div class="coava">${p.coop.map(u => u.avatar ? `<img class="mini" src="avatars/u/${esc(u.avatar)}.jpg" alt="" loading="lazy">` : `<img class="mini" src="${esc(p.avatar)}" alt="" loading="lazy">`).join("")}</div>` : p.avatar ? `<img class="mini" src="${esc(p.avatar)}" alt="" loading="lazy">` : '<div class="mini" aria-hidden="true">言</div>'}
+      <div class="who"><div class="n">${p.coop ? p.coop.map(u => esc(u.name)).join('<span class="co">与</span>') + '<span class="co">的共创微博</span>' : "吴谨言"}${p.top ? '<span class="top-tag">置顶</span>' : ""}</div><div class="t">${meta.join("")}</div></div>
       ${p.url ? `<a class="ext" href="${p.url}" target="_blank" rel="noopener noreferrer">原微博 ↗</a>` : ""}</div>
     ${p.text ? `<div class="text">${rich(p.text, q)}</div>` : ""}
     ${picsHtml(p.rt && p.video && p.rt.video && p.rt.video.cover === p.video.cover ? {...p, skipVideo: true} : p)}${rt}
