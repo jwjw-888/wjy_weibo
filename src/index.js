@@ -95,6 +95,13 @@ export default {
     if (url.pathname.startsWith("/staging/")) return staging(request, env, url);
     if (url.pathname === "/usage") return usage(env);
     if (url.pathname === "/r2-live") return liveArchive(request, env);
+    if (url.pathname.startsWith("/r2-live/") && request.method === "GET") {
+      const key = "live/" + url.pathname.slice("/r2-live/".length);
+      if (!/^live\/[A-Za-z0-9]+\.mov$/.test(key)) return json({error: "bad key"}, 400);
+      const obj = await env.BUCKET.get(key);
+      if (!obj) return json({key, status: "missing"}, 404);
+      return new Response(obj.body, {headers: {"content-type": "video/quicktime"}});
+    }
     if (!url.pathname.startsWith("/r2-archive/")) return env.ASSETS.fetch(request);
     if (request.method !== "POST") return json({error: "use POST"}, 405);
     const key = decodeURIComponent(url.pathname.slice("/r2-archive/".length));
