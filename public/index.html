@@ -15,7 +15,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-10-29-2">
+<meta name="site-build" content="2026-10-29-3">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -56,7 +56,9 @@ a{color:var(--link);text-decoration:none}
 .search select{display:none}
 .mbtn{flex:0 0 auto;font:inherit;font-size:14px;border:0;background:var(--sunken);color:var(--fg);border-radius:16px;padding:7px 12px 7px 14px;cursor:pointer;white-space:nowrap}
 .mbtn::after{content:"";display:inline-block;width:6px;height:6px;margin-left:8px;border:solid var(--muted);border-width:0 1.5px 1.5px 0;transform:translateY(-3px) rotate(45deg)}
-.mpanel{position:absolute;right:12px;top:calc(100% - 4px);width:min(300px,calc(100% - 24px));background:var(--card);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.18),0 0 0 1px var(--line);padding:10px;z-index:6}
+.mshade{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:5}
+.mpanel{position:absolute;right:12px;top:calc(100% - 4px);width:min(320px,calc(100% - 24px));background:var(--card);border-radius:12px;border-top:3px solid var(--accent);box-shadow:0 12px 36px rgba(0,0,0,.35);padding:12px;z-index:6}
+.mhead{font-size:14px;font-weight:600;color:var(--fg);margin:0 2px 8px}.mhead small{font-weight:400;color:var(--muted);margin-left:6px;font-size:12px}
 .myears{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding-bottom:8px;border-bottom:1px solid var(--line)}
 .myears::-webkit-scrollbar{display:none}
 .mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding-top:10px}
@@ -191,7 +193,7 @@ details.hot .list{display:grid;gap:10px;margin-top:10px}
       <input id="q" type="search" placeholder="搜索微博、话题、评论" autocomplete="off">
       <button class="mbtn" id="mbtn" type="button" aria-haspopup="true" aria-expanded="false">全部月份</button>
     </div>
-    <div class="mpanel" id="mpanel" hidden><div class="myears" id="myears"></div><div class="mgrid" id="mgrid"></div><div class="mact"><button type="button" id="myear">全选本年</button><button type="button" id="mall">清除</button><button type="button" id="mdone" class="mdone">完成</button></div></div>
+    <div class="mshade" id="mshade" hidden></div><div class="mpanel" id="mpanel" hidden><div class="mhead">选择月份<small>可复选</small></div><div class="myears" id="myears"></div><div class="mgrid" id="mgrid"></div><div class="mact"><button type="button" id="myear">全选本年</button><button type="button" id="mall">清除</button><button type="button" id="mdone" class="mdone">完成</button></div></div>
     <div class="chips" id="chips" role="group" aria-label="类型筛选">
       <button class="chip" data-f="all" aria-pressed="true">全部</button>
       <button class="chip" data-f="orig" aria-pressed="false">原创</button>
@@ -453,7 +455,7 @@ function mDraw() {
   $("myear").textContent = all ? "取消本年" : "全选本年";
 }
 function mOpen(open) {
-  $("mpanel").hidden = !open; $("mbtn").setAttribute("aria-expanded", open);
+  $("mpanel").hidden = $("mshade").hidden = !open; $("mbtn").setAttribute("aria-expanded", open);
   if (open) { MP.y = MP.y || Object.keys(MP.years).sort().pop(); mDraw(); const b = $("myears").querySelector('[aria-pressed="true"]'); if (b) b.scrollIntoView({inline: "center", block: "nearest"}); }
 }
 function mApply() { mLabel(); mDraw(); render(); toTop(); }
