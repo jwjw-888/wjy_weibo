@@ -42,3 +42,8 @@
 ## 链接显示
 文中的 t.cn 短链接不显示网址，改为显示微博的链接标题（例如「🔗微博视界大会·年度推荐」），不可点击。
 标题对照存在 `public/data/links.json`（从微博的 `url_struct` 取得）；查不到标题的显示「网页链接」。以后更新时要一起补上新链接的标题。
+
+## 两个网址
+- Cloudflare：https://wjy-weibo.jwjw888.workers.dev/
+- GitHub Pages：https://jwjw-888.github.io/wjy_weibo/
+推送到 main 后两边都会自动更新。网页里的路径都要用相对路径（不要以 / 开头），GitHub Pages 才能正常显示。
