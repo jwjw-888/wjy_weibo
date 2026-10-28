@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>吴谨言微博备份</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700&display=swap">
+<style>
+/* Layout: one reading column, sticky search bar, posts grouped by month like an archive ledger */
+:root{
+  --bg:#f6f5f2; --surface:#ffffff; --sunken:#efede8; --line:#e2dfd8;
+  --fg:#23211e; --muted:#76716a; --accent:#a8435a; --accent-soft:#f3e4e8; --link:#2f5f8a;
+  --shade:rgba(20,18,16,.92);
+  --display:"Noto Serif SC","Songti SC","STSong",serif;
+  --body:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#171615; --surface:#201f1d; --sunken:#2a2826; --line:#353330;
+  --fg:#ece9e4; --muted:#9d978f; --accent:#e08aa0; --accent-soft:#3a2a2f; --link:#8cb8e0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#171615; --surface:#201f1d; --sunken:#2a2826; --line:#353330;
+  --fg:#ece9e4; --muted:#9d978f; --accent:#e08aa0; --accent-soft:#3a2a2f; --link:#8cb8e0; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0}
+img{max-width:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.7}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:680px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{padding-block:28px 12px}
+.eyebrow{font-size:12px;letter-spacing:.12em;color:var(--muted)}
+h1{font-family:var(--display);font-size:30px;line-height:1.25;margin:4px 0 6px;text-wrap:balance}
+.meta{color:var(--muted);font-size:13px;display:flex;flex-wrap:wrap;gap:4px 14px;font-variant-numeric:tabular-nums}
+.meta b{color:var(--fg);font-weight:600}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px;border-bottom:1px solid var(--line)}
+.search{display:flex;gap:8px}
+.search input,.search select{font:inherit;font-size:15px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:10px;padding:8px 12px;min-width:0}
+.search input{flex:1}
+.search select{flex:0 0 auto;max-width:42%}
+.chips{display:flex;gap:6px;margin-top:8px;overflow-x:auto;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;font:inherit;font-size:13px;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:3px 12px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.count{font-size:12px;color:var(--muted);margin-top:6px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.month{font-family:var(--display);font-size:17px;margin:26px 0 8px;display:flex;align-items:baseline;gap:8px}
+.month small{font-family:var(--body);font-size:12px;color:var(--muted);font-weight:400}
+.feed{display:grid;gap:12px;padding-bottom:40px}
+article{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
+.head{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.head time{color:var(--fg);font-weight:600;font-size:13.5px}
+.tag{font-size:11.5px;padding:0 7px;border-radius:5px;background:var(--accent-soft);color:var(--accent);font-weight:600}
+.tag.plain{background:var(--sunken);color:var(--muted)}
+.text{margin:8px 0 0;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}
+.text a,.rt a{color:var(--link);text-decoration:none}
+.text a.topic,.rt a.topic{color:var(--accent)}
+mark{background:#ffe27a;color:#23211e;border-radius:2px}
+.pics{display:grid;gap:4px;margin-top:10px;grid-template-columns:repeat(3,1fr)}
+.pics.n1{grid-template-columns:1fr;max-width:min(100%,360px)}
+.pics.n2,.pics.n4{grid-template-columns:repeat(2,1fr);max-width:min(100%,420px)}
+.pic{position:relative;padding:0;border:0;background:var(--sunken);border-radius:6px;overflow:hidden;aspect-ratio:1;cursor:zoom-in;max-width:100%}
+.pics.n1 .pic{aspect-ratio:auto}
+.pic img{width:100%;height:100%;object-fit:cover;display:block}
+.pics.n1 .pic img{height:auto;max-height:480px;object-fit:contain}
+.play{position:absolute;inset:auto 6px 6px auto;background:rgba(0,0,0,.6);color:#fff;font-size:11.5px;border-radius:5px;padding:1px 7px;display:flex;align-items:center;gap:4px}
+.play::before{content:"";border-left:7px solid #fff;border-top:4.5px solid transparent;border-bottom:4.5px solid transparent}
+.vnote{font-size:12px;color:var(--muted);margin-top:4px}
+.rt{margin-top:10px;background:var(--sunken);border-radius:8px;padding:10px 12px;font-size:14.5px;min-width:0}
+.rt .who{font-size:13px;font-weight:600}
+.rt .who span{font-weight:400;color:var(--muted);margin-left:6px;font-size:12px}
+.foot{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:10px;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.foot a{color:var(--link);text-decoration:none;margin-left:auto}
+.cmts{margin-top:10px;border-top:1px dashed var(--line);padding-top:8px;display:grid;gap:8px;font-size:14px;min-width:0}
+.cmt{min-width:0}
+.cmt .u{font-weight:600;font-size:13px}
+.cmt .u span{font-weight:400;color:var(--muted);font-size:12px;margin-left:6px;font-variant-numeric:tabular-nums}
+.cmt .t{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}
+.reply{margin:4px 0 0 12px;padding:6px 10px;border-left:2px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0}
+.reply .u{color:var(--accent)}
+.lbl{font-size:12px;color:var(--muted);letter-spacing:.06em}
+details.hot summary{cursor:pointer;font-size:12.5px;color:var(--muted);list-style:none}
+details.hot summary::-webkit-details-marker{display:none}
+details.hot summary::before{content:"▸ ";}
+details.hot[open] summary::before{content:"▾ ";}
+details.hot .list{display:grid;gap:8px;margin-top:6px}
+.cpic{display:block;margin-top:4px;padding:0;border:0;background:var(--sunken);border-radius:6px;overflow:hidden;width:96px;height:96px;cursor:zoom-in}
+.cpic img{width:100%;height:100%;object-fit:cover;display:block}
+.empty{text-align:center;color:var(--muted);padding:48px 0}
+.note{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-block:16px 32px}
+/* lightbox */
+.lb{position:fixed;inset:0;z-index:20;background:var(--shade);display:flex;flex-direction:column;color:#fff;
+  padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+.lb .stage{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;touch-action:pan-y}
+.lb img{max-width:100%;max-height:100%;object-fit:contain}
+.lb .tools{display:flex;align-items:center;gap:12px;padding:10px 16px;font-size:14px;font-variant-numeric:tabular-nums}
+.lb button{font:inherit;color:#fff;background:rgba(255,255,255,.12);border:0;border-radius:8px;padding:6px 12px;cursor:pointer}
+.lb a{color:#fff;margin-left:auto;font-size:13px}
+.lb .nav{position:absolute;top:50%;transform:translateY(-50%);font-size:22px;padding:10px 14px}
+.lb .prev{left:calc(8px + env(safe-area-inset-left,0px))}.lb .next{right:calc(8px + env(safe-area-inset-right,0px))}
+@media (max-width:520px){.lb .nav{display:none} h1{font-size:26px}}
+@media (prefers-reduced-motion:no-preference){article{transition:border-color .15s}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">微博存档 · @吴谨言 · UID 1278603180</div>
+    <h1>吴谨言微博备份</h1>
+    <div class="meta" id="meta">载入中…</div>
+  </header>
+</div>
+<div class="bar"><div class="wrap">
+  <div class="search">
+    <input id="q" type="search" placeholder="搜索文字、话题、转发内容" autocomplete="off">
+    <select id="month" aria-label="按月份筛选"><option value="">全部月份</option></select>
+  </div>
+  <div class="chips" id="chips" role="group" aria-label="类型筛选">
+    <button class="chip" data-f="all" aria-pressed="true">全部</button>
+    <button class="chip" data-f="orig" aria-pressed="false">原创</button>
+    <button class="chip" data-f="rt" aria-pressed="false">转发</button>
+    <button class="chip" data-f="pic" aria-pressed="false">有图</button>
+    <button class="chip" data-f="video" aria-pressed="false">视频</button>
+    <button class="chip" data-f="reply" aria-pressed="false">她有回复</button>
+    <button class="chip" data-f="archive" aria-pressed="false">半年可见</button>
+  </div>
+  <div class="count" id="count"></div>
+</div></div>
+<div class="wrap">
+  <main class="feed" id="feed"></main>
+  <p class="note">本页为粉丝自制存档，文字与图片版权归原作者所有。视频未存档，只保存封面截图，点「原微博」可在微博查看。转评赞数字为备份当时的数据。标有「半年可见」的微博，吴谨言本人主页已看不到，内容来自 @盐圈大管家 的「小吴老师的半年可见」转载。每条微博保存点赞前 5 名的热门评论，以及吴谨言本人回复过的评论。</p>
+</div>
+
+<div class="lb" id="lb" hidden>
+  <div class="stage" id="stage"><img id="lbimg" alt=""></div>
+  <button class="nav prev" id="prev" aria-label="上一张">‹</button>
+  <button class="nav next" id="next" aria-label="下一张">›</button>
+  <div class="tools"><button id="close">关闭</button><span id="lbn"></span><a id="lborig" href="#" target="_blank" rel="noopener noreferrer">查看原图</a></div>
+</div>
+
+<script>
+// 原图存放位置：开通 Cloudflare R2 后，把公开网址填在这里，例如 "https://pub-xxxx.r2.dev/"
+// 留空时「查看原图」会链接到微博图床上的原图。
+const ORIGINAL_BASE = "";
+const TZ = "Asia/Shanghai";
+
+let DATA = null, filter = "all";
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = (iso, opt) => new Intl.DateTimeFormat("zh-CN", {timeZone: TZ, ...opt}).format(new Date(iso));
+const ymd = iso => fmt(iso, {year:"numeric", month:"2-digit", day:"2-digit"}).replace(/\//g, "-");
+const hm = iso => fmt(iso, {hour:"2-digit", minute:"2-digit", hour12:false});
+const monthKey = iso => ymd(iso).slice(0, 7);
+const num = n => n >= 10000 ? (n/10000).toFixed(1).replace(/\.0$/,"") + "万" : String(n);
+const dur = s => s ? `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}` : "";
+const origUrl = p => ORIGINAL_BASE ? ORIGINAL_BASE + p.src : p.orig;
+
+function rich(text, q) {
+  let h = esc(text || "");
+  h = h.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+  h = h.replace(/#([^#\n<]{1,40})#/g, (m, t) => `<a href="#" class="topic" data-topic="${t}">#${t}#</a>`);
+  h = h.replace(/@([一-龥\w\-]{1,30})/g, (m, u) => `<a href="https://weibo.com/n/${encodeURIComponent(u)}" target="_blank" rel="noopener noreferrer">@${u}</a>`);
+  if (q) {
+    const re = new RegExp("(" + q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi");
+    h = h.split(/(<[^>]+>)/).map(part => part.startsWith("<") ? part : part.replace(re, "<mark>$1</mark>")).join("");
+  }
+  return h;
+}
+
+let gallery = [];
+function picsHtml(o) {
+  const items = [...o.pics];
+  if (o.video && !items.length && !o.skipVideo) items.push({src: o.video.cover, orig: o.video.coverOrig, isVideo: true, dur: o.video.duration});
+  if (!items.length) return "";
+  const n = items.length;
+  const cls = n === 1 ? "n1" : n === 2 ? "n2" : n === 4 ? "n4" : "";
+  const start = gallery.length;
+  gallery.push(items);
+  const cells = items.map((p, i) => {
+    const d = DATA.dims[p.src];
+    const ar = n === 1 && d ? ` style="aspect-ratio:${d[0]}/${d[1]}"` : "";
+    const badge = p.isVideo ? `<span class="play">${dur(p.dur) || "视频"}</span>` : "";
+    return `<button class="pic" data-g="${start}" data-i="${i}"${ar} aria-label="${p.isVideo ? "视频封面" : "图片"} ${i+1}/${n}"><img loading="lazy" src="thumbs/${esc(p.src)}" alt="">${badge}</button>`;
+  }).join("");
+  const vnote = items.some(p => p.isVideo) ? `<div class="vnote">视频未存档，仅保存封面${o.video && o.video.title ? "（" + esc(o.video.title) + "）" : ""}</div>` : "";
+  return `<div class="pics ${cls}">${cells}</div>${vnote}`;
+}
+
+function postHtml(p, q) {
+  const tags = [];
+  if (p.top) tags.push('<span class="tag">置顶</span>');
+  if (p.rt) tags.push('<span class="tag plain">转发</span>');
+  if (p.archive) tags.push('<span class="tag plain">半年可见</span>');
+  const where = [p.region, p.source].filter(Boolean).map(esc).join(" · ");
+  let rt = "";
+  if (p.rt) {
+    rt = `<div class="rt"><div class="who">@${esc(p.rt.user)}${p.rt.time ? `<span>${ymd(p.rt.time)} ${hm(p.rt.time)}</span>` : ""}</div>
+      <div class="text">${rich(p.rt.text, q)}</div>${picsHtml(p.rt)}</div>`;
+  }
+  return `<article id="p-${p.id}">
+    <div class="head"><time datetime="${p.time}">${ymd(p.time)}${p.dateOnly ? "" : " " + hm(p.time)}</time>${tags.join("")}${where ? `<span>${where}</span>` : ""}</div>
+    ${p.text ? `<div class="text">${rich(p.text, q)}</div>` : ""}
+    ${picsHtml(p.rt && p.video && p.rt.video && p.rt.video.cover === p.video.cover ? {...p, skipVideo: true} : p)}${rt}
+    ${p.note ? `<div class="vnote">注：${esc(p.note)}</div>` : ""}
+    ${p.archive ? `<div class="foot"><span>原微博已设为半年可见，内容由 @${esc(p.via.user)} 于 ${ymd(p.via.time)} 转载整理</span><a href="${p.via.url}" target="_blank" rel="noopener noreferrer">转载微博 ↗</a></div>` : `<div class="foot"><span>转发 ${num(p.reposts)}</span><span>评论 ${num(p.comments)}</span><span>赞 ${num(p.likes)}</span><a href="${p.url}" target="_blank" rel="noopener noreferrer">原微博 ↗</a></div>`}
+    ${commentsHtml(p, q)}
+  </article>`;
+}
+
+function cpicHtml(c) {
+  if (!c.picSrc) return "";
+  const g = gallery.length; gallery.push([{src: c.picSrc, orig: c.pic}]);
+  return `<button class="pic cpic" data-g="${g}" data-i="0" aria-label="评论图片"><img loading="lazy" src="thumbs/${esc(c.picSrc)}" alt=""></button>`;
+}
+function cmtHtml(c, q, cls) {
+  const when = ymd(c.time).slice(5) + " " + hm(c.time);
+  return `<div class="${cls || "cmt"}"><div class="u">${esc(c.user)}<span>${when} · 赞 ${num(c.likes)}</span></div><div class="t">${rich(c.text, q)}</div>${cpicHtml(c)}</div>`;
+}
+function commentsHtml(p, q) {
+  const c = (DATA.comments || {})[p.id];
+  if (!c) return "";
+  let h = "";
+  if (c.author.length) {
+    h += `<div class="lbl">吴谨言的回复</div>` + c.author.map(a => a.isAuthorComment
+      ? cmtHtml(a.comment, q, "cmt reply")
+      : `<div class="cmt">${cmtHtml(a.comment, q)}${a.replies.map(r => cmtHtml(r, q, "cmt reply")).join("")}</div>`).join("");
+  }
+  if (c.top.length) {
+    h += `<details class="hot"${q && c.top.some(x => x.text.toLowerCase().includes(q.toLowerCase())) ? " open" : ""}><summary>热门评论前 ${c.top.length} 名（共 ${num(p.comments)} 条评论）</summary><div class="list">${c.top.map(x => cmtHtml(x, q)).join("")}</div></details>`;
+  }
+  return h ? `<div class="cmts">${h}</div>` : "";
+}
+
+function haystack(p) {
+  const c = (DATA.comments || {})[p.id];
+  const ct = c ? [...c.top, ...c.author.flatMap(a => [a.comment, ...a.replies])].map(x => x.user + " " + x.text).join("\n") : "";
+  return [p.text, p.rt && p.rt.text, p.rt && p.rt.user, p.region, p.video && p.video.title].filter(Boolean).join("\n").toLowerCase() + "\n" + ct.toLowerCase();
+}
+
+function render() {
+  const q = $("q").value.trim();
+  const m = $("month").value;
+  const ql = q.toLowerCase();
+  const list = DATA.posts.filter(p => {
+    if (m && monthKey(p.time) !== m) return false;
+    if (filter === "orig" && p.rt) return false;
+    if (filter === "rt" && !p.rt) return false;
+    if (filter === "pic" && !(p.pics.some(x => !x.isVideo) || (p.rt && p.rt.pics.length))) return false;
+    if (filter === "video" && !(p.video || p.pics.some(x => x.isVideo) || (p.rt && p.rt.video))) return false;
+    if (filter === "archive" && !p.archive) return false;
+    if (filter === "reply" && !((DATA.comments || {})[p.id] && DATA.comments[p.id].author.length)) return false;
+    if (ql && !haystack(p).includes(ql)) return false;
+    return true;
+  });
+  gallery = [];
+  let html = "", cur = "";
+  const perMonth = {};
+  list.forEach(p => { const k = monthKey(p.time); perMonth[k] = (perMonth[k] || 0) + 1; });
+  for (const p of list) {
+    const k = monthKey(p.time);
+    if (k !== cur) { cur = k; const [y, mo] = k.split("-"); html += `<h2 class="month">${y}年${+mo}月<small>${perMonth[k]} 条</small></h2>`; }
+    html += postHtml(p, q);
+  }
+  $("feed").innerHTML = html || `<div class="empty">没有找到符合条件的微博</div>`;
+  $("count").textContent = (q || m || filter !== "all") ? `找到 ${list.length} 条` : `共 ${list.length} 条，按时间从新到旧`;
+}
+
+// lightbox
+let lbItems = [], lbIdx = 0;
+function openLb(g, i) { lbItems = gallery[g]; lbIdx = i; showLb(); $("lb").hidden = false; document.body.style.overflow = "hidden"; $("close").focus(); }
+function showLb() {
+  const p = lbItems[lbIdx];
+  $("lbimg").src = "thumbs/" + p.src;
+  $("lbn").textContent = lbItems.length > 1 ? `${lbIdx + 1} / ${lbItems.length}` : "";
+  $("lborig").href = origUrl(p);
+  $("lborig").textContent = p.isVideo ? "查看封面原图" : "查看原图";
+  $("prev").hidden = $("next").hidden = lbItems.length < 2;
+}
+function closeLb() { $("lb").hidden = true; document.body.style.overflow = ""; }
+function step(d) { lbIdx = (lbIdx + d + lbItems.length) % lbItems.length; showLb(); }
+$("close").onclick = closeLb; $("prev").onclick = () => step(-1); $("next").onclick = () => step(1);
+$("stage").onclick = e => { if (e.target === e.currentTarget) closeLb(); };
+document.addEventListener("keydown", e => {
+  if ($("lb").hidden) return;
+  if (e.key === "Escape") closeLb(); else if (e.key === "ArrowLeft") step(-1); else if (e.key === "ArrowRight") step(1);
+});
+let tx = null;
+$("stage").addEventListener("touchstart", e => { tx = e.touches[0].clientX; }, {passive: true});
+$("stage").addEventListener("touchend", e => { if (tx === null) return; const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 40 && lbItems.length > 1) step(dx < 0 ? 1 : -1); tx = null; });
+
+$("feed").addEventListener("click", e => {
+  const b = e.target.closest(".pic"); if (b) { openLb(+b.dataset.g, +b.dataset.i); return; }
+  const t = e.target.closest("a.topic"); if (t) { e.preventDefault(); $("q").value = t.dataset.topic; render(); window.scrollTo({top: 0}); }
+});
+$("chips").addEventListener("click", e => {
+  const c = e.target.closest(".chip"); if (!c) return;
+  filter = c.dataset.f;
+  document.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === c));
+  render();
+});
+let timer; $("q").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(render, 150); });
+$("month").addEventListener("change", render);
+
+Promise.all([fetch("data/posts.json").then(r => r.json()), fetch("data/dims.json").then(r => r.json()), fetch("data/comments.json").then(r => r.ok ? r.json() : {}).catch(() => ({}))]).then(([d, dims, cm]) => {
+  DATA = d; DATA.dims = dims; DATA.comments = cm;
+  DATA.posts.sort((a, b) => b.time.localeCompare(a.time) || ((b.via && b.via.time) || "").localeCompare((a.via && a.via.time) || ""));
+  const times = DATA.posts.map(p => p.time).sort();
+  const months = [...new Set(DATA.posts.map(p => monthKey(p.time)))];
+  $("month").insertAdjacentHTML("beforeend", months.map(k => { const [y, m] = k.split("-"); return `<option value="${k}">${y}年${+m}月</option>`; }).join(""));
+  const picN = DATA.posts.reduce((a, p) => a + p.pics.filter(x => !x.isVideo).length + (p.rt ? p.rt.pics.length : 0), 0);
+  $("meta").innerHTML = `<span><b>${DATA.posts.length}</b> 条微博</span><span><b>${picN}</b> 张图片</span><span>${ymd(times[0])} 至 ${ymd(times[times.length-1])}</span><span>最近备份 ${ymd(DATA.fetchedAt)}</span>`;
+  render();
+}).catch(() => { $("feed").innerHTML = `<div class="empty">数据载入失败，请重新整理页面</div>`; });
+</script>
+
+</body>
+</html>
