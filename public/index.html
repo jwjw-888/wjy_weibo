@@ -5,130 +5,147 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>吴谨言微博备份</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="site-build" content="2026-10-28-1">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700&display=swap">
+<meta name="site-build" content="2026-10-28-2">
 <style>
-/* Layout: one reading column, sticky search bar, posts grouped by month like an archive ledger */
+/* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
-  --bg:#f6f5f2; --surface:#ffffff; --sunken:#efede8; --line:#e2dfd8;
-  --fg:#23211e; --muted:#76716a; --accent:#a8435a; --accent-soft:#f3e4e8; --link:#2f5f8a;
-  --shade:rgba(20,18,16,.92);
-  --display:"Noto Serif SC","Songti SC","STSong",serif;
-  --body:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+  --bg:#f1f2f5; --card:#ffffff; --sunken:#f7f7f8; --line:#eeeeee;
+  --fg:#333333; --muted:#939393; --soft:#636363; --link:#eb7350; --accent:#ff8200; --accent-soft:#fff3e8; --reply:#fbf3ee;
+  --shade:rgba(0,0,0,.92);
+  --body:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#171615; --surface:#201f1d; --sunken:#2a2826; --line:#353330;
-  --fg:#ece9e4; --muted:#9d978f; --accent:#e08aa0; --accent-soft:#3a2a2f; --link:#8cb8e0; color-scheme:dark}}
+  --bg:#101010; --card:#1c1c1c; --sunken:#262626; --line:#2c2c2c;
+  --fg:#dadada; --muted:#8a8a8a; --soft:#a5a5a5; --link:#f08a6a; --accent:#ff9a33; --accent-soft:#33261a; --reply:#2b2320; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#171615; --surface:#201f1d; --sunken:#2a2826; --line:#353330;
-  --fg:#ece9e4; --muted:#9d978f; --accent:#e08aa0; --accent-soft:#3a2a2f; --link:#8cb8e0; color-scheme:dark}
+  --bg:#101010; --card:#1c1c1c; --sunken:#262626; --line:#2c2c2c;
+  --fg:#dadada; --muted:#8a8a8a; --soft:#a5a5a5; --link:#f08a6a; --accent:#ff9a33; --accent-soft:#33261a; --reply:#2b2320; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{margin:0}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;line-height:1.6}
 img{max-width:100%}
-body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.7}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
-.wrap{max-width:680px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-header.top{padding-block:28px 12px}
-.eyebrow{font-size:12px;letter-spacing:.12em;color:var(--muted)}
-h1{font-family:var(--display);font-size:30px;line-height:1.25;margin:4px 0 6px;text-wrap:balance}
-.meta{color:var(--muted);font-size:13px;display:flex;flex-wrap:wrap;gap:4px 14px;font-variant-numeric:tabular-nums}
-.meta b{color:var(--fg);font-weight:600}
-.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px;border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--card)}
+.wrap{max-width:640px;margin:0 auto;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+a{color:var(--link);text-decoration:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* profile card */
+.profile{background:var(--card);border-radius:0 0 8px 8px;overflow:hidden;margin-bottom:10px}
+.cover{height:120px;background:linear-gradient(135deg,#f6d6c4 0%,#e9b8a6 45%,#c9a5c4 100%)}
+.pinfo{padding:0 16px 14px;display:flex;flex-direction:column;align-items:flex-start}
+.avatar{width:84px;height:84px;border-radius:50%;margin-top:-42px;border:3px solid var(--card);background:linear-gradient(135deg,#ffb36b,#ff7a3d);color:#fff;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:600;flex:0 0 auto}
+.pname{font-size:20px;font-weight:700;margin:8px 0 2px;display:flex;align-items:center;gap:8px}
+.pname small{font-size:11px;font-weight:400;color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 5px}
+.pdesc{color:var(--soft);font-size:13px}
+.meta{display:flex;flex-wrap:wrap;gap:4px 18px;margin-top:8px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.meta b{color:var(--fg);font-weight:600;margin-right:3px}
+/* sticky filter bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--card);border-radius:8px;padding:10px 12px;margin-bottom:10px;box-shadow:0 1px 0 var(--line)}
 .search{display:flex;gap:8px}
-.search input,.search select{font:inherit;font-size:15px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:10px;padding:8px 12px;min-width:0}
+.search input,.search select{font:inherit;font-size:14px;border:0;background:var(--sunken);color:var(--fg);border-radius:16px;padding:7px 14px;min-width:0}
 .search input{flex:1}
 .search select{flex:0 0 auto;max-width:42%}
-.chips{display:flex;gap:6px;margin-top:8px;overflow-x:auto;scrollbar-width:none}
+.chips{display:flex;gap:4px;margin-top:8px;overflow-x:auto;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
-.chip{flex:0 0 auto;font:inherit;font-size:13px;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:3px 12px;cursor:pointer}
-.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
-.count{font-size:12px;color:var(--muted);margin-top:6px}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.month{font-family:var(--display);font-size:17px;margin:26px 0 8px;display:flex;align-items:baseline;gap:8px}
-.month small{font-family:var(--body);font-size:12px;color:var(--muted);font-weight:400}
-.feed{display:grid;gap:12px;padding-bottom:40px}
-article{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
-.head{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
-.head time{color:var(--fg);font-weight:600;font-size:13.5px}
-.tag{font-size:11.5px;padding:0 7px;border-radius:5px;background:var(--accent-soft);color:var(--accent);font-weight:600}
-.tag.plain{background:var(--sunken);color:var(--muted)}
-.text{margin:8px 0 0;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}
-.text a,.rt a{color:var(--link);text-decoration:none}
-.text a.topic,.rt a.topic{color:var(--accent)}
-mark{background:#ffe27a;color:#23211e;border-radius:2px}
-.pics{display:grid;gap:4px;margin-top:10px;grid-template-columns:repeat(3,1fr)}
-.pics.n1{grid-template-columns:1fr;max-width:min(100%,360px)}
-.pics.n2,.pics.n4{grid-template-columns:repeat(2,1fr);max-width:min(100%,420px)}
-.pic{position:relative;padding:0;border:0;background:var(--sunken);border-radius:6px;overflow:hidden;aspect-ratio:1;cursor:zoom-in;max-width:100%}
+.chip{flex:0 0 auto;font:inherit;font-size:13px;border:0;background:transparent;color:var(--soft);border-radius:14px;padding:3px 12px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.count{font-size:12px;color:var(--muted);margin-top:6px;padding-left:4px}
+/* feed */
+.month{font-size:12px;color:var(--muted);margin:14px 4px 6px;font-weight:400}
+.month small{margin-left:6px}
+.feed{display:grid;gap:10px;padding-bottom:24px}
+article{background:var(--card);border-radius:8px;min-width:0;overflow:hidden}
+.pbody{padding:16px 16px 4px}
+.head{display:flex;align-items:center;gap:10px}
+.mini{width:40px;height:40px;border-radius:50%;flex:0 0 auto;background:linear-gradient(135deg,#ffb36b,#ff7a3d);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600}
+.who{min-width:0;flex:1}
+.who .n{font-weight:700;font-size:14px;color:var(--fg);display:flex;align-items:center;gap:6px}
+.top-tag{font-size:11px;font-weight:400;color:var(--accent);border:1px solid var(--accent);border-radius:3px;padding:0 4px;line-height:16px}
+.who .t{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who .t span+span::before{content:"";margin-left:8px}
+.ext{color:var(--muted);font-size:12px;flex:0 0 auto}
+.text{margin:10px 0 0;font-size:15px;line-height:1.65;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}
+mark{background:#ffe27a;color:#333;border-radius:2px}
+.pics{display:grid;gap:4px;margin-top:10px;grid-template-columns:repeat(3,1fr);max-width:min(100%,456px)}
+.pics.n1{grid-template-columns:1fr;max-width:min(100%,300px)}
+.pics.n2,.pics.n4{grid-template-columns:repeat(2,1fr);max-width:min(100%,304px)}
+.pic{position:relative;padding:0;border:0;background:var(--sunken);border-radius:4px;overflow:hidden;aspect-ratio:1;cursor:zoom-in;max-width:100%}
 .pics.n1 .pic{aspect-ratio:auto}
 .pic img{width:100%;height:100%;object-fit:cover;display:block}
-.pics.n1 .pic img{height:auto;max-height:480px;object-fit:contain}
-.play{position:absolute;inset:auto 6px 6px auto;background:rgba(0,0,0,.6);color:#fff;font-size:11.5px;border-radius:5px;padding:1px 7px;display:flex;align-items:center;gap:4px}
+.pics.n1 .pic img{height:auto;max-height:400px;object-fit:cover}
+.play{position:absolute;inset:auto 6px 6px auto;background:rgba(0,0,0,.55);color:#fff;font-size:11.5px;border-radius:10px;padding:1px 8px;display:flex;align-items:center;gap:4px}
 .play::before{content:"";border-left:7px solid #fff;border-top:4.5px solid transparent;border-bottom:4.5px solid transparent}
+.pics.vid .pic::after{content:"";position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:rgba(0,0,0,.45) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M9 7v10l8-5z'/%3E%3C/svg%3E") center/26px no-repeat}
 .vnote{font-size:12px;color:var(--muted);margin-top:4px}
-.rt{margin-top:10px;background:var(--sunken);border-radius:8px;padding:10px 12px;font-size:14.5px;min-width:0}
-.rt .who{font-size:13px;font-weight:600}
-.rt .who span{font-weight:400;color:var(--muted);margin-left:6px;font-size:12px}
-.foot{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:10px;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
-.foot a{color:var(--link);text-decoration:none;margin-left:auto}
-.cmts{margin-top:10px;border-top:1px dashed var(--line);padding-top:8px;display:grid;gap:8px;font-size:14px;min-width:0}
-.cmt{min-width:0}
-.cmt .u{font-weight:600;font-size:13px}
-.cmt .u span{font-weight:400;color:var(--muted);font-size:12px;margin-left:6px;font-variant-numeric:tabular-nums}
-.cmt .t{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}
-.reply{margin:4px 0 0 12px;padding:6px 10px;border-left:2px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0}
-.reply .u{color:var(--accent)}
-.lbl{font-size:12px;color:var(--muted);letter-spacing:.06em}
-details.hot summary{cursor:pointer;font-size:12.5px;color:var(--muted);list-style:none}
+.rt{margin:10px -16px 0;background:var(--sunken);padding:10px 16px 12px;min-width:0}
+.rt .text{margin-top:0;font-size:14px}
+.rt .rtime{font-size:12px;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums}
+.acts{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);margin-top:12px}
+.acts span{display:flex;align-items:center;justify-content:center;gap:6px;height:40px;color:var(--soft);font-size:13px;font-variant-numeric:tabular-nums}
+.acts span+span{border-left:1px solid var(--line);margin-block:10px;height:20px}
+.acts svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.6}
+/* comments */
+.cmts{background:var(--sunken);border-top:1px solid var(--line);padding:10px 16px 12px;display:grid;gap:10px;font-size:13.5px;min-width:0}
+.cmt{display:flex;gap:8px;min-width:0}
+.cmt .ava{width:28px;height:28px;border-radius:50%;background:var(--line);color:var(--soft);display:flex;align-items:center;justify-content:center;font-size:12px;flex:0 0 auto}
+.cmt .ava.me{background:linear-gradient(135deg,#ffb36b,#ff7a3d);color:#fff}
+.cmt .c{min-width:0;flex:1}
+.cmt .c .t{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}
+.cmt .c .t b{font-weight:400;color:var(--link)}
+.cmt .c .m{font-size:12px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums;display:flex;gap:12px}
+.replies{margin-top:6px;background:var(--card);border-radius:4px;padding:8px 10px;display:grid;gap:6px}
+.replies .t b{color:var(--link);font-weight:400}
+.lbl{font-size:12px;color:var(--muted)}
+details.hot summary{cursor:pointer;font-size:12.5px;color:var(--soft);list-style:none}
 details.hot summary::-webkit-details-marker{display:none}
-details.hot summary::before{content:"▸ ";}
-details.hot[open] summary::before{content:"▾ ";}
-details.hot .list{display:grid;gap:8px;margin-top:6px}
-.cpic{display:block;margin-top:4px;padding:0;border:0;background:var(--sunken);border-radius:6px;overflow:hidden;width:96px;height:96px;cursor:zoom-in}
+details.hot summary::after{content:" ›";}
+details.hot[open] summary::after{content:" ⌄";}
+details.hot .list{display:grid;gap:10px;margin-top:10px}
+.cpic{display:block;margin-top:4px;padding:0;border:0;background:var(--line);border-radius:4px;overflow:hidden;width:96px;height:96px;cursor:zoom-in}
 .cpic img{width:100%;height:100%;object-fit:cover;display:block}
-.empty{text-align:center;color:var(--muted);padding:48px 0}
-.note{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-block:16px 32px}
+.empty{text-align:center;color:var(--muted);padding:48px 0;background:var(--card);border-radius:8px}
+.note{font-size:12px;color:var(--muted);padding-block:8px 32px;margin:0 4px}
 /* lightbox */
 .lb{position:fixed;inset:0;z-index:20;background:var(--shade);display:flex;flex-direction:column;color:#fff;
   padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
 .lb .stage{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;touch-action:pan-y}
 .lb img{max-width:100%;max-height:100%;object-fit:contain}
 .lb .tools{display:flex;align-items:center;gap:12px;padding:10px 16px;font-size:14px;font-variant-numeric:tabular-nums}
-.lb button{font:inherit;color:#fff;background:rgba(255,255,255,.12);border:0;border-radius:8px;padding:6px 12px;cursor:pointer}
+.lb button{font:inherit;color:#fff;background:rgba(255,255,255,.14);border:0;border-radius:16px;padding:5px 14px;cursor:pointer}
 .lb a{color:#fff;margin-left:auto;font-size:13px}
 .lb .nav{position:absolute;top:50%;transform:translateY(-50%);font-size:22px;padding:10px 14px}
 .lb .prev{left:calc(8px + env(safe-area-inset-left,0px))}.lb .next{right:calc(8px + env(safe-area-inset-right,0px))}
-@media (max-width:520px){.lb .nav{display:none} h1{font-size:26px}}
-@media (prefers-reduced-motion:no-preference){article{transition:border-color .15s}}
+@media (max-width:520px){.lb .nav{display:none}.cover{height:96px}}
 </style>
 </head>
 <body>
 
 
 <div class="wrap">
-  <header class="top">
-    <div class="eyebrow">微博存档 · @吴谨言 · UID 1278603180</div>
-    <h1>吴谨言微博备份</h1>
-    <div class="meta" id="meta">载入中…</div>
+  <header class="profile">
+    <div class="cover"></div>
+    <div class="pinfo">
+      <div class="avatar" aria-hidden="true">言</div>
+      <div class="pname">吴谨言<small>粉丝存档</small></div>
+      <div class="pdesc">吴谨言微博内容备份 · 原微博主页 <a href="https://weibo.com/u/1278603180" target="_blank" rel="noopener noreferrer">@吴谨言</a></div>
+      <div class="meta" id="meta">载入中…</div>
+    </div>
   </header>
+  <div class="bar">
+    <div class="search">
+      <input id="q" type="search" placeholder="搜索微博、话题、评论" autocomplete="off">
+      <select id="month" aria-label="按月份筛选"><option value="">全部月份</option></select>
+    </div>
+    <div class="chips" id="chips" role="group" aria-label="类型筛选">
+      <button class="chip" data-f="all" aria-pressed="true">全部</button>
+      <button class="chip" data-f="orig" aria-pressed="false">原创</button>
+      <button class="chip" data-f="rt" aria-pressed="false">转发</button>
+      <button class="chip" data-f="pic" aria-pressed="false">图片</button>
+      <button class="chip" data-f="video" aria-pressed="false">视频</button>
+      <button class="chip" data-f="reply" aria-pressed="false">她有回复</button>
+    </div>
+    <div class="count" id="count"></div>
+  </div>
 </div>
-<div class="bar"><div class="wrap">
-  <div class="search">
-    <input id="q" type="search" placeholder="搜索文字、话题、转发内容" autocomplete="off">
-    <select id="month" aria-label="按月份筛选"><option value="">全部月份</option></select>
-  </div>
-  <div class="chips" id="chips" role="group" aria-label="类型筛选">
-    <button class="chip" data-f="all" aria-pressed="true">全部</button>
-    <button class="chip" data-f="orig" aria-pressed="false">原创</button>
-    <button class="chip" data-f="rt" aria-pressed="false">转发</button>
-    <button class="chip" data-f="pic" aria-pressed="false">有图</button>
-    <button class="chip" data-f="video" aria-pressed="false">视频</button>
-    <button class="chip" data-f="reply" aria-pressed="false">她有回复</button>
-  </div>
-  <div class="count" id="count"></div>
-</div></div>
 <div class="wrap">
   <main class="feed" id="feed"></main>
   <p class="note">本页为粉丝自制存档，文字与图片版权归原作者所有。视频未存档，只保存封面截图，点「原微博」可在微博查看。转评赞数字为备份当时的数据。部分较早的微博，吴谨言本人主页已看不到，内容来自 @盐圈大管家 的「小吴老师的半年可见」转载。每条微博保存点赞前 5 名的热门评论，以及吴谨言本人回复过的评论。</p>
@@ -182,29 +199,41 @@ function picsHtml(o) {
   const cells = items.map((p, i) => {
     const d = DATA.dims[p.src];
     const ar = n === 1 && d ? ` style="aspect-ratio:${d[0]}/${d[1]}"` : "";
-    const badge = p.isVideo ? `<span class="play">${dur(p.dur) || "视频"}</span>` : "";
+    const badge = p.isVideo && p.dur ? `<span class="play">${dur(p.dur)}</span>` : "";
     return `<button class="pic" data-g="${start}" data-i="${i}"${ar} aria-label="${p.isVideo ? "视频封面" : "图片"} ${i+1}/${n}"><img loading="lazy" src="thumbs/${esc(p.src)}" alt="">${badge}</button>`;
   }).join("");
   const vnote = items.some(p => p.isVideo) ? `<div class="vnote">视频未存档，仅保存封面${o.video && o.video.title ? "（" + esc(o.video.title) + "）" : ""}</div>` : "";
-  return `<div class="pics ${cls}">${cells}</div>${vnote}`;
+  return `<div class="pics ${cls}${items.some(p => p.isVideo) ? " vid" : ""}">${cells}</div>${vnote}`;
 }
 
+const ICON = {
+  rt: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10V8a3 3 0 0 1 3-3h11l-3-3M20 14v2a3 3 0 0 1-3 3H6l3 3"/></svg>',
+  cm: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>',
+  lk: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10v10H4V10zM7 10l4-7c1.5 0 2.5 1 2.2 2.6L12.5 9H19a2 2 0 0 1 2 2.3l-1.3 7A2 2 0 0 1 17.7 20H7"/></svg>'
+};
+const wbTime = (iso, dateOnly) => {
+  const y = ymd(iso), now = ymd(new Date().toISOString());
+  const d = y.slice(0, 4) === now.slice(0, 4) ? y.slice(5) : y.slice(2);
+  return dateOnly ? d : d + " " + hm(iso);
+};
 function postHtml(p, q) {
-  const tags = [];
-  if (p.top) tags.push('<span class="tag">置顶</span>');
-  if (p.rt) tags.push('<span class="tag plain">转发</span>');
-  const where = [p.region, p.source].filter(Boolean).map(esc).join(" · ");
+  const meta = [`<span>${wbTime(p.time, p.dateOnly)}</span>`];
+  if (p.source) meta.push(`<span>来自 ${esc(p.source)}</span>`);
+  if (p.region) meta.push(`<span>发布于 ${esc(p.region)}</span>`);
   let rt = "";
   if (p.rt) {
-    rt = `<div class="rt"><div class="who">@${esc(p.rt.user)}${p.rt.time ? `<span>${ymd(p.rt.time)} ${hm(p.rt.time)}</span>` : ""}</div>
-      <div class="text">${rich(p.rt.text, q)}</div>${picsHtml(p.rt)}</div>`;
+    const who = p.rt.url ? `<a href="${p.rt.url}" target="_blank" rel="noopener noreferrer">@${esc(p.rt.user)}</a>` : `@${esc(p.rt.user)}`;
+    rt = `<div class="rt"><div class="text">${who}：${rich(p.rt.text, q)}</div>${picsHtml(p.rt)}${p.rt.time ? `<div class="rtime">${wbTime(p.rt.time)}</div>` : ""}</div>`;
   }
-  return `<article id="p-${p.id}">
-    <div class="head"><time datetime="${p.time}">${ymd(p.time)}${p.dateOnly ? "" : " " + hm(p.time)}</time>${tags.join("")}${where ? `<span>${where}</span>` : ""}</div>
+  const acts = p.archive ? "" : `<div class="acts"><span>${ICON.rt}${p.reposts ? num(p.reposts) : "转发"}</span><span>${ICON.cm}${p.comments ? num(p.comments) : "评论"}</span><span>${ICON.lk}${p.likes ? num(p.likes) : "赞"}</span></div>`;
+  return `<article id="p-${p.id}"><div class="pbody">
+    <div class="head"><div class="mini" aria-hidden="true">言</div>
+      <div class="who"><div class="n">吴谨言${p.top ? '<span class="top-tag">置顶</span>' : ""}</div><div class="t">${meta.join("")}</div></div>
+      ${p.url ? `<a class="ext" href="${p.url}" target="_blank" rel="noopener noreferrer">原微博 ↗</a>` : ""}</div>
     ${p.text ? `<div class="text">${rich(p.text, q)}</div>` : ""}
     ${picsHtml(p.rt && p.video && p.rt.video && p.rt.video.cover === p.video.cover ? {...p, skipVideo: true} : p)}${rt}
     ${p.note ? `<div class="vnote">注：${esc(p.note)}</div>` : ""}
-    ${p.archive ? "" : `<div class="foot"><span>转发 ${num(p.reposts)}</span><span>评论 ${num(p.comments)}</span><span>赞 ${num(p.likes)}</span><a href="${p.url}" target="_blank" rel="noopener noreferrer">原微博 ↗</a></div>`}
+    ${acts}</div>
     ${commentsHtml(p, q)}
   </article>`;
 }
@@ -214,9 +243,12 @@ function cpicHtml(c) {
   const g = gallery.length; gallery.push([{src: c.picSrc, orig: c.pic}]);
   return `<button class="pic cpic" data-g="${g}" data-i="0" aria-label="评论图片"><img loading="lazy" src="thumbs/${esc(c.picSrc)}" alt=""></button>`;
 }
-function cmtHtml(c, q, cls) {
-  const when = ymd(c.time).slice(5) + " " + hm(c.time);
-  return `<div class="${cls || "cmt"}"><div class="u">${esc(c.user)}<span>${when} · 赞 ${num(c.likes)}</span></div><div class="t">${rich(c.text, q)}</div>${cpicHtml(c)}</div>`;
+function cmtHtml(c, q, me) {
+  const ava = me ? '<div class="ava me" aria-hidden="true">言</div>' : `<div class="ava" aria-hidden="true">${esc((c.user || "?").slice(0, 1))}</div>`;
+  return `<div class="cmt">${ava}<div class="c"><div class="t"><b>${esc(c.user)}</b>：${rich(c.text, q)}</div>${cpicHtml(c)}<div class="m"><span>${wbTime(c.time)}</span><span>赞 ${num(c.likes)}</span></div>`;
+}
+function replyHtml(r, q) {
+  return `<div class="t"><b>${esc(r.user)}</b>：${rich(r.text, q)} <span class="m" style="display:inline;font-size:12px;color:var(--muted)">${wbTime(r.time)}</span></div>`;
 }
 function commentsHtml(p, q) {
   const c = (DATA.comments || {})[p.id];
@@ -224,11 +256,11 @@ function commentsHtml(p, q) {
   let h = "";
   if (c.author.length) {
     h += `<div class="lbl">吴谨言的回复</div>` + c.author.map(a => a.isAuthorComment
-      ? cmtHtml(a.comment, q, "cmt reply")
-      : `<div class="cmt">${cmtHtml(a.comment, q)}${a.replies.map(r => cmtHtml(r, q, "cmt reply")).join("")}</div>`).join("");
+      ? cmtHtml(a.comment, q, true) + "</div></div>"
+      : cmtHtml(a.comment, q) + `<div class="replies">${a.replies.map(r => replyHtml(r, q)).join("")}</div></div></div>`).join("");
   }
   if (c.top.length) {
-    h += `<details class="hot"${q && c.top.some(x => x.text.toLowerCase().includes(q.toLowerCase())) ? " open" : ""}><summary>热门评论前 ${c.top.length} 名（共 ${num(p.comments)} 条评论）</summary><div class="list">${c.top.map(x => cmtHtml(x, q)).join("")}</div></details>`;
+    h += `<details class="hot"${q && c.top.some(x => x.text.toLowerCase().includes(q.toLowerCase())) ? " open" : ""}><summary>热门评论前 ${c.top.length} 名</summary><div class="list">${c.top.map(x => cmtHtml(x, q, x.uid === "1278603180") + "</div></div>").join("")}</div></details>`;
   }
   return h ? `<div class="cmts">${h}</div>` : "";
 }
