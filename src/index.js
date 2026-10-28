@@ -48,6 +48,33 @@ async function stagingInner(request, env, url) {
   return json({error: "method"}, 405);
 }
 
+
+// Live 图的动态部分：只接受微博 livephoto 播放链接，存到 R2 的 live/<fid>.mov。
+async function liveArchive(request, env) {
+  if (request.method === "OPTIONS") return new Response(null, {status: 204, headers: CORS});
+  const out = await liveInner(request, env);
+  const h = new Headers(out.headers); for (const [k, v] of Object.entries(CORS)) h.set(k, v);
+  return new Response(out.body, {status: out.status, headers: h});
+}
+async function liveInner(request, env) {
+  if (request.method !== "POST") return json({error: "use POST"}, 405);
+  const {url} = await request.json().catch(() => ({}));
+  let u; try { u = new URL(url); } catch { return json({error: "bad url"}, 400); }
+  if (u.hostname !== "video.weibo.com" || u.pathname !== "/media/play") return json({error: "not livephoto"}, 403);
+  const inner = u.searchParams.get("livephoto") || "";
+  const m = inner.match(/^https:\/\/(?:us|livephoto\.us)\.sinaimg\.cn\/([A-Za-z0-9]+)\.mov$/);
+  if (!m) return json({error: "not livephoto"}, 403);
+  const key = "live/" + m[1] + ".mov";
+  const head = await env.BUCKET.head(key);
+  if (head) return json({key, status: "exists", size: head.size});
+  const up = await fetch(u.toString(), {headers: {"Referer": "https://weibo.com/", "User-Agent": "Mozilla/5.0"}});
+  if (!up.ok) return json({key, status: "fetch-failed", code: up.status}, 502);
+  const body = await up.arrayBuffer();
+  if (body.byteLength < 1000 || body.byteLength > 50 * 1024 * 1024) return json({key, status: "bad-size", size: body.byteLength}, 502);
+  await env.BUCKET.put(key, body, {httpMetadata: {contentType: "video/quicktime", cacheControl: "public, max-age=31536000"}});
+  return json({key, status: "saved", size: body.byteLength});
+}
+
 // 用量：统计 R2 里的文件总大小，给每周检查免费额度用。
 async function usage(env) {
   let cursor, bytes = 0, objects = 0;
@@ -67,6 +94,7 @@ export default {
     const url = new URL(request.url);
     if (url.pathname.startsWith("/staging/")) return staging(request, env, url);
     if (url.pathname === "/usage") return usage(env);
+    if (url.pathname === "/r2-live") return liveArchive(request, env);
     if (!url.pathname.startsWith("/r2-archive/")) return env.ASSETS.fetch(request);
     if (request.method !== "POST") return json({error: "use POST"}, 405);
     const key = decodeURIComponent(url.pathname.slice("/r2-archive/".length));
