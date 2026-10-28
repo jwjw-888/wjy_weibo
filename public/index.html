@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>吴谨言微博备份</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="site-build" content="2026-10-28-10">
+<meta name="site-build" content="2026-10-28-11">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -64,6 +64,7 @@ article{background:var(--card);border-radius:8px;min-width:0;overflow:hidden}
 .who .t span+span::before{content:"";margin-left:8px}
 .ext{color:var(--muted);font-size:12px;flex:0 0 auto}
 .text{margin:10px 0 0;font-size:15px;line-height:1.65;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}
+.emo{width:1.25em;height:1.25em;vertical-align:-0.22em;margin:0 1px;display:inline-block}
 mark{background:#ffe27a;color:#333;border-radius:2px}
 .pics{display:grid;gap:4px;margin-top:10px;grid-template-columns:repeat(3,1fr);max-width:min(100%,456px)}
 .pics.n1{grid-template-columns:1fr;max-width:min(100%,300px)}
@@ -171,7 +172,7 @@ details.hot .list{display:grid;gap:10px;margin-top:10px}
 const ORIGINAL_BASE = "https://pub-db270e9d94f24f01a0f04c10bbdc80af.r2.dev/";
 const TZ = "Asia/Shanghai";
 
-let DATA = null, filter = "all";
+let DATA = null, filter = "all", EMO = null;
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmt = (iso, opt) => new Intl.DateTimeFormat("zh-CN", {timeZone: TZ, ...opt}).format(new Date(iso));
@@ -187,6 +188,7 @@ function rich(text, q) {
   h = h.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
   h = h.replace(/#([^#\n<]{1,40})#/g, (m, t) => `<a href="#" class="topic" data-topic="${t}">#${t}#</a>`);
   h = h.replace(/@([一-龥\w\-]{1,30})/g, (m, u) => `<a href="https://weibo.com/n/${encodeURIComponent(u)}" target="_blank" rel="noopener noreferrer">@${u}</a>`);
+  if (EMO) h = h.replace(/\[([^\[\]\s<]{1,8})\]/g, (m) => EMO[m] ? `<img class="emo" src="emoji/${EMO[m]}" alt="${m}" title="${m}">` : m);
   if (q) {
     const re = new RegExp("(" + q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi");
     h = h.split(/(<[^>]+>)/).map(part => part.startsWith("<") ? part : part.replace(re, "<mark>$1</mark>")).join("");
@@ -358,8 +360,8 @@ $("chips").addEventListener("click", e => {
 let timer; $("q").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(render, 150); });
 $("month").addEventListener("change", render);
 
-Promise.all([fetch("data/posts.json").then(r => r.json()), fetch("data/dims.json").then(r => r.json()), fetch("data/comments.json").then(r => r.ok ? r.json() : {}).catch(() => ({}))]).then(([d, dims, cm]) => {
-  DATA = d; DATA.dims = dims; DATA.comments = cm;
+Promise.all([fetch("data/posts.json").then(r => r.json()), fetch("data/dims.json").then(r => r.json()), fetch("data/comments.json").then(r => r.ok ? r.json() : {}).catch(() => ({})), fetch("data/emoji.json").then(r => r.ok ? r.json() : {}).catch(() => ({}))]).then(([d, dims, cm, emo]) => {
+  DATA = d; DATA.dims = dims; DATA.comments = cm; EMO = emo;
   if (DATA.avatar) $("pavatar").outerHTML = `<img class="avatar" src="${esc(DATA.avatar)}" alt="吴谨言头像">`;
   DATA.posts.sort((a, b) => b.time.localeCompare(a.time) || ((b.via && b.via.time) || "").localeCompare((a.via && a.via.time) || ""));
   const times = DATA.posts.map(p => p.time).sort();
