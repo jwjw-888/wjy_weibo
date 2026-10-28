@@ -15,7 +15,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-10-28-31">
+<meta name="site-build" content="2026-10-28-32">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -246,7 +246,7 @@ function picsHtml(o) {
     const ar = n === 1 && d ? ` style="aspect-ratio:${Math.max(ratio, 0.45).toFixed(4)}"` : "";
     const longPic = n === 1 && ratio < 0.45 ? '<span class="play long">长图</span>' : "";
     const badge = p.isVideo && p.dur ? `<span class="play">${dur(p.dur)}</span>` : "";
-    return `<button class="pic${p.isVideo ? " isv" : ""}${p.noplay ? " noplay" : ""}" data-g="${start}" data-i="${i}"${ar} aria-label="${p.isVideo ? "视频封面" : "图片"} ${i+1}/${n}"><img loading="lazy" decoding="async" src="thumbs-s/${esc(p.src)}" alt="">${badge}${longPic}</button>`;
+    return `<button class="pic${p.isVideo ? " isv" : ""}${p.noplay ? " noplay" : ""}" data-g="${start}" data-i="${i}"${ar} aria-label="${p.isVideo ? "视频封面" : "图片"} ${i+1}/${n}"><img loading="lazy" decoding="async" src="thumbs/${esc(p.src)}" alt="">${badge}${longPic}</button>`;
   }).join("");
   const vnote = items.some(p => p.isVideo) ? `<div class="vnote">${items.some(p => !p.isVideo) ? "带播放键的是视频，" : ""}视频未存档，仅保存封面${o.video && o.video.title ? "（" + esc(o.video.title) + "）" : ""}</div>` : "";
   return `<div class="pics ${cls}${items.some(p => p.isVideo) ? " vid" : ""}">${cells}</div>${vnote}`;
