@@ -14,7 +14,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-10-28-20">
+<meta name="site-build" content="2026-10-28-21">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -120,6 +120,16 @@ mark{background:#ffe27a;color:#333;border-radius:2px}
 .cmt.mine{background:var(--mine);border-radius:4px;padding:8px 10px;margin:0 -10px}
 .replies .t b{color:var(--link);font-weight:400}
 .lbl{font-size:12px;color:var(--muted)}
+details.herreply{background:var(--mine);border:1px solid #f0c94a;border-radius:8px;margin:-2px -6px 0;padding:0}
+details.herreply>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px 10px;font-weight:700;font-size:14px;color:var(--fg)}
+details.herreply>summary::-webkit-details-marker{display:none}
+details.herreply>summary img{width:24px;height:24px;border-radius:50%;object-fit:cover;flex:0 0 auto;box-shadow:0 0 0 2px #f0c94a}
+details.herreply>summary span{flex:1;min-width:0}
+details.herreply>summary i{font-style:normal;font-weight:400;font-size:12.5px;color:var(--soft);white-space:nowrap}
+details.herreply>summary i::after{content:" ›"}
+details.herreply[open]>summary i::after{content:" ⌄"}
+details.herreply[open]>summary i{visibility:visible}
+details.herreply .list{display:grid;gap:10px;padding:10px;background:var(--card);border-radius:0 0 7px 7px}
 details.hot summary{cursor:pointer;font-size:12.5px;color:var(--soft);list-style:none}
 details.hot summary::-webkit-details-marker{display:none}
 details.hot summary::after{content:" ›";}
@@ -295,9 +305,11 @@ function commentsHtml(p, q) {
   if (!c) return "";
   let h = "";
   if (c.author.length) {
-    h += `<div class="lbl">吴谨言的回复</div>` + c.author.map(a => a.isAuthorComment
+    const nRep = c.author.reduce((n, a) => n + (a.isAuthorComment ? 1 : a.replies.length), 0);
+    const hit = q && c.author.some(a => [a.comment, ...a.replies].some(x => x.text.toLowerCase().includes(q.toLowerCase())));
+    h += `<details class="herreply"${hit ? " open" : ""}><summary>${curAvatar ? `<img src="${esc(curAvatar)}" alt="">` : ""}<span>吴谨言回复了 ${nRep} 条评论</span><i>查看</i></summary><div class="list">` + c.author.map(a => a.isAuthorComment
       ? cmtHtml(a.comment, q, true) + "</div></div>"
-      : cmtHtml(a.comment, q) + `<div class="replies">${a.replies.map(r => replyHtml(r, q)).join("")}</div></div></div>`).join("");
+      : cmtHtml(a.comment, q) + `<div class="replies">${a.replies.map(r => replyHtml(r, q)).join("")}</div></div></div>`).join("") + `</div></details>`;
   }
   if (c.top.length) {
     h += `<details class="hot"${q && c.top.some(x => x.text.toLowerCase().includes(q.toLowerCase())) ? " open" : ""}><summary>热门评论前 ${c.top.length} 名</summary><div class="list">${c.top.map(x => cmtHtml(x, q, x.uid === "1278603180") + "</div></div>").join("")}</div></details>`;
