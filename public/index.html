@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>吴谨言微博备份</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="site-build" content="2026-10-28-2">
+<meta name="site-build" content="2026-10-28-3">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -32,7 +32,7 @@ a{color:var(--link);text-decoration:none}
 .profile{background:var(--card);border-radius:0 0 8px 8px;overflow:hidden;margin-bottom:10px}
 .cover{height:120px;background:linear-gradient(135deg,#f6d6c4 0%,#e9b8a6 45%,#c9a5c4 100%)}
 .pinfo{padding:0 16px 14px;display:flex;flex-direction:column;align-items:flex-start}
-.avatar{width:84px;height:84px;border-radius:50%;margin-top:-42px;border:3px solid var(--card);background:linear-gradient(135deg,#ffb36b,#ff7a3d);color:#fff;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:600;flex:0 0 auto}
+.avatar{width:84px;height:84px;border-radius:50%;overflow:hidden;object-fit:cover;margin-top:-42px;border:3px solid var(--card);background:linear-gradient(135deg,#ffb36b,#ff7a3d);color:#fff;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:600;flex:0 0 auto}
 .pname{font-size:20px;font-weight:700;margin:8px 0 2px;display:flex;align-items:center;gap:8px}
 .pname small{font-size:11px;font-weight:400;color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 5px}
 .pdesc{color:var(--soft);font-size:13px}
@@ -56,7 +56,7 @@ a{color:var(--link);text-decoration:none}
 article{background:var(--card);border-radius:8px;min-width:0;overflow:hidden}
 .pbody{padding:16px 16px 4px}
 .head{display:flex;align-items:center;gap:10px}
-.mini{width:40px;height:40px;border-radius:50%;flex:0 0 auto;background:linear-gradient(135deg,#ffb36b,#ff7a3d);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600}
+.mini{width:40px;height:40px;border-radius:50%;flex:0 0 auto;overflow:hidden;object-fit:cover;background:linear-gradient(135deg,#ffb36b,#ff7a3d);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600}
 .who{min-width:0;flex:1}
 .who .n{font-weight:700;font-size:14px;color:var(--fg);display:flex;align-items:center;gap:6px}
 .top-tag{font-size:11px;font-weight:400;color:var(--accent);border:1px solid var(--accent);border-radius:3px;padding:0 4px;line-height:16px}
@@ -87,7 +87,7 @@ mark{background:#ffe27a;color:#333;border-radius:2px}
 .cmts{background:var(--sunken);border-top:1px solid var(--line);padding:10px 16px 12px;display:grid;gap:10px;font-size:13.5px;min-width:0}
 .cmt{display:flex;gap:8px;min-width:0}
 .cmt .ava{width:28px;height:28px;border-radius:50%;background:var(--line);color:var(--soft);display:flex;align-items:center;justify-content:center;font-size:12px;flex:0 0 auto}
-.cmt .ava.me{background:linear-gradient(135deg,#ffb36b,#ff7a3d);color:#fff}
+.cmt .ava.me{background:linear-gradient(135deg,#ffb36b,#ff7a3d);color:#fff;object-fit:cover}
 .cmt .c{min-width:0;flex:1}
 .cmt .c .t{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}
 .cmt .c .t b{font-weight:400;color:var(--link)}
@@ -124,7 +124,7 @@ details.hot .list{display:grid;gap:10px;margin-top:10px}
   <header class="profile">
     <div class="cover"></div>
     <div class="pinfo">
-      <div class="avatar" aria-hidden="true">言</div>
+      <div class="avatar" id="pavatar" aria-hidden="true">言</div>
       <div class="pname">吴谨言<small>粉丝存档</small></div>
       <div class="pdesc">吴谨言微博内容备份 · 原微博主页 <a href="https://weibo.com/u/1278603180" target="_blank" rel="noopener noreferrer">@吴谨言</a></div>
       <div class="meta" id="meta">载入中…</div>
@@ -227,7 +227,7 @@ function postHtml(p, q) {
   }
   const acts = p.archive ? "" : `<div class="acts"><span>${ICON.rt}${p.reposts ? num(p.reposts) : "转发"}</span><span>${ICON.cm}${p.comments ? num(p.comments) : "评论"}</span><span>${ICON.lk}${p.likes ? num(p.likes) : "赞"}</span></div>`;
   return `<article id="p-${p.id}"><div class="pbody">
-    <div class="head"><div class="mini" aria-hidden="true">言</div>
+    <div class="head">${p.avatar ? `<img class="mini" src="${esc(p.avatar)}" alt="" loading="lazy">` : '<div class="mini" aria-hidden="true">言</div>'}
       <div class="who"><div class="n">吴谨言${p.top ? '<span class="top-tag">置顶</span>' : ""}</div><div class="t">${meta.join("")}</div></div>
       ${p.url ? `<a class="ext" href="${p.url}" target="_blank" rel="noopener noreferrer">原微博 ↗</a>` : ""}</div>
     ${p.text ? `<div class="text">${rich(p.text, q)}</div>` : ""}
@@ -243,14 +243,16 @@ function cpicHtml(c) {
   const g = gallery.length; gallery.push([{src: c.picSrc, orig: c.pic}]);
   return `<button class="pic cpic" data-g="${g}" data-i="0" aria-label="评论图片"><img loading="lazy" src="thumbs/${esc(c.picSrc)}" alt=""></button>`;
 }
+let curAvatar = "";
 function cmtHtml(c, q, me) {
-  const ava = me ? '<div class="ava me" aria-hidden="true">言</div>' : `<div class="ava" aria-hidden="true">${esc((c.user || "?").slice(0, 1))}</div>`;
+  const ava = me ? (curAvatar ? `<img class="ava me" src="${esc(curAvatar)}" alt="" loading="lazy">` : '<div class="ava me" aria-hidden="true">言</div>') : `<div class="ava" aria-hidden="true">${esc((c.user || "?").slice(0, 1))}</div>`;
   return `<div class="cmt">${ava}<div class="c"><div class="t"><b>${esc(c.user)}</b>：${rich(c.text, q)}</div>${cpicHtml(c)}<div class="m"><span>${wbTime(c.time)}</span><span>赞 ${num(c.likes)}</span></div>`;
 }
 function replyHtml(r, q) {
   return `<div class="t"><b>${esc(r.user)}</b>：${rich(r.text, q)} <span class="m" style="display:inline;font-size:12px;color:var(--muted)">${wbTime(r.time)}</span></div>`;
 }
 function commentsHtml(p, q) {
+  curAvatar = p.avatar || "";
   const c = (DATA.comments || {})[p.id];
   if (!c) return "";
   let h = "";
@@ -336,6 +338,7 @@ $("month").addEventListener("change", render);
 
 Promise.all([fetch("data/posts.json").then(r => r.json()), fetch("data/dims.json").then(r => r.json()), fetch("data/comments.json").then(r => r.ok ? r.json() : {}).catch(() => ({}))]).then(([d, dims, cm]) => {
   DATA = d; DATA.dims = dims; DATA.comments = cm;
+  if (DATA.avatar) $("pavatar").outerHTML = `<img class="avatar" src="${esc(DATA.avatar)}" alt="吴谨言头像">`;
   DATA.posts.sort((a, b) => b.time.localeCompare(a.time) || ((b.via && b.via.time) || "").localeCompare((a.via && a.via.time) || ""));
   const times = DATA.posts.map(p => p.time).sort();
   const months = [...new Set(DATA.posts.map(p => monthKey(p.time)))];
