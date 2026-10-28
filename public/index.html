@@ -14,7 +14,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-10-28-19">
+<meta name="site-build" content="2026-10-28-20">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -79,6 +79,10 @@ article{background:var(--card);border-radius:8px;min-width:0;overflow:hidden}
 .text{margin:10px 0 0;font-size:15px;line-height:1.65;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}
 .lnk{color:var(--link);white-space:nowrap}
 .lnk::before{content:"";display:inline-block;width:1em;height:1em;margin-right:2px;vertical-align:-0.12em;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1'/%3E%3Cpath d='M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1'/%3E%3Cpath d='M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1'/%3E%3C/svg%3E") center/contain no-repeat}
+.text.clamp{max-height:calc(1.65em * 6);overflow:hidden;position:relative}
+.text.clamp::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1.65em;background:linear-gradient(transparent,var(--card))}
+.rt .text.clamp::after{background:linear-gradient(transparent,var(--sunken))}
+.more{display:inline-block;margin-top:2px;padding:0;border:0;background:none;color:var(--link);font:inherit;font-size:14px;cursor:pointer}
 .emo{width:1.25em;height:1.25em;vertical-align:-0.22em;margin:0 1px;display:inline-block}
 mark{background:#ffe27a;color:#333;border-radius:2px}
 .pics{display:grid;gap:4px;margin-top:10px;grid-template-columns:repeat(3,1fr);max-width:min(100%,456px)}
@@ -330,6 +334,21 @@ function render() {
   $("count").textContent = (q || m || filter !== "all") ? `找到 ${list.length} 条` : `共 ${list.length} 条，按时间从新到旧`;
 }
 let view = null;
+function clampTexts(els) {
+  for (const el of els) {
+    if (el.closest(".cmts")) continue;
+    el.classList.add("clamp");
+    if (el.scrollHeight <= el.clientHeight + 4) { el.classList.remove("clamp"); continue; }
+    const b = document.createElement("button");
+    b.className = "more"; b.type = "button"; b.textContent = "展开全文";
+    b.addEventListener("click", () => {
+      const open = el.classList.toggle("clamp");
+      b.textContent = open ? "展开全文" : "收起";
+      if (open) el.closest("article").scrollIntoView({block: "nearest"});
+    });
+    el.after(b);
+  }
+}
 function more() {
   if (!view || view.shown >= view.list.length) return;
   let html = "";
@@ -340,7 +359,9 @@ function more() {
     html += postHtml(p, view.q);
   }
   view.shown = end;
+  const before = $("feed").querySelectorAll(".pbody .text").length;
   $("feed").insertAdjacentHTML("beforeend", html);
+  clampTexts([...$("feed").querySelectorAll(".pbody .text")].slice(before));
   $("loadmore").hidden = view.shown >= view.list.length;
 }
 
