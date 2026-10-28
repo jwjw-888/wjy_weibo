@@ -5,21 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>吴谨言微博备份</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="site-build" content="2026-10-28-8">
+<meta name="site-build" content="2026-10-28-9">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
   --bg:#f1f2f5; --card:#ffffff; --sunken:#f7f7f8; --line:#eeeeee;
-  --fg:#333333; --muted:#939393; --soft:#636363; --link:#eb7350; --accent:#ff8200; --accent-soft:#fff3e8; --reply:#fbf3ee;
+  --fg:#333333; --muted:#939393; --soft:#636363; --link:#eb7350; --accent:#ff8200; --accent-soft:#fff3e8; --reply:#fbf3ee; --mine:#fff3b8;
   --shade:rgba(0,0,0,.92);
   --body:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#101010; --card:#1c1c1c; --sunken:#262626; --line:#2c2c2c;
-  --fg:#dadada; --muted:#8a8a8a; --soft:#a5a5a5; --link:#f08a6a; --accent:#ff9a33; --accent-soft:#33261a; --reply:#2b2320; color-scheme:dark}}
+  --fg:#dadada; --muted:#8a8a8a; --soft:#a5a5a5; --link:#f08a6a; --accent:#ff9a33; --accent-soft:#33261a; --reply:#2b2320; --mine:#3d3414; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#101010; --card:#1c1c1c; --sunken:#262626; --line:#2c2c2c;
-  --fg:#dadada; --muted:#8a8a8a; --soft:#a5a5a5; --link:#f08a6a; --accent:#ff9a33; --accent-soft:#33261a; --reply:#2b2320; color-scheme:dark}
+  --fg:#dadada; --muted:#8a8a8a; --soft:#a5a5a5; --link:#f08a6a; --accent:#ff9a33; --accent-soft:#33261a; --reply:#2b2320; --mine:#3d3414; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;line-height:1.6}
@@ -92,7 +92,11 @@ mark{background:#ffe27a;color:#333;border-radius:2px}
 .cmt .c .t{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}
 .cmt .c .t b{font-weight:400;color:var(--link)}
 .cmt .c .m{font-size:12px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums;display:flex;gap:12px}
-.replies{margin-top:6px;background:var(--card);border-radius:4px;padding:8px 10px;display:grid;gap:6px}
+.replies{margin-top:6px;background:var(--mine);border-radius:4px;padding:8px 10px;display:grid;gap:6px}
+.replies .t,.cmt.mine .c .t{font-weight:700}
+.replies .t b,.cmt.mine .c .t b{font-weight:700}
+.replies .t .m{font-weight:400}
+.cmt.mine{background:var(--mine);border-radius:4px;padding:8px 10px;margin:0 -10px}
 .replies .t b{color:var(--link);font-weight:400}
 .lbl{font-size:12px;color:var(--muted)}
 details.hot summary{cursor:pointer;font-size:12.5px;color:var(--soft);list-style:none}
@@ -254,7 +258,7 @@ function avaHtml(c, me) {
   return `<div class="ava" aria-hidden="true">${esc((c.user || "?").slice(0, 1))}</div>`;
 }
 function cmtHtml(c, q, me) {
-  return `<div class="cmt">${avaHtml(c, me)}<div class="c"><div class="t"><b>${esc(c.user)}</b>：${rich(c.text, q)}</div>${cpicHtml(c)}<div class="m"><span>${wbTime(c.time)}</span><span>赞 ${num(c.likes)}</span></div>`;
+  return `<div class="cmt${me ? " mine" : ""}">${avaHtml(c, me)}<div class="c"><div class="t"><b>${esc(c.user)}</b>：${rich(c.text, q)}</div>${cpicHtml(c)}<div class="m"><span>${wbTime(c.time)}</span><span>赞 ${num(c.likes)}</span></div>`;
 }
 function replyHtml(r, q) {
   return `<div class="t"><b>${esc(r.user)}</b>：${rich(r.text, q)} <span class="m" style="display:inline;font-size:12px;color:var(--muted)">${wbTime(r.time)}</span></div>${cpicHtml(r)}`;
