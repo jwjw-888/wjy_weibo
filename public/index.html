@@ -273,11 +273,11 @@ function picsHtml(o) {
     const longPic = n === 1 && ratio < 0.45 ? '<span class="play long">长图</span>' : "";
     if (p.hide) return `<span class="pic blackout"${ar} aria-label="图片已隐藏"></span>`;
     const badge = p.isVideo && p.dur ? `<span class="play">${dur(p.dur)}</span>` : "";
-    const vlink = p.isVideo && o.via && o.via.url ? o.via.url : "";
+    const vlink = p.isVideo ? ((o.video && o.video.watch) || (o.via && o.via.url) || "") : "";
     if (vlink) return `<a class="pic isv" href="${esc(vlink)}" target="_blank" rel="noopener noreferrer"${ar} aria-label="到微博观看视频"><img loading="lazy" decoding="async" src="thumbs/${esc(p.src)}" alt="">${badge}</a>`;
     return `<button class="pic${p.isVideo ? " isv" : ""}${p.noplay ? " noplay" : ""}" data-g="${start}" data-i="${i}"${ar} aria-label="${p.isVideo ? "视频封面" : "图片"} ${i+1}/${n}"><img loading="lazy" decoding="async" src="thumbs/${esc(p.src)}" alt="">${badge}${longPic}${p.live ? '<span class="livetag">LIVE</span>' : ""}</button>`;
   }).join("");
-  const vnote = o.via && o.via.url && items.some(p => p.isVideo) ? `<div class="vnote">点封面可到 <a href="${esc(o.via.url)}" target="_blank" rel="noopener noreferrer">@${esc(o.via.user || "盐圈大管家")}</a> 的微博观看视频</div>` : items.some(p => p.isVideo) ? `<div class="vnote">${items.some(p => !p.isVideo) ? "带播放键的是视频，" : ""}视频未存档，仅保存封面${o.video && o.video.title ? "（" + esc(o.video.title) + "）" : ""}</div>` : "";
+  const vnote = ((o.video && o.video.watch) || (o.via && o.via.url)) && items.some(p => p.isVideo) ? `<div class="vnote">点封面可到 <a href="${esc((o.video && o.video.watch) || o.via.url)}" target="_blank" rel="noopener noreferrer">@${esc(o.via.user || "盐圈大管家")}</a> 的微博观看视频</div>` : items.some(p => p.isVideo) ? `<div class="vnote">${items.some(p => !p.isVideo) ? "带播放键的是视频，" : ""}视频未存档，仅保存封面${o.video && o.video.title ? "（" + esc(o.video.title) + "）" : ""}</div>` : "";
   return `<div class="pics ${cls}${items.some(p => p.isVideo) ? " vid" : ""}">${cells}</div>${vnote}`;
 }
 
