@@ -15,7 +15,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-10-30-11">
+<meta name="site-build" content="2026-10-30-12">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -64,6 +64,7 @@ a{color:var(--link);text-decoration:none}
 .mhead{font-size:14px;font-weight:600;color:var(--fg);margin:0 2px 8px}.mhead small{font-weight:400;color:var(--muted);margin-left:6px;font-size:12px}
 .myears{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding-bottom:8px;border-bottom:1px solid var(--line)}
 .myears::-webkit-scrollbar{display:none}
+@media (pointer:fine){.myears{scrollbar-width:thin;cursor:grab}.myears::-webkit-scrollbar{display:block;height:6px}.myears::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}.myears.drag{cursor:grabbing;user-select:none}}
 .mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding-top:10px}
 .mgrid button,.mall{font:inherit;font-size:13.5px;border:0;background:var(--sunken);color:var(--fg);border-radius:8px;padding:7px 0;cursor:pointer}
 .mgrid button:disabled{background:transparent;color:var(--muted);opacity:.45;cursor:default}
@@ -516,6 +517,13 @@ function mOpen(open) {
 }
 function mApply() { mLabel(); mDraw(); render(); toTop(); }
 $("mbtn").addEventListener("click", e => { e.stopPropagation(); mOpen($("mpanel").hidden); });
+// 电脑：滚轮上下滚 → 年份左右移动；也可按住拖动
+$("myears").addEventListener("wheel", e => { const el = e.currentTarget; if (el.scrollWidth <= el.clientWidth) return; const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY; if (!d) return; el.scrollLeft += d; e.preventDefault(); }, {passive: false});
+{ let sx = 0, sl = 0, down = false, moved = false; const el = $("myears");
+  el.addEventListener("pointerdown", e => { if (e.pointerType !== "mouse") return; down = true; moved = false; sx = e.clientX; sl = el.scrollLeft; });
+  window.addEventListener("pointermove", e => { if (!down) return; const dx = e.clientX - sx; if (Math.abs(dx) > 4) { moved = true; el.classList.add("drag"); } if (moved) el.scrollLeft = sl - dx; });
+  window.addEventListener("pointerup", () => { down = false; el.classList.remove("drag"); });
+  el.addEventListener("click", e => { if (moved) { e.stopImmediatePropagation(); e.preventDefault(); moved = false; } }, true); }
 $("myears").addEventListener("click", e => { const b = e.target.closest("[data-y]"); if (b) { MP.y = b.dataset.y; mDraw(); } });
 $("mgrid").addEventListener("click", e => { const b = e.target.closest("[data-k]"); if (!b || b.disabled) return; const k = b.dataset.k; MSEL.has(k) ? MSEL.delete(k) : MSEL.add(k); mApply(); });
 $("myear").addEventListener("click", () => { const ks = MP.years[MP.y] || [], all = ks.every(k => MSEL.has(k)); ks.forEach(k => all ? MSEL.delete(k) : MSEL.add(k)); mApply(); });
