@@ -15,6 +15,8 @@
 查不到（保留中文）：帝凰（小说）、凤凰琴、紫禁红墙、东风起时正当归、芳菲落尽梨花白、歌名
 ## 专有名词（要让外国人看得懂，意译）
 察闻院 The Investigative Bureau
+暗厂（春花焰）Dark Factory
+青州眉骨（春花焰，代指眉林，融入名字并喻其傲骨）意译为 the unbending spirit of Qingzhou's Meilin
 ## 昵称
 小吴 Lil’ Wu | 小黄 Lil’ Huang（像「小王、小李」的亲切叫法）
 ## 角色
