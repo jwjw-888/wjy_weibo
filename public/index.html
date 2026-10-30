@@ -15,7 +15,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-10-30-9">
+<meta name="site-build" content="2026-10-30-10">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -211,6 +211,7 @@ details.hot .list{display:grid;gap:10px;margin-top:10px}
       <button class="chip" data-f="pic" aria-pressed="false">图片</button>
       <button class="chip" data-f="video" aria-pressed="false">视频</button>
       <button class="chip" data-f="reply" aria-pressed="false">她有回复</button>
+      <button class="chip" data-f="essay" aria-pressed="false">角色感言</button>
     </div>
     <div class="count" id="count"></div>
   </div>
@@ -391,6 +392,7 @@ function render() {
     if (filter === "rt" && !p.rt) return false;
     if (filter === "pic" && !(p.pics.some(x => !x.isVideo) || (p.rt && p.rt.pics.length))) return false;
     if (filter === "video" && !(p.video || p.pics.some(x => x.isVideo) || (p.rt && p.rt.video))) return false;
+    if (filter === "essay" && !p.essay) return false;
     if (filter === "reply" && !((DATA.comments || {})[p.id] && DATA.comments[p.id].author.length)) return false;
     if (ql && !haystack(p).includes(ql)) return false;
     return true;
@@ -535,7 +537,7 @@ if (EN) {
   set("#mbtn", "All months"); set(".mhead", ""); document.querySelector(".mhead").innerHTML = "Choose months<small>multiple OK</small>";
   set("#myear", "Whole year"); set("#mall", "Clear"); set("#mdone", "Done");
   set("#chips", "Filter by type", "aria-label");
-  const chipEN = {all: "All", orig: "Original", rt: "Reposts", pic: "Images", video: "Videos", reply: "She replied"};
+  const chipEN = {all: "All", orig: "Original", rt: "Reposts", pic: "Images", video: "Videos", reply: "She replied", essay: "Role reflections"};
   document.querySelectorAll("#chips .chip").forEach(c => c.textContent = chipEN[c.dataset.f] || c.textContent);
   set("#loadmore", "Loading more…");
   set("#footnote", "This is a fan-made archive; all text and images belong to their original authors. Videos are not archived — only cover screenshots are kept; posts from the last six months have an \"Original\" link to Weibo. Repost, comment and like counts are as of the time of backup. Older posts no longer visible on Wu Jinyan's own page come from @盐圈大管家's \"小吴老师的半年可见\" reposts and from \"吴谨言的微博书\" (Oct 2010 – Jun 2024). Each post keeps its top 5 most-liked comments plus every comment Wu Jinyan replied to. English translations are fan translations; drama titles use their official English names where they exist.");

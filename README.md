@@ -92,3 +92,4 @@
 - 翻译库 `tools/en/tr.json`（key = 中文原文 md5 前 10 码）。剧名对照与规则见 `tools/en/glossary.md`：**剧名只用查得到的官方英文名，查不到保留中文**。
 - 每次更新后：`python3 tools/en/extract.py` 列出新文字（src-NN.json）→ 翻译写成 en-NN.json → `python3 tools/en/merge.py` → `python3 tools/en/build.py` → 删掉 src/en 暂存档。
 - 翻译时遇到不确定的专有名词（剧名、角色、官署、昵称、粉丝用语等），**先列出来问用户**，确认后再翻并加进 glossary.md，不要自己猜或音译。
+- 「角色感言」分类：posts.json 里 `essay: true` 的贴文（杀青感想、收官/大结局感言、播剧期间对角色/剧的感想，多为中长文）。每次更新时挑出符合的新贴文加上这个标记，不确定的先问用户。
