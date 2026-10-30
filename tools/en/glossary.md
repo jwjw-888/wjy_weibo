@@ -20,6 +20,7 @@
 暗厂（春花焰）Dark Factory
 青州眉骨（春花焰，代指眉林，融入名字并喻其傲骨）意译为 the unbending spirit of Qingzhou's Meilin
 ## 昵称
-小吴 Lil’ Wu | 小黄 Lil’ Huang（像「小王、小李」的亲切叫法）
+小吴 Lil’ Wu | 小黄 Lil’ Huang（像「小王、小李」的亲切叫法）| 吴有才（粉丝对吴谨言的昵称）也用 Lil’ Wu
+颠妹（吴莫愁专辑《颠 OFF-KILTER》的昵称）Quirky Girl
 ## 角色
 魏璎珞 Wei Yingluo | 薛芳菲 Xue Fangfei | 孟廷辉 Meng Tinghui | 阮卿卿 Ruan Qingqing | 祝阮 Zhu Ruan | 秦长歌 Qin Changge | 眉林 Meilin | 姚子衿 Yao Zijin | 明霜 Ming Shuang
