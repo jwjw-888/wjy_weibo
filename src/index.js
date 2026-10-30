@@ -94,6 +94,16 @@ export default {
     const url = new URL(request.url);
     if (url.pathname.startsWith("/staging/")) return staging(request, env, url);
     if (url.pathname === "/usage") return usage(env);
+    if (url.pathname === "/img-check") {
+      const u = url.searchParams.get("u") || "";
+      if (!/^https:\/\/wx\d\.sinaimg\.cn\/large\/[A-Za-z0-9]+\.(jpg|gif|png)$/.test(u)) return json({error: "bad"}, 400);
+      const out = {};
+      for (const [k, h] of Object.entries({none: {}, weibo: {Referer: "https://weibo.com/"}, other: {Referer: "https://jwjw-888.github.io/"}})) {
+        const r = await fetch(u, {headers: {"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)", ...h}});
+        out[k] = [r.status, r.headers.get("content-type"), r.headers.get("content-length")];
+      }
+      return json(out);
+    }
     if (url.pathname === "/r2-live") return liveArchive(request, env);
     // 用户上传的替换原图：先 PUT 到暂存区，再搬到 posts.json 里标了 custom 的路径。
     if (url.pathname === "/r2-promote" && request.method === "POST") {
