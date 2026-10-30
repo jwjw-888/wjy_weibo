@@ -18,4 +18,4 @@
 ## 昵称
 小吴 Lil’ Wu | 小黄 Lil’ Huang（像「小王、小李」的亲切叫法）
 ## 角色
-魏璎珞 Wei Yingluo | 薛芳菲 Xue Fangfei | 孟廷辉 Meng Tinghui | 阮卿卿 Ruan Qingqing | 祝阮 Zhu Ruan | 秦长歌 Qin Changge | 眉林 Mei Lin | 姚子衿 Yao Zijin | 明霜 Ming Shuang
+魏璎珞 Wei Yingluo | 薛芳菲 Xue Fangfei | 孟廷辉 Meng Tinghui | 阮卿卿 Ruan Qingqing | 祝阮 Zhu Ruan | 秦长歌 Qin Changge | 眉林 Meilin | 姚子衿 Yao Zijin | 明霜 Ming Shuang
