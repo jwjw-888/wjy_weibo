@@ -99,7 +99,8 @@ export default {
       if (!/^https:\/\/wx\d\.sinaimg\.cn\/[a-z0-9]+\/[A-Za-z0-9]+\.(jpg|gif|png)$/.test(u)) return json({error: "bad"}, 400);
       const base = {"User-Agent": "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36", "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8", "Sec-Fetch-Dest": "image", "Sec-Fetch-Mode": "no-cors", "Sec-Fetch-Site": "cross-site"};
       const out = {};
-      for (const [k, h] of Object.entries({gh: {Referer: "https://jwjw-888.github.io/"}, ghpath: {Referer: "https://jwjw-888.github.io/wjy_weibo/"}, cf: {Referer: "https://wjy-weibo.jwjw888.workers.dev/"}, weibo: {Referer: "https://weibo.com/"}, none: {}})) {
+      const order = url.searchParams.get("o") === "none" ? {none: {}} : url.searchParams.get("o") === "gh" ? {gh: {Referer: "https://jwjw-888.github.io/"}} : {gh: {Referer: "https://jwjw-888.github.io/"}, ghpath: {Referer: "https://jwjw-888.github.io/wjy_weibo/"}, cf: {Referer: "https://wjy-weibo.jwjw888.workers.dev/"}, weibo: {Referer: "https://weibo.com/"}, none: {}};
+      for (const [k, h] of Object.entries(order)) {
         const r = await fetch(u, {headers: {...base, ...h}});
         out[k] = [r.status, r.headers.get("content-type"), r.headers.get("content-length")];
       }
