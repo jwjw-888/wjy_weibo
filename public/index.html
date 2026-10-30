@@ -15,7 +15,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-10-30-3">
+<meta name="site-build" content="2026-10-30-4">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -173,6 +173,7 @@ details.hot .list{display:grid;gap:10px;margin-top:10px}
 .lb button{font:inherit;color:#fff;background:rgba(255,255,255,.14);border:0;border-radius:16px;padding:5px 14px;cursor:pointer}
 .lb a{color:#fff;margin-left:auto;font-size:13px}
 .lb a.lbalt{margin-left:14px;opacity:.85}
+.lbmsg{position:absolute;left:50%;top:16px;transform:translateX(-50%);background:rgba(0,0,0,.75);color:#fff;font-size:13px;padding:6px 14px;border-radius:16px;white-space:nowrap}
 .lb .closebtn{background:#fff;color:#111;font-weight:600;font-size:15px;padding:8px 22px;border-radius:20px;box-shadow:0 2px 10px rgba(0,0,0,.4)}
 .lb .xtop{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:calc(12px + env(safe-area-inset-right,0px));width:40px;height:40px;padding:0;border-radius:50%;background:rgba(0,0,0,.6);border:1.5px solid rgba(255,255,255,.85);color:#fff;font-size:18px;line-height:1;z-index:2}
 .lb .nav{position:absolute;top:50%;transform:translateY(-50%);font-size:22px;padding:10px 14px}
@@ -217,7 +218,7 @@ details.hot .list{display:grid;gap:10px;margin-top:10px}
 </div>
 
 <div class="lb" id="lb" hidden>
-  <div class="stage" id="stage"><img id="lbimg" alt=""><video id="lbvid" playsinline muted loop controls preload="auto" hidden></video></div>
+  <div class="stage" id="stage"><img id="lbimg" alt="" referrerpolicy="origin"><div class="lbmsg" id="lbmsg" hidden></div><video id="lbvid" playsinline muted loop controls preload="auto" hidden></video></div>
   <button class="xtop" id="xtop" aria-label="关闭">✕</button>
   <button class="nav prev" id="prev" aria-label="上一张">‹</button>
   <button class="nav next" id="next" aria-label="下一张">›</button>
@@ -424,6 +425,7 @@ function showLb() {
   const v = $("lbvid");
   if (p.live) { $("lbimg").hidden = true; v.hidden = false; v.poster = "thumbs/" + p.src; v.src = p.live; v.muted = true; v.play().catch(() => {}); }
   else { v.pause(); v.removeAttribute("src"); v.hidden = true; $("lbimg").hidden = false; $("lbimg").src = "thumbs/" + p.src; }
+  $("lbmsg").hidden = true; $("lbalt").textContent = "备用原图";
   $("lbn").textContent = lbItems.length > 1 ? `${lbIdx + 1} / ${lbItems.length}` : "";
   $("lborig").hidden = !!p.nolink || !origUrl(p);
   $("lborig").href = origUrl(p);
@@ -435,6 +437,18 @@ function showLb() {
 }
 function closeLb() { $("lbvid").pause(); $("lb").hidden = true; document.body.style.overflow = ""; }
 function step(d) { lbIdx = (lbIdx + d + lbItems.length) % lbItems.length; showLb(); }
+// 备用原图：直接在看图视窗里载入微博图床的大图（微博图床要求带来源网址，所以不另开分页）
+$("lbalt").addEventListener("click", e => {
+  e.preventDefault();
+  const p = lbItems[lbIdx], alt = altUrl(p); if (!alt) return;
+  const img = $("lbimg"), msg = $("lbmsg");
+  $("lbvid").pause(); $("lbvid").hidden = true; img.hidden = false;
+  msg.textContent = "备用原图载入中…"; msg.hidden = false;
+  const probe = new Image(); probe.referrerPolicy = "origin";
+  probe.onload = () => { if (lbItems[lbIdx] !== p) return; img.src = alt; msg.hidden = true; $("lbalt").textContent = "已显示备用原图"; };
+  probe.onerror = () => { if (lbItems[lbIdx] !== p) return; msg.textContent = "备用原图暂时打不开"; };
+  probe.src = alt;
+});
 $("close").onclick = closeLb; $("xtop").onclick = closeLb; $("prev").onclick = () => step(-1); $("next").onclick = () => step(1);
 $("stage").onclick = e => { if (e.target === e.currentTarget) closeLb(); };
 document.addEventListener("keydown", e => {
