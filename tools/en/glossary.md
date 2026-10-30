@@ -12,7 +12,8 @@
 老炮儿 Mr. Six | 天堂旅行团（电影，2025）Always Have Always Will | 无问西东 Forever Young | 说走就走 Born to Be Wild | 重生之门：源起 Be Reborn: Origin | 青春环游记 Youth Periplous
 守护丽人 Guardian of Beauty | 天泪传奇之凤凰无双 Legend of Heavenly Tear: Phoenix Warriors | 将故事写成我们 The Story of Us
 雀骨 Key to the Phoenix Heart | 回来的她们 Those Flowers
-查不到（保留中文）：帝凰（小说）、凤凰琴、紫禁红墙、东风起时正当归、芳菲落尽梨花白、歌名
+凤凰琴 Country Teachers
+查不到（保留中文）：帝凰（小说）、紫禁红墙、东风起时正当归、芳菲落尽梨花白、歌名
 ## 专有名词（要让外国人看得懂，意译）
 察闻院 The Investigative Bureau
 暗厂（春花焰）Dark Factory
