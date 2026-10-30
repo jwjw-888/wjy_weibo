@@ -15,7 +15,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-10-30-8">
+<meta name="site-build" content="2026-10-30-9">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -72,7 +72,7 @@ a{color:var(--link);text-decoration:none}
 .mact button{flex:1;font:inherit;font-size:13px;border:0;border-radius:8px;padding:7px 0;cursor:pointer;background:transparent;color:var(--soft)}
 .mact .mdone{background:var(--accent-soft);color:var(--accent);font-weight:600}
 .myears .chip small{font-size:11px;margin-left:3px;color:var(--accent)}
-.chips{display:flex;gap:4px;margin-top:8px;overflow-x:auto;scrollbar-width:none}
+.chips{display:flex;flex-wrap:wrap;gap:4px 2px;margin-top:8px}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:0 0 auto;font:inherit;font-size:13px;border:0;background:transparent;color:var(--soft);border-radius:14px;padding:3px 12px;cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
@@ -531,7 +531,7 @@ if (EN) {
   document.title = "Wu Jinyan Weibo Archive";
   const set = (sel, txt, attr) => { const el = typeof sel === "string" ? document.querySelector(sel) : sel; if (el) attr ? el.setAttribute(attr, txt) : (el.textContent = txt); };
   set("#pn", "Wu Jinyan"); set("#pnt", "Fan archive"); set("#pdt", "An archive of Wu Jinyan's Weibo · Her Weibo page");
-  set("#meta", "Loading…"); set("#q", "Search posts, topics, comments", "placeholder");
+  set("#meta", "Loading…"); set("#q", "Search posts & comments", "placeholder");
   set("#mbtn", "All months"); set(".mhead", ""); document.querySelector(".mhead").innerHTML = "Choose months<small>multiple OK</small>";
   set("#myear", "Whole year"); set("#mall", "Clear"); set("#mdone", "Done");
   set("#chips", "Filter by type", "aria-label");
