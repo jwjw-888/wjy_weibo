@@ -15,7 +15,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-10-30-5">
+<meta name="site-build" content="2026-10-30-6">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -92,6 +92,7 @@ article{background:var(--card);border-radius:8px;min-width:0;overflow:hidden}
 .who .t{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .who .t span+span::before{content:"";margin-left:8px}
 .ext{color:var(--muted);font-size:12px;flex:0 0 auto}
+.ext + .ext{margin-left:10px}
 .text{margin:10px 0 0;font-size:15px;line-height:1.65;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}
 .lnk{color:var(--link);white-space:nowrap}
 .lnk::before{content:"";display:inline-block;width:1em;height:1em;margin-right:2px;vertical-align:-0.12em;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1'/%3E%3Cpath d='M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1'/%3E%3Cpath d='M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1'/%3E%3C/svg%3E") center/contain no-repeat}
@@ -240,6 +241,8 @@ const hm = iso => fmt(iso, {hour:"2-digit", minute:"2-digit", hour12:false});
 const monthKey = iso => ymd(iso).slice(0, 7);
 const num = n => n >= 10000 ? (n/10000).toFixed(1).replace(/\.0$/,"") + "万" : String(n);
 const dur = s => s ? `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}` : "";
+// 盐圈大管家备份的那条微博（可去看视频、原图）
+const backupUrl = p => (p.via && p.via.url) || p.backup || (p.video && p.video.watch) || "";
 const HALF_YEAR = 183 * 864e5; // 「原微博」链接只给半年内的微博
 // 备用原图：微博图床（中国连得上）。盐圈大管家备份的就是盐圈那份；吴谨言自己的用她微博的图，
 // 若之后在盐圈找到同一张，会记在 p.alt，优先用盐圈的（她的微博超过半年可能看不到）。
@@ -309,7 +312,7 @@ function postHtml(p, q) {
   return `<article id="p-${p.id}"><div class="pbody">
     <div class="head">${p.coop ? `<div class="coava">${p.coop.map(u => u.avatar ? `<img class="mini" src="avatars/u/${esc(u.avatar)}.jpg" alt="" loading="lazy">` : `<img class="mini" src="${esc(p.avatar)}" alt="" loading="lazy">`).join("")}</div>` : p.avatar ? `<img class="mini" src="${esc(p.avatar)}" alt="" loading="lazy">` : '<div class="mini" aria-hidden="true">言</div>'}
       <div class="who"><div class="n">${p.coop ? p.coop.map(u => esc(u.name)).join('<span class="co">与</span>') + '<span class="co">的共创微博</span>' : "吴谨言"}${p.top ? '<span class="top-tag">置顶</span>' : ""}</div><div class="t">${meta.join("")}</div></div>
-      ${p.url && Date.now() - Date.parse(p.time) < HALF_YEAR ? `<a class="ext" href="${p.url}" target="_blank" rel="noopener noreferrer">原微博 ↗</a>` : ""}</div>
+      ${p.url && Date.now() - Date.parse(p.time) < HALF_YEAR ? `<a class="ext" href="${p.url}" target="_blank" rel="noopener noreferrer">原微博 ↗</a>` : ""}${backupUrl(p) ? `<a class="ext" href="${esc(backupUrl(p))}" target="_blank" rel="noopener noreferrer">大管家备份 ↗</a>` : ""}</div>
     ${p.text ? `<div class="text">${rich(p.text, q)}</div>` : ""}
     ${picsHtml(p.rt && p.video && p.rt.video && p.rt.video.cover === p.video.cover ? {...p, skipVideo: true} : p)}${rt}
     ${p.note ? `<div class="vnote">注：${esc(p.note)}</div>` : ""}
