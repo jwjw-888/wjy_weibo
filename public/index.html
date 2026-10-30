@@ -15,7 +15,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-10-30-12">
+<meta name="site-build" content="2026-10-30-13">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -239,7 +239,8 @@ const TZ = "Asia/Shanghai";
 
 let DATA = null, filter = "all", EMO = null, LINKS = null;
 // 语言：中文 / ENG（英文翻译在 data/en.json，只有选英文才下载）
-let LANG = "zh"; try { if (localStorage.getItem("lang") === "en") LANG = "en"; } catch (e) {}
+// 语言：每次打开都从中文开始；切换后只在这次浏览期间有效（sessionStorage）
+let LANG = "zh"; try { localStorage.removeItem("lang"); if (sessionStorage.getItem("lang") === "en") LANG = "en"; } catch (e) {}
 const EN = LANG === "en";
 let ENX = {p: {}, c: {}, l: {}};
 const T = (zh, en) => EN ? en : zh;
@@ -537,7 +538,7 @@ document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("mpanel
 // 语言切换：记住选择后重新整理页面
 document.querySelectorAll(".langsw button").forEach(b => {
   b.setAttribute("aria-pressed", b.dataset.lang === LANG);
-  b.addEventListener("click", () => { if (b.dataset.lang === LANG) return; try { localStorage.setItem("lang", b.dataset.lang); } catch (e) {} location.reload(); });
+  b.addEventListener("click", () => { if (b.dataset.lang === LANG) return; try { sessionStorage.setItem("lang", b.dataset.lang); } catch (e) {} location.reload(); });
 });
 if (EN) {
   document.documentElement.lang = "en";
