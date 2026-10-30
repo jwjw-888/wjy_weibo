@@ -15,7 +15,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-10-30-4">
+<meta name="site-build" content="2026-10-30-5">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -431,7 +431,7 @@ function showLb() {
   $("lborig").href = origUrl(p);
   $("lborig").textContent = p.isVideo ? "查看封面原图" : "查看原图";
   const alt = altUrl(p);
-  $("lbalt").hidden = !!p.nolink || !alt;
+  $("lbalt").hidden = true; // 微博图床防盗链，外站无法载入，先隐藏（见 README）
   $("lbalt").href = alt;
   $("prev").hidden = $("next").hidden = lbItems.length < 2;
 }

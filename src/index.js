@@ -94,18 +94,6 @@ export default {
     const url = new URL(request.url);
     if (url.pathname.startsWith("/staging/")) return staging(request, env, url);
     if (url.pathname === "/usage") return usage(env);
-    if (url.pathname === "/img-check") {
-      const u = url.searchParams.get("u") || "";
-      if (!/^https:\/\/wx\d\.sinaimg\.cn\/[a-z0-9]+\/[A-Za-z0-9]+\.(jpg|gif|png)$/.test(u)) return json({error: "bad"}, 400);
-      const base = {"User-Agent": "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36", "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8", "Sec-Fetch-Dest": "image", "Sec-Fetch-Mode": "no-cors", "Sec-Fetch-Site": "cross-site"};
-      const out = {};
-      const order = url.searchParams.get("o") === "none" ? {none: {}} : url.searchParams.get("o") === "gh" ? {gh: {Referer: "https://jwjw-888.github.io/"}} : {gh: {Referer: "https://jwjw-888.github.io/"}, ghpath: {Referer: "https://jwjw-888.github.io/wjy_weibo/"}, cf: {Referer: "https://wjy-weibo.jwjw888.workers.dev/"}, weibo: {Referer: "https://weibo.com/"}, none: {}};
-      for (const [k, h] of Object.entries(order)) {
-        const r = await fetch(u, {headers: {...base, ...h}});
-        out[k] = [r.status, r.headers.get("content-type"), r.headers.get("content-length")];
-      }
-      return json(out);
-    }
     if (url.pathname === "/r2-live") return liveArchive(request, env);
     // 用户上传的替换原图：先 PUT 到暂存区，再搬到 posts.json 里标了 custom 的路径。
     if (url.pathname === "/r2-promote" && request.method === "POST") {
