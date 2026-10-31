@@ -11,6 +11,10 @@ BAD={'7036596512','7492962323','6664185690','7890389247','7219895881','755689895
      '5867796382','6582011218','7440139822','6375609645','7421237358'}
 KW=['魏哲鸣','萧玦','萧块']
 ME='1278603180'
+# 不算「粉丝留言」的账号：官方/机构蓝 V（verified_type 1~7）、以及明星/剧组人员（黄 V 个人认证的普通粉丝要收）
+NOTFAN_NAMES={'于正','郭虎-','吴莫愁Momo-','陈哲远-','王佑硕','刘学义'}
+def notfan(c): return (c['v'] and 1<=int(c.get('vt') or 0)<=7) or c['name'] in NOTFAN_NAMES
+CPIC=json.load(open(ARG['--cpics'])) if '--cpics' in ARG else {}
 PHRASE=r'杀青快乐|杀青大吉|开机大吉|开机快乐|拍摄顺利|一切顺利|期待[^，,。！!？?\s]{0,10}|早日(相见|见面)|一起(看|支持|追)|速速|冲呀|冲冲|上线了|宣传委员|新剧|好剧|新角色|新造型|生日快乐|节日快乐|中秋快乐|新年快乐|恭喜|入围|大吉'
 GENERIC=r'期待|好看|好美|美美|太美了|绝美|支持|加油|冲鸭|冲冲冲|爱你|喜欢|姐姐|老婆|宝宝|谨言|吴谨言|小吴|盐盐|来了|打卡|签到|晚安|早安|哈哈+|啊+|呀+|哇+|好好看|漂亮|可爱|帅|绝了|yyds|❤|~|～|！|!|。|，|,|\.|\?|？'
 iso=lambda t:datetime.datetime.strptime(t,'%a %b %d %H:%M:%S %z %Y').astimezone(datetime.UTC).strftime('%Y-%m-%dT%H:%M:%S.000Z')
@@ -21,7 +25,7 @@ def core(t):
   t=re.sub(r'\[[^\]]{1,8}\]','',t); t=re.sub(r'@\S+','',t); t=re.sub(r'http\S+','',t)
   return re.sub(r'[\s\U00010000-\U0010FFFF☀-➿️]','',t)
 def conv(c):
-  k=known.get(c['id']); pics=k['pics'] if k else []
+  k=known.get(c['id']); pics=k['pics'] if k else ([CPIC[c['id']]] if c['id'] in CPIC else [])
   t=c['x']
   if c.get('pn') or pics: t=re.sub(r'\s*http://t\.cn/\w+','',t).strip()
   return {"id":c['id'],"user":c['name'],"uid":c['uid'],"avatar":pidof(c['av']),"time":iso(c['t']),"text":t,"likes":c['l'],"pics":pics,**({"region":c['src'].replace('来自','').strip()} if c.get('src') else ({"region":k['region']} if k and k.get('region') else {}))}
@@ -33,8 +37,8 @@ for pid,raw in R.items():
     if c['id'] not in seen: seen.add(c['id']);cm.append(c)
   pool=[];users=set();texts=set()
   for c in sorted(cm,key=lambda c:-c['l']):
-    if blocked(c) or c['uid']==ME or c['v'] or not pidof(c['av']): continue
-    if c.get('pn') and c['id'] not in known: continue   # 评论图抓不到编号就不收
+    if blocked(c) or c['uid']==ME or notfan(c) or not pidof(c['av']): continue
+    if c.get('pn') and c['id'] not in known and c['id'] not in CPIC: continue   # 评论图抓不到编号就不收
     x=c['x']
     if '#' in x or ('http' in x and not c.get('pn')): continue
     if re.search(r'超话|控评|打榜|投票|做数据|轮博|反黑|//@',x): continue
@@ -49,9 +53,9 @@ for pid,raw in R.items():
   # 不够 5 位时，用比较短的粉丝留言补上（仍排除封杀、负面、刷屏）
   extra=[]
   for c in sorted(cm,key=lambda c:-c['l']):
-    if c in pool or blocked(c) or c['uid']==ME or c['v'] or not pidof(c['av']) or c['uid'] in users: continue
+    if c in pool or blocked(c) or c['uid']==ME or notfan(c) or not pidof(c['av']) or c['uid'] in users: continue
     x=c['x']
-    if (c.get('pn') and c['id'] not in known) or '#' in x or 'http' in x or re.search(r'//@|超话|控评|打榜|混日子|糊弄|敷衍|破图|别拍|气死|坑人|垃圾|难看|恶心|死|丑|骂|滚',x) or re.search(r'(.{3,}?)(?:.{0,4}\1){2,}',x): continue
+    if (c.get('pn') and c['id'] not in known and c['id'] not in CPIC) or '#' in x or 'http' in x or re.search(r'//@|超话|控评|打榜|混日子|糊弄|敷衍|破图|别拍|气死|坑人|垃圾|难看|恶心|死|丑|骂|滚',x) or re.search(r'(.{3,}?)(?:.{0,4}\1){2,}',x): continue
     co=core(x)
     if len(co)<4 or co in texts: continue
     c['_sc']=0;texts.add(co);users.add(c['uid']);extra.append(c)
