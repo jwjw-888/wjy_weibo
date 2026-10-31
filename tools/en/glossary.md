@@ -11,7 +11,7 @@
 秀丽江山之长歌行 Singing All Along | 朝歌 Zhaoge | 外滩钟声/外滩的钟声 The Sound of the Bell at Shanghai Bund | 十里洋场拾年花 Shanghai Picked Flowers
 老炮儿 Mr. Six | 天堂旅行团（电影，2025）Always Have Always Will | 无问西东 Forever Young | 说走就走 Born to Be Wild | 重生之门：源起 Be Reborn: Origin | 青春环游记 Youth Periplous
 守护丽人 Guardian of Beauty | 天泪传奇之凤凰无双 Legend of Heavenly Tear: Phoenix Warriors | 将故事写成我们 The Story of Us
-雀骨 Key to the Phoenix Heart | 回来的她们 Those Flowers
+雀骨 Key to the Phoenix Heart | 十贯娘子 The Ten-String Bride | 回来的她们 Those Flowers
 凤凰琴 Country Teachers
 查不到（保留中文）：帝凰（小说）、紫禁红墙、东风起时正当归、芳菲落尽梨花白、歌名
 ## 专有名词（要让外国人看得懂，意译）
@@ -22,5 +22,6 @@
 ## 昵称
 小吴 Lil’ Wu | 小黄 Lil’ Huang（像「小王、小李」的亲切叫法）| 吴有才（粉丝对吴谨言的昵称）也用 Lil’ Wu
 颠妹（吴莫愁专辑《颠 OFF-KILTER》的昵称）Quirky Girl
+盐粒/盐粒儿（粉丝名）Little Salts | 奶盐（吴谨言自称/粉丝对她的称呼）Milk Salt | 不锈钢女王 Stainless Steel Queen | 宣传委员 publicity officer
 ## 角色
-魏璎珞 Wei Yingluo | 薛芳菲 Xue Fangfei | 孟廷辉 Meng Tinghui | 阮卿卿 Ruan Qingqing | 祝阮 Zhu Ruan | 秦长歌 Qin Changge | 眉林 Meilin | 姚子衿 Yao Zijin | 明霜 Ming Shuang
+魏璎珞 Wei Yingluo | 薛芳菲 Xue Fangfei | 孟廷辉 Meng Tinghui | 阮卿卿 Ruan Qingqing | 祝阮 Zhu Ruan | 秦长歌 Qin Changge（秦总 Boss Qin）| 英寡（御廷谣男主）Ying Gua | 素玄（王佑硕，凤不栖）Su Xuan | 程蔚然 Cheng Weiran（程律 Lawyer Cheng） | 眉林 Meilin | 姚子衿 Yao Zijin | 明霜 Ming Shuang
