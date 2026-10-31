@@ -22,6 +22,6 @@
 ## 昵称
 小吴 Lil’ Wu | 小黄 Lil’ Huang（像「小王、小李」的亲切叫法）| 吴有才（粉丝对吴谨言的昵称）也用 Lil’ Wu
 颠妹（吴莫愁专辑《颠 OFF-KILTER》的昵称）Quirky Girl
-盐粒/盐粒儿（粉丝名）Little Salts | 奶盐（吴谨言自称/粉丝对她的称呼）Milk Salt | 不锈钢女王 Stainless Steel Queen | 宣传委员 publicity officer
+盐粒/盐粒儿（粉丝名）Little Salts | 奶盐（吴谨言自称/粉丝对她的称呼）Milky Salt | 不锈钢女王 Stainless Steel Queen | 宣传委员 publicity officer
 ## 角色
 魏璎珞 Wei Yingluo | 薛芳菲 Xue Fangfei | 孟廷辉 Meng Tinghui | 阮卿卿 Ruan Qingqing | 祝阮 Zhu Ruan | 秦长歌 Qin Changge（秦总 Boss Qin）| 英寡（御廷谣男主）Ying Gua | 素玄（王佑硕，凤不栖）Su Xuan | 程蔚然 Cheng Weiran（程律 Lawyer Cheng） | 眉林 Meilin | 姚子衿 Yao Zijin | 明霜 Ming Shuang
