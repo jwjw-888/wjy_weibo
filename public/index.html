@@ -15,7 +15,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-10-31-2">
+<meta name="site-build" content="2026-10-31-3">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -220,7 +220,7 @@ details.hot .list{display:grid;gap:10px;margin-top:10px}
 <div class="wrap">
   <main class="feed" id="feed"></main>
   <div id="loadmore" class="loadmore" hidden>载入更多…</div>
-  <p class="note" id="footnote">本页为粉丝自制存档，文字与图片版权归原作者所有。视频未存档，只保存封面截图，半年内的微博可点「原微博」到微博查看。转评赞数字为备份当时的数据。吴谨言本人主页已看不到的较早微博，内容来自 @盐圈大管家 的「小吴老师的半年可见」转载，以及「吴谨言的微博书」（2010—2024年）。每条微博的「粉丝留言」是从热门评论里随机挑选的 5 位粉丝留言（略过只有客套话、刷屏或负面的留言，挑比较有内容、有意思的），不是点赞排名；吴谨言本人回复过的评论另外全部保存在「她有回复」。</p>
+  <p class="note" id="footnote">本页为粉丝自制存档，文字与图片版权归原作者所有。视频未存档，只保存封面截图，半年内的微博可点「原微博」到微博查看。转评赞数字为备份当时的数据。吴谨言本人主页已看不到的较早微博，部分内容来自 @盐圈大管家 的「小吴老师的半年可见」转载，以及「吴谨言的微博书」（2010—2024年）。每条微博的「粉丝留言」是由ai随机挑选的 5 位粉丝留言；吴谨言本人回复过的评论另外全部保存在「她有回复」。</p>
 </div>
 
 <div class="lb" id="lb" hidden>
@@ -554,7 +554,7 @@ if (EN) {
   const chipEN = {all: "All", orig: "Original", rt: "Reposts", pic: "Images", video: "Videos", reply: "She replied", essay: "Role reflections"};
   document.querySelectorAll("#chips .chip").forEach(c => c.textContent = chipEN[c.dataset.f] || c.textContent);
   set("#loadmore", "Loading more…");
-  set("#footnote", "This is a fan-made archive; all text and images belong to their original authors. Videos are not archived — only cover screenshots are kept; posts from the last six months have an \"Original\" link to Weibo. Repost, comment and like counts are as of the time of backup. Older posts no longer visible on Wu Jinyan's own page come from @盐圈大管家's \"小吴老师的半年可见\" reposts and from \"吴谨言的微博书\" (2010 – 2024). Each post's \"Fan comments\" are 5 fan comments picked at random from the hot comments (skipping bare pleasantries, spam and negative ones in favour of comments with some substance or fun) — they are not a likes ranking. Every comment Wu Jinyan replied to is kept separately under \"She replied\". English translations are fan translations; drama titles use their official English names where they exist.");
+  set("#footnote", "This is a fan-made archive; all text and images belong to their original authors. Videos are not archived — only cover screenshots are kept; posts from the last six months have an \"Original\" link to Weibo. Repost, comment and like counts are as of the time of backup. Some older posts no longer visible on Wu Jinyan's own page come from @盐圈大管家's \"小吴老师的半年可见\" reposts and from \"吴谨言的微博书\" (2010 – 2024). Each post's \"Fan comments\" are 5 fan comments picked at random by AI. Every comment Wu Jinyan replied to is kept separately under \"She replied\". English translations are fan translations; drama titles use their official English names where they exist.");
   set("#xtop", "Close", "aria-label"); set("#prev", "Previous", "aria-label"); set("#next", "Next", "aria-label"); set("#close", "✕ Close");
 }
 Promise.all([fetch("data/all.json").then(r => r.json()), EN ? fetch("data/en.json").then(r => r.ok ? r.json() : null).catch(() => null) : null]).then(([{d, dims, cm, emo, links}, enx]) => {
