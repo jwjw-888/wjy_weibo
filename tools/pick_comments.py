@@ -1,7 +1,11 @@
 # 用法：python3 tools/pick_comments.py <浏览器抓的评论 json>   （格式 {贴文id: [精简评论...]}）
 # 每篇随机挑 5 位粉丝「有内容」的留言；吴谨言回复过的另放 author。规则见 README「评论区选法」。
 import json,re,random,datetime,sys,os
+# 选项：--candidates <输出档>  只列出每篇的候选留言给 Claude 挑；--picks <picks.json>  用人工挑好的评论 id
 R=json.load(open(sys.argv[1]))
+ARG=dict(zip(sys.argv[2::2],sys.argv[3::2]))
+PICKS=json.load(open(ARG['--picks'])) if '--picks' in ARG else {}
+CAND={}
 C=json.load(open('public/data/comments.json'))
 BAD={'7036596512','7492962323','6664185690','7890389247','7219895881','7556898955',
      '5867796382','6582011218','7440139822','6375609645','7421237358'}
@@ -51,9 +55,14 @@ for pid,raw in R.items():
     co=core(x)
     if len(co)<4 or co in texts: continue
     c['_sc']=0;texts.add(co);users.add(c['uid']);extra.append(c)
-  pool=sorted(pool,key=lambda c:-c['_sc'])[:15]   # 内容最多的 15 则里随机挑
-  pick=random.Random(pid).sample(pool,min(5,len(pool)))
-  if len(pick)<5: pick+=random.Random(pid+'x').sample(extra,min(5-len(pick),len(extra)))
+  CAND[pid]=[{'id':c['id'],'user':c['name'],'likes':c['l'],'text':c['x']} for c in pool+extra]
+  if pid in PICKS:
+    byid={c['id']:c for c in cm}
+    pick=[byid[i] for i in PICKS[pid] if i in byid]
+  else:
+    pool=sorted(pool,key=lambda c:-c['_sc'])[:15]   # 没有人工挑选时：内容最多的 15 则里随机挑
+    pick=random.Random(pid).sample(pool,min(5,len(pool)))
+    if len(pick)<5: pick+=random.Random(pid+'x').sample(extra,min(5-len(pick),len(extra)))
   top=sorted([conv(c) for c in pick],key=lambda c:-c['likes'])
   auth=[]
   for c in cm:   # 她回复过的留言不受封杀名单限制，全收
@@ -64,6 +73,8 @@ for pid,raw in R.items():
   auth.sort(key=lambda a:a['comment']['time'])
   C[pid]={"scanned":len(cm),"top":top,"author":auth}
   report[pid]=(len(cm),len(pool))
+if '--candidates' in ARG:
+  json.dump(CAND,open(ARG['--candidates'],'w'),ensure_ascii=False,indent=0); print('candidates written'); sys.exit()
 json.dump(C,open('public/data/comments.json','w',encoding='utf-8'),ensure_ascii=False)
 need={}
 for pid in R:
