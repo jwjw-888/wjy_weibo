@@ -15,7 +15,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-10-31-4">
+<meta name="site-build" content="2026-10-31-5">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -285,7 +285,8 @@ function rich(text, q) {
 
 let gallery = [];
 function picsHtml(o) {
-  const items = [...o.pics];
+  // hide + hideImg：原图隐藏，改显示指定图片（原资料保留）
+  const items = o.pics.map(x => x.hide && x.hideImg ? {...x, src: x.hideImg, hide: false, nolink: true} : x);
   if (o.video && !items.length && !o.skipVideo) items.push({src: o.video.cover, orig: o.video.coverOrig, isVideo: true, dur: o.video.duration, noplay: o.video.noplay, nolink: !o.video.coverOrig});
   if (!items.length) return "";
   const n = items.length;
