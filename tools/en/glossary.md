@@ -21,6 +21,7 @@
 青州眉骨（春花焰，代指眉林，融入名字并喻其傲骨）意译为 the unbending spirit of Qingzhou's Meilin
 ## 昵称
 小吴 Lil’ Wu | 小黄 Lil’ Huang（像「小王、小李」的亲切叫法）| 吴有才（粉丝对吴谨言的昵称）也用 Lil’ Wu
+吴老哥 vlog → Bro Wu vlog
 颠妹（吴莫愁专辑《颠 OFF-KILTER》的昵称）Quirky Girl
 盐粒/盐粒儿（粉丝名）Little Salts | 奶盐（吴谨言自称/粉丝对她的称呼）Milky Salt | 不锈钢女王 Stainless Steel Queen | 宣传委员 publicity officer
 ## 角色
