@@ -56,12 +56,11 @@ for pid,raw in R.items():
   if len(pick)<5: pick+=random.Random(pid+'x').sample(extra,min(5-len(pick),len(extra)))
   top=sorted([conv(c) for c in pick],key=lambda c:-c['likes'])
   auth=[]
-  for c in cm:
-    if blocked(c): continue
+  for c in cm:   # 她回复过的留言不受封杀名单限制，全收
     if c['sub']: auth.append({"comment":conv(c),"replies":[conv({**r,'v':0,'pn':0}) for r in c['sub']],"isAuthorComment":False})
   old=C.get(pid,{})
   have={a['comment']['id'] for a in auth}
-  auth+=[a for a in old.get('author',[]) if a['comment']['uid'] not in BAD and a['comment']['id'] not in have]
+  auth+=[a for a in old.get('author',[]) if a['comment']['id'] not in have]
   auth.sort(key=lambda a:a['comment']['time'])
   C[pid]={"scanned":len(cm),"top":top,"author":auth}
   report[pid]=(len(cm),len(pool))
