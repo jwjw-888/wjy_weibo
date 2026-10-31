@@ -15,7 +15,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-10-31-3">
+<meta name="site-build" content="2026-10-31-4">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -323,7 +323,7 @@ const wbTime = (iso, dateOnly) => {
 };
 function postHtml(p, q) {
   // blank：只显示一张黑图，文字、图片、评论都不显示（原始内容仍保留在数据里）
-  if (p.blank) p = {...p, text: "", rt: null, note: null, video: null, pics: [{src: "", hide: true}], coop: null, nocm: true};
+  if (p.blank) p = {...p, text: "", rt: null, note: null, video: null, pics: [p.blankImg ? {src: p.blankImg, nolink: true} : {src: "", hide: true}], coop: null, nocm: true};
   const meta = [`<span>${wbTime(p.time, p.dateOnly)}</span>`];
   if (p.source) meta.push(`<span>${T("来自 " + esc(p.source), "via " + esc(SOURCE_EN[p.source] || p.source))}</span>`);
   if (p.region) meta.push(`<span>${T("发布于 " + esc(p.region), "posted in " + esc(REGION_EN[p.region] || p.region))}</span>`);
