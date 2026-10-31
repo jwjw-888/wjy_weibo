@@ -24,7 +24,7 @@ def conv(c):
   k=known.get(c['id']); pics=k['pics'] if k else []
   t=c['x']
   if c.get('pn') or pics: t=re.sub(r'\s*http://t\.cn/\w+','',t).strip()
-  return {"id":c['id'],"user":c['name'],"uid":c['uid'],"avatar":pidof(c['av']),"time":iso(c['t']),"text":t,"likes":c['l'],"pics":pics}
+  return {"id":c['id'],"user":c['name'],"uid":c['uid'],"avatar":pidof(c['av']),"time":iso(c['t']),"text":t,"likes":c['l'],"pics":pics,**({"region":c['src'].replace('来自','').strip()} if c.get('src') else ({"region":k['region']} if k and k.get('region') else {}))}
 def blocked(c): return c['uid'] in BAD or any(k in c['x']+c['name'] for k in KW)
 report={}
 for pid,raw in R.items():

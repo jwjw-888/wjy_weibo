@@ -15,7 +15,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-10-31-1">
+<meta name="site-build" content="2026-10-31-2">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -244,7 +244,7 @@ let LANG = "zh"; try { localStorage.removeItem("lang"); if (sessionStorage.getIt
 const EN = LANG === "en";
 let ENX = {p: {}, c: {}, l: {}};
 const T = (zh, en) => EN ? en : zh;
-const REGION_EN = {"浙江": "Zhejiang", "北京": "Beijing", "海南": "Hainan", "四川": "Sichuan", "上海": "Shanghai", "湖南": "Hunan", "广东": "Guangdong", "江苏": "Jiangsu", "云南": "Yunnan", "重庆": "Chongqing", "河南": "Henan", "新疆": "Xinjiang", "西藏": "Tibet", "香港": "Hong Kong", "澳门": "Macau", "美国": "USA", "法国": "France", "英国": "UK", "意大利": "Italy", "日本": "Japan"};
+const REGION_EN = {"河南": "Henan", "辽宁": "Liaoning", "中国台湾": "Taiwan", "中国香港": "Hong Kong", "中国澳门": "Macau", "马来西亚": "Malaysia", "山西": "Shanxi", "山东": "Shandong", "安徽": "Anhui", "加拿大": "Canada", "河北": "Hebei", "湖北": "Hubei", "福建": "Fujian", "甘肃": "Gansu", "贵州": "Guizhou", "天津": "Tianjin", "陕西": "Shaanxi", "江西": "Jiangxi", "吉林": "Jilin", "广西": "Guangxi", "德国": "Germany", "澳大利亚": "Australia", "泰国": "Thailand", "内蒙古": "Inner Mongolia", "黑龙江": "Heilongjiang", "宁夏": "Ningxia", "青海": "Qinghai", "新加坡": "Singapore", "韩国": "South Korea", "台湾": "Taiwan", "浙江": "Zhejiang", "北京": "Beijing", "海南": "Hainan", "四川": "Sichuan", "上海": "Shanghai", "湖南": "Hunan", "广东": "Guangdong", "江苏": "Jiangsu", "云南": "Yunnan", "重庆": "Chongqing", "河南": "Henan", "新疆": "Xinjiang", "西藏": "Tibet", "香港": "Hong Kong", "澳门": "Macau", "美国": "USA", "法国": "France", "英国": "UK", "意大利": "Italy", "日本": "Japan"};
 const SOURCE_EN = {"微博视频号": "Weibo Video", "微博直播平台": "Weibo Live Platform", "生日动态": "Birthday Updates", "微博直播": "Weibo Live", "微博会员中心": "Weibo VIP Center", "微博集卡活动": "Weibo Card Collection"};
 const MONTH_EN = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const MONTH_LONG = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -356,11 +356,13 @@ function avaHtml(c, me) {
   if (c.avatar) return `<img class="ava" src="avatars/u/${esc(c.avatar)}.jpg" alt="" loading="lazy">`;
   return `<div class="ava" aria-hidden="true">${esc((c.user || "?").slice(0, 1))}</div>`;
 }
+// 评论的 IP 属地（微博显示的「来自 X」）
+const cRegion = c => c.region ? T("来自 " + esc(c.region), "from " + esc(REGION_EN[c.region] || c.region)) : "";
 function cmtHtml(c, q, me) {
-  return `<div class="cmt${me ? " mine" : ""}">${avaHtml(c, me)}<div class="c"><div class="t"><b>${esc(c.user === "吴谨言" ? ME() : c.user)}</b>${T("：", ": ")}${rich(ctext(c), q)}</div>${cpicHtml(c)}<div class="m"><span>${wbTime(c.time)}</span><span>${T("赞", "Likes")} ${num(c.likes)}</span></div>`;
+  return `<div class="cmt${me ? " mine" : ""}">${avaHtml(c, me)}<div class="c"><div class="t"><b>${esc(c.user === "吴谨言" ? ME() : c.user)}</b>${T("：", ": ")}${rich(ctext(c), q)}</div>${cpicHtml(c)}<div class="m"><span>${wbTime(c.time)}</span>${c.region ? `<span>${cRegion(c)}</span>` : ""}<span>${T("赞", "Likes")} ${num(c.likes)}</span></div>`;
 }
 function replyHtml(r, q) {
-  return `<div class="t"><b>${esc(r.user === "吴谨言" ? ME() : r.user)}</b>${T("：", ": ")}${rich(ctext(r), q)} <span class="m" style="display:inline;font-size:12px;color:var(--muted)">${wbTime(r.time)}</span></div>${cpicHtml(r)}`;
+  return `<div class="t"><b>${esc(r.user === "吴谨言" ? ME() : r.user)}</b>${T("：", ": ")}${rich(ctext(r), q)} <span class="m" style="display:inline;font-size:12px;color:var(--muted)">${wbTime(r.time)}${r.region ? " · " + cRegion(r) : ""}</span></div>${cpicHtml(r)}`;
 }
 function commentsHtml(p, q) {
   curAvatar = p.avatar || "";
