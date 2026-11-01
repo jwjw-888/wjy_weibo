@@ -1,4 +1,4 @@
-# 吴谨言微博备份
+# 维护笔记（原 README）
 
 网站：https://wjy-weibo.jwjw888.workers.dev/
 

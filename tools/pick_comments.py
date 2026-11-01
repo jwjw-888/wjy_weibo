@@ -1,5 +1,5 @@
 # 用法：python3 tools/pick_comments.py <浏览器抓的评论 json>   （格式 {贴文id: [精简评论...]}）
-# 每篇随机挑 5 位粉丝「有内容」的留言；吴谨言回复过的另放 author。规则见 README「评论区选法」。
+# 每篇随机挑 5 位粉丝「有内容」的留言；吴谨言回复过的另放 author。规则见 tools/NOTES.md「评论区选法」。
 import json,re,random,datetime,sys,os
 # 选项：--candidates <输出档>  只列出每篇的候选留言给 Claude 挑；--picks <picks.json>  用人工挑好的评论 id
 R=json.load(open(sys.argv[1]))

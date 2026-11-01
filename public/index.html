@@ -480,7 +480,7 @@ function showLb() {
   $("lborig").href = origUrl(p);
   $("lborig").textContent = p.isVideo ? T("查看封面原图", "View original cover") : T("查看原图", "View original");
   const alt = altUrl(p);
-  $("lbalt").hidden = true; // 微博图床防盗链，外站无法载入，先隐藏（见 README）
+  $("lbalt").hidden = true; // 微博图床防盗链，外站无法载入，先隐藏（见 tools/NOTES.md）
   $("lbalt").href = alt;
   $("prev").hidden = $("next").hidden = lbItems.length < 2;
 }
