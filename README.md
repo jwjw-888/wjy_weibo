@@ -108,3 +108,6 @@
 - 每次更新后：`python3 tools/en/extract.py` 列出新文字（src-NN.json）→ 翻译写成 en-NN.json → `python3 tools/en/merge.py` → `python3 tools/en/build.py` → 删掉 src/en 暂存档。
 - 翻译时遇到不确定的专有名词（剧名、角色、官署、昵称、粉丝用语等），**先列出来问用户**，确认后再翻并加进 glossary.md，不要自己猜或音译。
 - 「角色感言」分类：posts.json 里 `essay: true` 的贴文（杀青感想、收官/大结局感言、播剧期间对角色/剧的感想，多为中长文）。每次更新时挑出符合的新贴文加上这个标记，不确定的先问用户。
+
+## 访客统计（2026-11-01）
+- Microsoft Clarity，专案 ID `z6pvep9vf7`（代码在 index.html 的 <head>）。后台：clarity.microsoft.com（用户自己的账号）。两个网址都会统计；中国大陆能否稳定统计未确认。
