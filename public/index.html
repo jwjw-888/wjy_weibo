@@ -15,7 +15,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-11-02-3">
+<meta name="site-build" content="2026-11-02-4">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -146,12 +146,12 @@ a.pic{display:block;cursor:pointer}
 .cmt.mine{background:var(--mine);border-radius:4px;padding:8px 10px;margin:0 -10px}
 .replies .t b{color:var(--link);font-weight:400}
 .lbl{font-size:12px;color:var(--muted)}
-details.herreply{background:var(--mine);border:1px solid #f0c94a;border-radius:8px;margin:-2px -6px 0;padding:0}
-details.herreply>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px 10px;font-weight:700;font-size:14px;color:var(--fg)}
+details.herreply{background:#f0768b;border:1px solid #f0768b;border-radius:8px;margin:-2px -6px 0;padding:0}
+details.herreply>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px 10px;font-weight:700;font-size:14px;color:#fff}
 details.herreply>summary::-webkit-details-marker{display:none}
-details.herreply>summary img{width:24px;height:24px;border-radius:50%;object-fit:cover;flex:0 0 auto;box-shadow:0 0 0 2px #f0c94a}
+details.herreply>summary img{width:24px;height:24px;border-radius:50%;object-fit:cover;flex:0 0 auto;box-shadow:0 0 0 2px #fff}
 details.herreply>summary span{flex:1;min-width:0}
-details.herreply>summary i{font-style:normal;font-weight:400;font-size:12.5px;color:var(--soft);white-space:nowrap}
+details.herreply>summary i{font-style:normal;font-weight:400;font-size:12.5px;color:rgba(255,255,255,.9);white-space:nowrap}
 details.herreply>summary i::after{content:" ›"}
 details.herreply[open]>summary i::after{content:" ⌄"}
 details.herreply[open]>summary i{visibility:visible}
