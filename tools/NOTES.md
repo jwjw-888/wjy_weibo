@@ -113,6 +113,7 @@
 - Microsoft Clarity，专案 ID `z6pvep9vf7`（代码在 index.html 的 <head>）。后台：clarity.microsoft.com（用户自己的账号）。两个网址都会统计；中国大陆能否稳定统计未确认。
 
 ## 超话空降（2026-11-02 起）
+- **每次「更新」都要一并检查她有没有新的超话空降**（用户 2026-11-02 定）：她自己发的超话帖、她在帖下的留言/回复、她留在粉丝帖下的评论，都放「超话空降」。先查 m.weibo.cn `<超话containerid>_-_landing`（吴谨言超话、以及当时在播剧的超话）和 searchProfile q=超话，有新日期再按下面方法扫。
 - 吴谨言在超话发的帖子放在 `posts.json`，加 `"ch": "吴谨言超话"`、`source: "吴谨言超话"`；网页只在「超话空降」分类显示，不和微博混在一起（其他分类都排除 `ch`）。
 - 她发在别的超话、同时也出现在她主页时间线的帖（例如 #电视剧御廷谣[超话]# 两条）照旧算一般微博，不重复收。
 - 找帖：weibo.com `/ajax/statuses/searchProfile?uid=1278603180&q=吴谨言超话&page=N`（可加 starttime/endtime）。只找得到约半年内的；2026-07-26 以前搜不到（半年可见）。m.weibo.cn 超话的「空降超话」`<containerid>_-_landing` 只列最近一次空降。
