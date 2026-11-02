@@ -17,6 +17,8 @@
 ## 专有名词（要让外国人看得懂，意译）
 粽子 zongzi (rice dumpling)（每篇第一次出现时加括号，话题标签内不加）
 察闻院 The Investigative Bureau
+芙清草（御廷谣）Fuqing Herbs
+文松表情包 Wen Song memes
 暗厂（春花焰）Dark Factory
 青州眉骨（春花焰，代指眉林，融入名字并喻其傲骨）意译为 the unbending spirit of Qingzhou's Meilin
 ## 昵称
@@ -25,4 +27,4 @@
 颠妹（吴莫愁专辑《颠 OFF-KILTER》的昵称）Quirky Girl
 盐粒/盐粒儿（粉丝名）Little Salts | 奶盐（吴谨言自称/粉丝对她的称呼）Milky Salt | 不锈钢女王 Stainless Steel Queen | 宣传委员 publicity officer
 ## 角色
-魏璎珞 Wei Yingluo | 薛芳菲 Xue Fangfei | 孟廷辉 Meng Tinghui | 阮卿卿 Ruan Qingqing | 祝阮 Zhu Ruan | 秦长歌 Qin Changge（秦总 Boss Qin）| 英寡（御廷谣男主）Ying Gua | 素玄（王佑硕，凤不栖）Su Xuan | 程蔚然 Cheng Weiran（程律 Lawyer Cheng） | 眉林 Meilin | 姚子衿 Yao Zijin | 明霜 Ming Shuang
+魏璎珞 Wei Yingluo | 薛芳菲 Xue Fangfei | 孟廷辉 Meng Tinghui | 阮卿卿 Ruan Qingqing | 祝阮 Zhu Ruan | 秦长歌 Qin Changge（秦总 Boss Qin）| 英寡（御廷谣男主）Ying Gua | 素玄（王佑硕，凤不栖）Su Xuan | 程蔚然 Cheng Weiran（程律 Lawyer Cheng） | 眉林 Meilin | 姚子衿 Yao Zijin | 易二（传家，易家二小姐）Second Miss Yi | 明霜 Ming Shuang
