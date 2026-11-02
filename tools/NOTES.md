@@ -111,3 +111,10 @@
 
 ## 访客统计（2026-11-01）
 - Microsoft Clarity，专案 ID `z6pvep9vf7`（代码在 index.html 的 <head>）。后台：clarity.microsoft.com（用户自己的账号）。两个网址都会统计；中国大陆能否稳定统计未确认。
+
+## 超话空降（2026-11-02 起）
+- 吴谨言在超话发的帖子放在 `posts.json`，加 `"ch": "吴谨言超话"`、`source: "吴谨言超话"`；网页只在「超话空降」分类显示，不和微博混在一起（其他分类都排除 `ch`）。
+- 她发在别的超话、同时也出现在她主页时间线的帖（例如 #电视剧御廷谣[超话]# 两条）照旧算一般微博，不重复收。
+- 找帖：weibo.com `/ajax/statuses/searchProfile?uid=1278603180&q=吴谨言超话&page=N`（可加 starttime/endtime）。只找得到约半年内的；2026-07-26 以前搜不到（半年可见）。m.weibo.cn 超话的「空降超话」`<containerid>_-_landing` 只列最近一次空降。
+- 她的留言：她在自己超话帖下发的留言记成 `isAuthorComment: true`（她自己在该留言下的回复放 `replies`）；她回复粉丝的照常放「她有回复」。她的回复常藏在楼中楼里，要对 `total_number` 大于预览数的每一楼用 `buildComments?fetch_level=1&id=<楼id>` 翻完找 uid 1278603180。留言里的图片编号用 m.weibo.cn `/comments/hotflow`、`/comments/hotFlowChild` 取。
+- 粉丝留言照一般规则人工挑 5 则（tools/picks.json）。
