@@ -15,7 +15,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-11-02-1">
+<meta name="site-build" content="2026-11-02-2">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -248,7 +248,7 @@ const EN = LANG === "en";
 let ENX = {p: {}, c: {}, l: {}};
 const T = (zh, en) => EN ? en : zh;
 const REGION_EN = {"河南": "Henan", "辽宁": "Liaoning", "中国台湾": "Taiwan", "中国香港": "Hong Kong", "中国澳门": "Macau", "马来西亚": "Malaysia", "山西": "Shanxi", "山东": "Shandong", "安徽": "Anhui", "加拿大": "Canada", "河北": "Hebei", "湖北": "Hubei", "福建": "Fujian", "甘肃": "Gansu", "贵州": "Guizhou", "天津": "Tianjin", "陕西": "Shaanxi", "江西": "Jiangxi", "吉林": "Jilin", "广西": "Guangxi", "德国": "Germany", "澳大利亚": "Australia", "泰国": "Thailand", "内蒙古": "Inner Mongolia", "黑龙江": "Heilongjiang", "宁夏": "Ningxia", "青海": "Qinghai", "新加坡": "Singapore", "韩国": "South Korea", "台湾": "Taiwan", "浙江": "Zhejiang", "北京": "Beijing", "海南": "Hainan", "四川": "Sichuan", "上海": "Shanghai", "湖南": "Hunan", "广东": "Guangdong", "江苏": "Jiangsu", "云南": "Yunnan", "重庆": "Chongqing", "河南": "Henan", "新疆": "Xinjiang", "西藏": "Tibet", "香港": "Hong Kong", "澳门": "Macau", "美国": "USA", "法国": "France", "英国": "UK", "意大利": "Italy", "日本": "Japan"};
-const SOURCE_EN = {"微博视频号": "Weibo Video", "微博直播平台": "Weibo Live Platform", "生日动态": "Birthday Updates", "微博直播": "Weibo Live", "微博会员中心": "Weibo VIP Center", "微博集卡活动": "Weibo Card Collection", "吴谨言超话": "Wu Jinyan Super Topic"};
+const SOURCE_EN = {"微博视频号": "Weibo Video", "微博直播平台": "Weibo Live Platform", "生日动态": "Birthday Updates", "微博直播": "Weibo Live", "微博会员中心": "Weibo VIP Center", "微博集卡活动": "Weibo Card Collection", "吴谨言超话": "Wu Jinyan Super Topic", "电视剧春花焰超话": "Kill Me Love Me TV Super Topic", "电视剧墨雨云间超话": "The Double TV Super Topic", "墨雨云间吃瓜局": "The Double live chat"};
 const MONTH_EN = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const MONTH_LONG = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const ME = () => T("吴谨言", "Wu Jinyan");
@@ -344,17 +344,19 @@ function postHtml(p, q) {
   if (p.blank) p = {...p, text: "", rt: null, note: null, video: null, pics: [p.blankImg ? {src: p.blankImg, nolink: true} : {src: "", hide: true}], coop: null, nocm: true};
   const meta = [`<span>${wbTime(p.time, p.dateOnly)}</span>`];
   if (p.source) meta.push(`<span>${T("来自 " + esc(p.source), "via " + esc(SOURCE_EN[p.source] || p.source))}</span>`);
-  if (p.region) meta.push(`<span>${T("发布于 " + esc(p.region), "posted in " + esc(REGION_EN[p.region] || p.region))}</span>`);
+  if (p.region) meta.push(p.cmtOn ? `<span>${T("来自 " + esc(p.region), "from " + esc(REGION_EN[p.region] || p.region))}</span>` : `<span>${T("发布于 " + esc(p.region), "posted in " + esc(REGION_EN[p.region] || p.region))}</span>`);
+  // cmtOn：她在超话里留在粉丝帖下的评论；正文是她的评论，下面引用粉丝原帖
+  if (p.cmtOn) meta.push(`<span class="cmton">${T("评论了粉丝的帖子", "commented on a fan's post")}</span>`);
   let rt = "";
   if (p.rt) {
     const who = p.rt.url ? `<a href="${p.rt.url}" target="_blank" rel="noopener noreferrer">@${esc(p.rt.user)}</a>` : `@${esc(p.rt.user)}`;
     rt = `<div class="rt"><div class="text">${who}${T("：", ": ")}${rich(tp(p).r || p.rt.text, q)}</div>${picsHtml({...p.rt, _vt: tp(p).rv})}${p.rt.time ? `<div class="rtime">${wbTime(p.rt.time)}</div>` : ""}</div>`;
   }
-  const acts = p.archive ? "" : `<div class="acts"><span>${ICON.rt}${p.reposts ? num(p.reposts) : T("转发", "Repost")}</span><span>${ICON.cm}${p.comments ? num(p.comments) : T("评论", "Comment")}</span><span>${ICON.lk}${p.likes ? num(p.likes) : T("赞", "Like")}</span></div>`;
+  const acts = p.archive ? "" : p.cmtOn ? `<div class="acts"><span>${ICON.lk}${p.likes ? num(p.likes) : T("赞", "Like")}</span></div>` : `<div class="acts"><span>${ICON.rt}${p.reposts ? num(p.reposts) : T("转发", "Repost")}</span><span>${ICON.cm}${p.comments ? num(p.comments) : T("评论", "Comment")}</span><span>${ICON.lk}${p.likes ? num(p.likes) : T("赞", "Like")}</span></div>`;
   return `<article id="p-${p.id}"><div class="pbody">
     <div class="head">${p.coop ? `<div class="coava">${p.coop.map(u => u.avatar ? `<img class="mini" src="avatars/u/${esc(u.avatar)}.jpg" alt="" loading="lazy">` : `<img class="mini" src="${esc(p.avatar)}" alt="" loading="lazy">`).join("")}</div>` : p.avatar ? `<img class="mini" src="${esc(p.avatar)}" alt="" loading="lazy">` : '<div class="mini" aria-hidden="true">言</div>'}
       <div class="who"><div class="n">${p.coop ? p.coop.map(u => esc(u.name === "吴谨言" ? ME() : u.name)).join(`<span class="co">${T("与", " & ")}</span>`) + `<span class="co">${T("的共创微博", " · co-created post")}</span>` : ME()}${p.top ? `<span class="top-tag">${T("置顶", "Pinned")}</span>` : ""}</div><div class="t">${meta.join("")}</div></div>
-      ${p.url && Date.now() - Date.parse(p.time) < HALF_YEAR ? `<a class="ext" href="${p.url}" target="_blank" rel="noopener noreferrer">${T("原微博", "Original")} ↗</a>` : ""}${backupUrl(p) ? `<a class="ext" href="${esc(backupUrl(p))}" target="_blank" rel="noopener noreferrer">${T("大管家备份", "Fan backup")} ↗</a>` : ""}</div>
+      ${p.url && (p.cmtOn || Date.now() - Date.parse(p.time) < HALF_YEAR) ? `<a class="ext" href="${p.url}" target="_blank" rel="noopener noreferrer">${T("原微博", "Original")} ↗</a>` : ""}${backupUrl(p) ? `<a class="ext" href="${esc(backupUrl(p))}" target="_blank" rel="noopener noreferrer">${T("大管家备份", "Fan backup")} ↗</a>` : ""}</div>
     ${p.text ? `<div class="text">${rich(tp(p).t || p.text, q)}</div>` : ""}
     ${picsHtml(p.rt && p.video && p.rt.video && p.rt.video.cover === p.video.cover ? {...p, skipVideo: true, _vt: tp(p).v} : {...p, _vt: tp(p).v})}${rt}
     ${p.note ? `<div class="vnote">${T("注：", "Note: ")}${esc(tp(p).n || p.note)}</div>` : ""}
