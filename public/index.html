@@ -15,7 +15,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-11-01-1">
+<meta name="site-build" content="2026-11-02-1">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -215,6 +215,7 @@ details.hot .list{display:grid;gap:10px;margin-top:10px}
       <button class="chip" data-f="video" aria-pressed="false">视频</button>
       <button class="chip" data-f="reply" aria-pressed="false">她有回复</button>
       <button class="chip" data-f="essay" aria-pressed="false">角色感言</button>
+      <button class="chip" data-f="ch" aria-pressed="false">超话空降</button>
     </div>
     <div class="count" id="count"></div>
   </div>
@@ -247,7 +248,7 @@ const EN = LANG === "en";
 let ENX = {p: {}, c: {}, l: {}};
 const T = (zh, en) => EN ? en : zh;
 const REGION_EN = {"河南": "Henan", "辽宁": "Liaoning", "中国台湾": "Taiwan", "中国香港": "Hong Kong", "中国澳门": "Macau", "马来西亚": "Malaysia", "山西": "Shanxi", "山东": "Shandong", "安徽": "Anhui", "加拿大": "Canada", "河北": "Hebei", "湖北": "Hubei", "福建": "Fujian", "甘肃": "Gansu", "贵州": "Guizhou", "天津": "Tianjin", "陕西": "Shaanxi", "江西": "Jiangxi", "吉林": "Jilin", "广西": "Guangxi", "德国": "Germany", "澳大利亚": "Australia", "泰国": "Thailand", "内蒙古": "Inner Mongolia", "黑龙江": "Heilongjiang", "宁夏": "Ningxia", "青海": "Qinghai", "新加坡": "Singapore", "韩国": "South Korea", "台湾": "Taiwan", "浙江": "Zhejiang", "北京": "Beijing", "海南": "Hainan", "四川": "Sichuan", "上海": "Shanghai", "湖南": "Hunan", "广东": "Guangdong", "江苏": "Jiangsu", "云南": "Yunnan", "重庆": "Chongqing", "河南": "Henan", "新疆": "Xinjiang", "西藏": "Tibet", "香港": "Hong Kong", "澳门": "Macau", "美国": "USA", "法国": "France", "英国": "UK", "意大利": "Italy", "日本": "Japan"};
-const SOURCE_EN = {"微博视频号": "Weibo Video", "微博直播平台": "Weibo Live Platform", "生日动态": "Birthday Updates", "微博直播": "Weibo Live", "微博会员中心": "Weibo VIP Center", "微博集卡活动": "Weibo Card Collection"};
+const SOURCE_EN = {"微博视频号": "Weibo Video", "微博直播平台": "Weibo Live Platform", "生日动态": "Birthday Updates", "微博直播": "Weibo Live", "微博会员中心": "Weibo VIP Center", "微博集卡活动": "Weibo Card Collection", "吴谨言超话": "Wu Jinyan Super Topic"};
 const MONTH_EN = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const MONTH_LONG = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const ME = () => T("吴谨言", "Wu Jinyan");
@@ -387,10 +388,11 @@ function commentsHtml(p, q) {
   if (!c) return "";
   let h = "";
   if (c.author.length) {
-    const nRep = c.author.reduce((n, a) => n + (a.isAuthorComment ? 1 : a.replies.length), 0);
+    const nRep = c.author.reduce((n, a) => n + (a.isAuthorComment ? 1 : 0) + a.replies.length, 0);
+    const own = c.author.some(a => a.isAuthorComment);
     const hit = q && c.author.some(a => [a.comment, ...a.replies].some(x => norm(ctext(x)).includes(norm(q))));
-    h += `<details class="herreply"${hit ? " open" : ""}><summary>${curAvatar ? `<img src="${esc(curAvatar)}" alt="">` : ""}<span>${T(`吴谨言回复了 ${nRep} 条评论`, `Wu Jinyan replied to ${nRep} comment${nRep > 1 ? "s" : ""}`)}</span><i>${T("查看", "View")}</i></summary><div class="list">` + c.author.map(a => a.isAuthorComment
-      ? cmtHtml(a.comment, q, true) + "</div></div>"
+    h += `<details class="herreply"${hit ? " open" : ""}><summary>${curAvatar ? `<img src="${esc(curAvatar)}" alt="">` : ""}<span>${own ? T(`吴谨言的留言和回复（${nRep} 条）`, `Wu Jinyan's comments & replies (${nRep})`) : T(`吴谨言回复了 ${nRep} 条评论`, `Wu Jinyan replied to ${nRep} comment${nRep > 1 ? "s" : ""}`)}</span><i>${T("查看", "View")}</i></summary><div class="list">` + c.author.map(a => a.isAuthorComment
+      ? cmtHtml(a.comment, q, true) + (a.replies.length ? `<div class="replies">${a.replies.map(r => replyHtml(r, q)).join("")}</div>` : "") + "</div></div>"
       : cmtHtml(a.comment, q) + `<div class="replies">${a.replies.map(r => replyHtml(r, q)).join("")}</div></div></div>`).join("") + `</div></details>`;
   }
   if (c.top.length) {
@@ -412,6 +414,8 @@ function render() {
   const ql = norm(q);
   const list = DATA.posts.filter(p => {
     if (MSEL.size && !MSEL.has(monthKey(p.time))) return false;
+    // 超话空降的帖子只在「超话空降」里显示，不和微博混在一起
+    if ((filter === "ch") !== !!p.ch) return false;
     if (filter === "orig" && p.rt) return false;
     if (filter === "rt" && !p.rt) return false;
     if (filter === "pic" && !(p.pics.some(x => !x.isVideo) || (p.rt && p.rt.pics.length))) return false;
@@ -568,7 +572,7 @@ if (EN) {
   set("#mbtn", "All months"); set(".mhead", ""); document.querySelector(".mhead").innerHTML = "Choose months<small>multiple OK</small>";
   set("#myear", "Whole year"); set("#mall", "Clear"); set("#mdone", "Done");
   set("#chips", "Filter by type", "aria-label");
-  const chipEN = {all: "All", orig: "Original", rt: "Reposts", pic: "Images", video: "Videos", reply: "She replied", essay: "Role reflections"};
+  const chipEN = {all: "All", orig: "Original", rt: "Reposts", pic: "Images", video: "Videos", reply: "She replied", essay: "Role reflections", ch: "Super Topic drops"};
   document.querySelectorAll("#chips .chip").forEach(c => c.textContent = chipEN[c.dataset.f] || c.textContent);
   set("#loadmore", "Loading more…");
   set("#footnote", "This is a fan-made archive; all text and images belong to their original authors. Videos are not archived — only cover screenshots are kept; posts from the last six months have an \"Original\" link to Weibo. Repost, comment and like counts are as of the time of backup. Some older posts no longer visible on Wu Jinyan's own page come from @盐圈大管家's \"小吴老师的半年可见\" reposts and from \"吴谨言的微博书\" (2010 – 2024). Each post's \"Fan comments\" are 5 fan comments picked at random by AI. Every comment Wu Jinyan replied to is kept separately under \"She replied\". English translations are fan translations; drama titles use their official English names where they exist.");
@@ -586,7 +590,8 @@ Promise.all([fetch("data/all.json").then(r => r.json()), EN ? fetch("data/en.jso
   MP.years = byYear;
   new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) more(); }, {rootMargin: "800px"}).observe($("loadmore"));
   const picN = DATA.posts.reduce((a, p) => a + p.pics.filter(x => !x.isVideo).length + (p.rt ? p.rt.pics.length : 0), 0);
-  $("meta").innerHTML = T(`<span><b>${DATA.posts.length}</b> 条微博</span><span><b>${picN}</b> 张图片</span><span>${ymd(times[0])} 至 ${ymd(times[times.length-1])}</span><span>最近备份 ${ymd(DATA.fetchedAt)}</span>`, `<span><b>${DATA.posts.length}</b> posts</span><span><b>${picN}</b> images</span><span>${ymd(times[0])} to ${ymd(times[times.length-1])}</span><span>Last backup ${ymd(DATA.fetchedAt)}</span>`);
+  const chN = DATA.posts.filter(p => p.ch).length, wbN = DATA.posts.length - chN;
+  $("meta").innerHTML = T(`<span><b>${wbN}</b> 条微博</span>${chN ? `<span><b>${chN}</b> 条超话</span>` : ""}<span><b>${picN}</b> 张图片</span><span>${ymd(times[0])} 至 ${ymd(times[times.length-1])}</span><span>最近备份 ${ymd(DATA.fetchedAt)}</span>`, `<span><b>${wbN}</b> posts</span>${chN ? `<span><b>${chN}</b> Super Topic posts</span>` : ""}<span><b>${picN}</b> images</span><span>${ymd(times[0])} to ${ymd(times[times.length-1])}</span><span>Last backup ${ymd(DATA.fetchedAt)}</span>`);
   render();
 }).catch(() => { $("feed").innerHTML = `<div class="empty">${T("数据载入失败，请重新整理页面", "Failed to load data — please refresh the page")}</div>`; });
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});

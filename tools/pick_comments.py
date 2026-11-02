@@ -69,8 +69,9 @@ for pid,raw in R.items():
     if len(pick)<5: pick+=random.Random(pid+'x').sample(extra,min(5-len(pick),len(extra)))
   top=sorted([conv(c) for c in pick],key=lambda c:-c['likes'])
   auth=[]
-  for c in cm:   # 她回复过的留言不受封杀名单限制，全收
-    if c['sub']: auth.append({"comment":conv(c),"replies":[conv({**r,'v':0,'pn':0}) for r in c['sub']],"isAuthorComment":False})
+  for c in cm:   # 她回复过的留言不受封杀名单限制，全收；她自己发的留言（超话帖常见）记成 isAuthorComment
+    if c['uid']==ME: auth.append({"comment":conv(c),"replies":[conv({**r,'v':0,'pn':r.get('pn',0)}) for r in c['sub']],"isAuthorComment":True})
+    elif c['sub']: auth.append({"comment":conv(c),"replies":[conv({**r,'v':0,'pn':r.get('pn',0)}) for r in c['sub']],"isAuthorComment":False})
   old=C.get(pid,{})
   have={a['comment']['id'] for a in auth}
   auth+=[a for a in old.get('author',[]) if a['comment']['id'] not in have]
