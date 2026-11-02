@@ -343,7 +343,7 @@ function postHtml(p, q) {
   // blank：只显示一张黑图，文字、图片、评论都不显示（原始内容仍保留在数据里）
   if (p.blank) p = {...p, text: "", rt: null, note: null, video: null, pics: [p.blankImg ? {src: p.blankImg, nolink: true} : {src: "", hide: true}], coop: null, nocm: true};
   const meta = [`<span>${wbTime(p.time, p.dateOnly)}</span>`];
-  if (p.source) meta.push(`<span>${T("来自 " + esc(p.source), "via " + esc(SOURCE_EN[p.source] || p.source))}</span>`);
+  if (p.source && !p.cmtOn) meta.push(`<span>${T("来自 " + esc(p.source), "via " + esc(SOURCE_EN[p.source] || p.source))}</span>`);
   if (p.region) meta.push(p.cmtOn ? `<span>${T("来自 " + esc(p.region), "from " + esc(REGION_EN[p.region] || p.region))}</span>` : `<span>${T("发布于 " + esc(p.region), "posted in " + esc(REGION_EN[p.region] || p.region))}</span>`);
   // cmtOn：她在超话里留在粉丝帖下的评论；正文是她的评论，下面引用粉丝原帖
   if (p.cmtOn) meta.push(`<span class="cmton">${T("评论了粉丝的帖子", "commented on a fan's post")}</span>`);
