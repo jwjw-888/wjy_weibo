@@ -19,6 +19,7 @@
 察闻院 The Investigative Bureau
 芙清草（御廷谣）Fuqing Herbs
 文松表情包 Wen Song memes
+887（工作制：早 8 点到晚 8 点、每周 7 天）887 grind (8 a.m. to 8 p.m., 7 days a week)；同理 996 = 9 a.m. to 9 p.m., 6 days a week
 暗厂（春花焰）Dark Factory
 青州眉骨（春花焰，代指眉林，融入名字并喻其傲骨）意译为 the unbending spirit of Qingzhou's Meilin
 ## 昵称
