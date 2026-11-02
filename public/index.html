@@ -15,7 +15,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-11-02-2">
+<meta name="site-build" content="2026-11-02-3">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -343,19 +343,17 @@ function postHtml(p, q) {
   // blank：只显示一张黑图，文字、图片、评论都不显示（原始内容仍保留在数据里）
   if (p.blank) p = {...p, text: "", rt: null, note: null, video: null, pics: [p.blankImg ? {src: p.blankImg, nolink: true} : {src: "", hide: true}], coop: null, nocm: true};
   const meta = [`<span>${wbTime(p.time, p.dateOnly)}</span>`];
-  if (p.source && !p.cmtOn) meta.push(`<span>${T("来自 " + esc(p.source), "via " + esc(SOURCE_EN[p.source] || p.source))}</span>`);
-  if (p.region) meta.push(p.cmtOn ? `<span>${T("来自 " + esc(p.region), "from " + esc(REGION_EN[p.region] || p.region))}</span>` : `<span>${T("发布于 " + esc(p.region), "posted in " + esc(REGION_EN[p.region] || p.region))}</span>`);
-  // cmtOn：她在超话里留在粉丝帖下的评论；正文是她的评论，下面引用粉丝原帖
-  if (p.cmtOn) meta.push(`<span class="cmton">${T("评论了粉丝的帖子", "commented on a fan's post")}</span>`);
+  if (p.source) meta.push(`<span>${T("来自 " + esc(p.source), "via " + esc(SOURCE_EN[p.source] || p.source))}</span>`);
+  if (p.region) meta.push(`<span>${T("发布于 " + esc(p.region), "posted in " + esc(REGION_EN[p.region] || p.region))}</span>`);
   let rt = "";
   if (p.rt) {
     const who = p.rt.url ? `<a href="${p.rt.url}" target="_blank" rel="noopener noreferrer">@${esc(p.rt.user)}</a>` : `@${esc(p.rt.user)}`;
     rt = `<div class="rt"><div class="text">${who}${T("：", ": ")}${rich(tp(p).r || p.rt.text, q)}</div>${picsHtml({...p.rt, _vt: tp(p).rv})}${p.rt.time ? `<div class="rtime">${wbTime(p.rt.time)}</div>` : ""}</div>`;
   }
-  const acts = p.archive ? "" : p.cmtOn ? `<div class="acts"><span>${ICON.lk}${p.likes ? num(p.likes) : T("赞", "Like")}</span></div>` : `<div class="acts"><span>${ICON.rt}${p.reposts ? num(p.reposts) : T("转发", "Repost")}</span><span>${ICON.cm}${p.comments ? num(p.comments) : T("评论", "Comment")}</span><span>${ICON.lk}${p.likes ? num(p.likes) : T("赞", "Like")}</span></div>`;
+  const acts = p.archive ? "" : `<div class="acts"><span>${ICON.rt}${p.reposts ? num(p.reposts) : T("转发", "Repost")}</span><span>${ICON.cm}${p.comments ? num(p.comments) : T("评论", "Comment")}</span><span>${ICON.lk}${p.likes ? num(p.likes) : T("赞", "Like")}</span></div>`;
   return `<article id="p-${p.id}"><div class="pbody">
-    <div class="head">${p.coop ? `<div class="coava">${p.coop.map(u => u.avatar ? `<img class="mini" src="avatars/u/${esc(u.avatar)}.jpg" alt="" loading="lazy">` : `<img class="mini" src="${esc(p.avatar)}" alt="" loading="lazy">`).join("")}</div>` : p.avatar ? `<img class="mini" src="${esc(p.avatar)}" alt="" loading="lazy">` : '<div class="mini" aria-hidden="true">言</div>'}
-      <div class="who"><div class="n">${p.coop ? p.coop.map(u => esc(u.name === "吴谨言" ? ME() : u.name)).join(`<span class="co">${T("与", " & ")}</span>`) + `<span class="co">${T("的共创微博", " · co-created post")}</span>` : ME()}${p.top ? `<span class="top-tag">${T("置顶", "Pinned")}</span>` : ""}</div><div class="t">${meta.join("")}</div></div>
+    <div class="head">${p.fan ? `<img class="mini" src="avatars/u/${esc(p.fan.avatar)}.jpg" alt="" loading="lazy">` : p.coop ? `<div class="coava">${p.coop.map(u => u.avatar ? `<img class="mini" src="avatars/u/${esc(u.avatar)}.jpg" alt="" loading="lazy">` : `<img class="mini" src="${esc(p.avatar)}" alt="" loading="lazy">`).join("")}</div>` : p.avatar ? `<img class="mini" src="${esc(p.avatar)}" alt="" loading="lazy">` : '<div class="mini" aria-hidden="true">言</div>'}
+      <div class="who"><div class="n">${p.fan ? esc(p.fan.user) : p.coop ? p.coop.map(u => esc(u.name === "吴谨言" ? ME() : u.name)).join(`<span class="co">${T("与", " & ")}</span>`) + `<span class="co">${T("的共创微博", " · co-created post")}</span>` : ME()}${p.top ? `<span class="top-tag">${T("置顶", "Pinned")}</span>` : ""}</div><div class="t">${meta.join("")}</div></div>
       ${p.url && (p.cmtOn || Date.now() - Date.parse(p.time) < HALF_YEAR) ? `<a class="ext" href="${p.url}" target="_blank" rel="noopener noreferrer">${T("原微博", "Original")} ↗</a>` : ""}${backupUrl(p) ? `<a class="ext" href="${esc(backupUrl(p))}" target="_blank" rel="noopener noreferrer">${T("大管家备份", "Fan backup")} ↗</a>` : ""}</div>
     ${p.text ? `<div class="text">${rich(tp(p).t || p.text, q)}</div>` : ""}
     ${picsHtml(p.rt && p.video && p.rt.video && p.rt.video.cover === p.video.cover ? {...p, skipVideo: true, _vt: tp(p).v} : {...p, _vt: tp(p).v})}${rt}
@@ -393,7 +391,7 @@ function commentsHtml(p, q) {
     const nRep = c.author.reduce((n, a) => n + (a.isAuthorComment ? 1 : 0) + a.replies.length, 0);
     const own = c.author.some(a => a.isAuthorComment);
     const hit = q && c.author.some(a => [a.comment, ...a.replies].some(x => norm(ctext(x)).includes(norm(q))));
-    h += `<details class="herreply"${hit ? " open" : ""}><summary>${curAvatar ? `<img src="${esc(curAvatar)}" alt="">` : ""}<span>${own ? T(`吴谨言的留言和回复（${nRep} 条）`, `Wu Jinyan's comments & replies (${nRep})`) : T(`吴谨言回复了 ${nRep} 条评论`, `Wu Jinyan replied to ${nRep} comment${nRep > 1 ? "s" : ""}`)}</span><i>${T("查看", "View")}</i></summary><div class="list">` + c.author.map(a => a.isAuthorComment
+    h += `<details class="herreply"${hit || p.fan ? " open" : ""}><summary>${curAvatar ? `<img src="${esc(curAvatar)}" alt="">` : ""}<span>${own ? T(`吴谨言的留言和回复（${nRep} 条）`, `Wu Jinyan's comments & replies (${nRep})`) : T(`吴谨言回复了 ${nRep} 条评论`, `Wu Jinyan replied to ${nRep} comment${nRep > 1 ? "s" : ""}`)}</span><i>${T("查看", "View")}</i></summary><div class="list">` + c.author.map(a => a.isAuthorComment
       ? cmtHtml(a.comment, q, true) + (a.replies.length ? `<div class="replies">${a.replies.map(r => replyHtml(r, q)).join("")}</div>` : "") + "</div></div>"
       : cmtHtml(a.comment, q) + `<div class="replies">${a.replies.map(r => replyHtml(r, q)).join("")}</div></div></div>`).join("") + `</div></details>`;
   }

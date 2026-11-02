@@ -118,3 +118,4 @@
 - 找帖：weibo.com `/ajax/statuses/searchProfile?uid=1278603180&q=吴谨言超话&page=N`（可加 starttime/endtime）。只找得到约半年内的；2026-07-26 以前搜不到（半年可见）。m.weibo.cn 超话的「空降超话」`<containerid>_-_landing` 只列最近一次空降。
 - 她的留言：她在自己超话帖下发的留言记成 `isAuthorComment: true`（她自己在该留言下的回复放 `replies`）；她回复粉丝的照常放「她有回复」。她的回复常藏在楼中楼里，要对 `total_number` 大于预览数的每一楼用 `buildComments?fetch_level=1&id=<楼id>` 翻完找 uid 1278603180。留言里的图片编号用 m.weibo.cn `/comments/hotflow`、`/comments/hotFlowChild` 取。
 - 粉丝留言照一般规则人工挑 5 则（tools/picks.json）。
+- 她留在粉丝帖下的评论（2024 年等，她自己的帖已半年可见看不到）：照超话原样，**主体是粉丝的帖**（posts.json 加 `fan: {user, avatar}`、`cmtOn: true`，avatar 存 avatars/u/），**她的评论放 comments.json 的 author（isAuthorComment）**，黄底区预设展开。找法：s.weibo.com 按小时搜该超话的帖（timescope=custom:YYYY-MM-DD-HH:...，每次请求间隔 ≥1.5 秒，否则会被挡 418），再用 weibo.com buildComments 查每帖有没有 uid 1278603180。
