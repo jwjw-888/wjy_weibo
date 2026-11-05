@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>吴谨言微博备份</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preload" href="data/head.json" as="fetch" crossorigin>
 <link rel="preload" href="data/all.json" as="fetch" crossorigin>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/icon3-32.png">
@@ -15,7 +16,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-11-05-4">
+<meta name="site-build" content="2026-11-06-1">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -249,7 +250,7 @@ details.hot .list{display:grid;gap:10px;margin-top:10px}
 const ORIGINAL_BASE = "https://pub-db270e9d94f24f01a0f04c10bbdc80af.r2.dev/";
 const TZ = "Asia/Shanghai";
 
-let DATA = null, filter = "all", EMO = null, LINKS = null;
+let DATA = null, FULL = false, filter = "all", EMO = null, LINKS = null;
 // 语言：中文 / ENG（英文翻译在 data/en.json，只有选英文才下载）
 // 语言：每次打开都从中文开始；切换后只在这次浏览期间有效（sessionStorage）
 let LANG = "zh"; try { localStorage.removeItem("lang"); if (sessionStorage.getItem("lang") === "en") LANG = "en"; } catch (e) {}
@@ -428,6 +429,8 @@ function render() {
   // 资料还没下载完时（网路慢），先不画；下载完会自动画一次，期间点的筛选、月份也会套用
   if (!DATA) { $("feed").innerHTML = `<div class="empty">${T("资料载入中，请稍候…", "Loading, please wait…")}</div>`; return; }
   const q = $("q").value.trim();
+  // 先显示的是最新几条（head.json）；完整资料还没到时，筛选/搜索/选月份先显示载入中，到了会自动套用
+  if (!FULL && (filter !== "all" || q || MSEL.size)) { view = null; $("feed").innerHTML = `<div class="empty">${T("完整资料载入中，请稍候…", "Loading full archive, please wait…")}</div>`; $("loadmore").hidden = true; $("count").textContent = ""; return; }
   const ql = norm(q);
   const list = DATA.posts.filter(p => {
     if (MSEL.size && !MSEL.has(monthKey(p.time))) return false;
@@ -448,7 +451,7 @@ function render() {
   list.forEach(p => { const k = monthKey(p.time); view.perMonth[k] = (view.perMonth[k] || 0) + 1; });
   $("feed").innerHTML = list.length ? "" : `<div class="empty">${T("没有找到符合条件的微博", "No posts match your filters")}</div>`;
   more();
-  $("count").textContent = (q || MSEL.size || filter !== "all") ? T(`找到 ${list.length} 条`, `${list.length} found`) : T(`共 ${list.length} 条，按时间从新到旧`, `${list.length} posts, newest first`);
+  $("count").textContent = (q || MSEL.size || filter !== "all") ? T(`找到 ${list.length} 条`, `${list.length} found`) : T(`共 ${FULL ? list.length : DATA.meta.wbN} 条，按时间从新到旧`, `${FULL ? list.length : DATA.meta.wbN} posts, newest first`);
 }
 let view = null;
 // 换月份、类型或搜索后，跳回列表开头，不然往下滑很远时会看到一片空白
@@ -477,14 +480,14 @@ function more() {
   const end = Math.min(view.list.length, view.shown + 30);
   for (let i = view.shown; i < end; i++) {
     const p = view.list[i], k = monthKey(p.time);
-    if (k !== view.cur) { view.cur = k; const [y, mo] = k.split("-"); html += `<h2 class="month">${T(`${y}年${+mo}月`, `${MONTH_LONG[mo - 1]} ${y}`)}<small>${T(`${view.perMonth[k]} 条`, `${view.perMonth[k]} post${view.perMonth[k] > 1 ? "s" : ""}`)}</small></h2>`; }
+    if (k !== view.cur) { view.cur = k; const [y, mo] = k.split("-"); html += `<h2 class="month" data-k="${k}">${T(`${y}年${+mo}月`, `${MONTH_LONG[mo - 1]} ${y}`)}<small>${T(`${view.perMonth[k]} 条`, `${view.perMonth[k]} post${view.perMonth[k] > 1 ? "s" : ""}`)}</small></h2>`; }
     html += postHtml(p, view.q);
   }
   view.shown = end;
   const before = $("feed").querySelectorAll(".pbody .text").length;
   $("feed").insertAdjacentHTML("beforeend", html);
   clampTexts([...$("feed").querySelectorAll(".pbody .text")].slice(before));
-  $("loadmore").hidden = view.shown >= view.list.length;
+  $("loadmore").hidden = FULL && view.shown >= view.list.length;
 }
 
 // lightbox
@@ -595,25 +598,60 @@ if (EN) {
   $("footnote").innerHTML = "<b>This is a fan-made archive, not an official website.</b> All information is subject to the posts officially published on actress Wu Jinyan's Weibo; copyright of the text and images belongs to Wu Jinyan. Videos are not archived — only cover screenshots are kept; posts from the last six months have an \"Original\" link to Weibo. Repost, comment and like counts are as of the time of backup. Some older posts no longer visible on Wu Jinyan's own page come from @盐圈大管家's \"小吴老师的半年可见\" reposts and from \"吴谨言的微博书\" (2010 – 2024). English translations are fan translations; drama titles use their official English names where they exist.";
   set("#xtop", "Close", "aria-label"); set("#prev", "Previous", "aria-label"); set("#next", "Next", "aria-label"); set("#close", "✕ Close");
 }
-// 下载资料；网路不稳失败时自动重试 2 次
-const getJSON = (u, n = 2) => fetch(u, n < 2 ? {cache: "reload"} : {}).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).catch(e => n > 0 ? new Promise(ok => setTimeout(ok, 1500)).then(() => getJSON(u, n - 1)) : Promise.reject(e));
-render();
-Promise.all([getJSON("data/all.json"), EN ? fetch("data/en.json").then(r => r.ok ? r.json() : null).catch(() => null) : null]).then(([{d, dims, cm, emo, links}, enx]) => {
-  if (enx) ENX = enx;
+// 下载资料：先拿很小的 head.json（最新几条）马上显示，同时在背景下载完整的 all.json；
+// 网路慢或卡住时：单次超过时限就中断重试（最多 2 次），完整资料失败时最新几条仍可看
+const getJSON = (u, n = 2, ms = 30000) => {
+  const ac = typeof AbortController === "function" ? new AbortController() : null;
+  const t = ac ? setTimeout(() => ac.abort(), ms) : 0;
+  return fetch(u, Object.assign(n < 2 ? {cache: "reload"} : {}, ac ? {signal: ac.signal} : {}))
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(j => { clearTimeout(t); return j; }, e => { clearTimeout(t); throw e; })
+    .catch(e => n > 0 ? new Promise(ok => setTimeout(ok, 1500)).then(() => getJSON(u, n - 1, ms * 1.5)) : Promise.reject(e));
+};
+function metaOf(posts) {
+  const times = posts.map(p => p.time).sort();
+  const months = [...new Set(posts.map(p => monthKey(p.time)))];
+  const picN = posts.reduce((a, p) => a + p.pics.filter(x => !x.isVideo).length + (p.rt ? p.rt.pics.length : 0), 0);
+  const chN = posts.filter(p => p.ch).length;
+  return {wbN: posts.length - chN, chN, picN, first: times[0], last: times[times.length - 1], months};
+}
+function applyData({d, dims, cm, emo, links}) {
   DATA = d; DATA.dims = dims; DATA.comments = cm; EMO = emo; LINKS = links;
-  if (DATA.avatar) $("pavatar").outerHTML = `<img class="avatar" src="${esc(DATA.avatar)}" alt="${T("吴谨言头像", "Wu Jinyan avatar")}">`;
+  if (DATA.avatar && $("pavatar") && $("pavatar").tagName !== "IMG") $("pavatar").outerHTML = `<img class="avatar" id="pavatar" src="${esc(DATA.avatar)}" alt="${T("吴谨言头像", "Wu Jinyan avatar")}">`;
   DATA.posts.sort((a, b) => b.time.localeCompare(a.time) || ((b.via && b.via.time) || "").localeCompare((a.via && a.via.time) || ""));
-  const times = DATA.posts.map(p => p.time).sort();
-  const months = [...new Set(DATA.posts.map(p => monthKey(p.time)))];
+  const m = FULL ? metaOf(DATA.posts) : (d.meta || metaOf(DATA.posts));
   const byYear = {};
-  months.forEach(k => { const y = k.slice(0, 4); (byYear[y] = byYear[y] || []).push(k); });
+  m.months.forEach(k => { const y = k.slice(0, 4); (byYear[y] = byYear[y] || []).push(k); });
   MP.years = byYear;
-  new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) more(); }, {rootMargin: "800px"}).observe($("loadmore"));
-  const picN = DATA.posts.reduce((a, p) => a + p.pics.filter(x => !x.isVideo).length + (p.rt ? p.rt.pics.length : 0), 0);
-  const chN = DATA.posts.filter(p => p.ch).length, wbN = DATA.posts.length - chN;
-  $("meta").innerHTML = T(`<span><b>${wbN}</b> 条微博</span>${chN ? `<span><b>${chN}</b> 条超话</span>` : ""}<span><b>${picN}</b> 张图片</span><span>${ymd(times[0])} 至 ${ymd(times[times.length-1])}</span><span>最近备份 ${ymd(DATA.fetchedAt)}</span>`, `<span><b>${wbN}</b> posts</span>${chN ? `<span><b>${chN}</b> Super Topic posts</span>` : ""}<span><b>${picN}</b> images</span><span>${ymd(times[0])} to ${ymd(times[times.length-1])}</span><span>Last backup ${ymd(DATA.fetchedAt)}</span>`);
-  render();
-}).catch(() => { $("feed").innerHTML = `<div class="empty">${T("数据载入失败，请重新整理页面", "Failed to load data — please refresh the page")}</div>`; });
+  $("meta").innerHTML = T(`<span><b>${m.wbN}</b> 条微博</span>${m.chN ? `<span><b>${m.chN}</b> 条超话</span>` : ""}<span><b>${m.picN}</b> 张图片</span><span>${ymd(m.first)} 至 ${ymd(m.last)}</span><span>最近备份 ${ymd(DATA.fetchedAt)}</span>`, `<span><b>${m.wbN}</b> posts</span>${m.chN ? `<span><b>${m.chN}</b> Super Topic posts</span>` : ""}<span><b>${m.picN}</b> images</span><span>${ymd(m.first)} to ${ymd(m.last)}</span><span>Last backup ${ymd(DATA.fetchedAt)}</span>`);
+}
+// 完整资料到了：若读者还在看默认列表，就无缝接上（不跳回顶部），否则重新套用筛选
+function swapToFull() {
+  if (!view || filter !== "all" || $("q").value.trim() || MSEL.size) { render(); return; }
+  const list = DATA.posts.filter(p => !p.ch);
+  const per = {}; list.forEach(p => { const k = monthKey(p.time); per[k] = (per[k] || 0) + 1; });
+  view.list = list; view.perMonth = per;
+  $("feed").querySelectorAll("h2.month[data-k]").forEach(h => { const sm = h.querySelector("small"); if (sm) sm.textContent = T(`${per[h.dataset.k]} 条`, `${per[h.dataset.k]} posts`); });
+  $("count").textContent = T(`共 ${list.length} 条，按时间从新到旧`, `${list.length} posts, newest first`);
+  $("loadmore").hidden = view.shown >= view.list.length;
+  more();
+}
+render();
+new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) more(); }, {rootMargin: "800px"}).observe($("loadmore"));
+const enP = EN ? fetch("data/en.json").then(r => r.ok ? r.json() : null).catch(() => null) : Promise.resolve(null);
+getJSON("data/head.json", 1, 15000).then(h => enP.then(enx => {
+  if (FULL) return;
+  if (enx) ENX = enx;
+  applyData(h); render();
+})).catch(() => {});
+getJSON("data/all.json", 2, 40000).then(a => enP.then(enx => {
+  if (enx) ENX = enx;
+  const had = !!DATA; FULL = true; applyData(a);
+  had ? swapToFull() : render();
+})).catch(() => {
+  if (!DATA) $("feed").innerHTML = `<div class="empty">${T("数据载入失败，请检查网路后重新整理页面", "Failed to load data — check your connection and refresh")}</div>`;
+  else $("count").textContent = T("网路较慢，目前只显示最新几条，请稍后重新整理", "Slow connection — showing only the latest posts; please refresh later");
+});
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
 
