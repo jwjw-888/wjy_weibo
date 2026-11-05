@@ -13,6 +13,7 @@
 守护丽人 Guardian of Beauty | 天泪传奇之凤凰无双 Legend of Heavenly Tear: Phoenix Warriors | 将故事写成我们 The Story of Us
 雀骨 Key to the Phoenix Heart | 十贯娘子 The Ten-String Bride | 回来的她们 Those Flowers
 凤凰琴 Country Teachers
+醉梦（黄小蕾主演，2026）Dream
 查不到（保留中文）：帝凰（小说）、紫禁红墙、东风起时正当归、芳菲落尽梨花白、歌名
 ## 专有名词（要让外国人看得懂，意译）
 粽子 zongzi (rice dumpling)（每篇第一次出现时加括号，话题标签内不加）
