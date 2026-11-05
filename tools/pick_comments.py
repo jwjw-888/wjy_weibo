@@ -14,6 +14,7 @@ ME='1278603180'
 # 不算「粉丝留言」的账号：官方/机构蓝 V（verified_type 1~7）、以及明星/剧组人员（黄 V 个人认证的普通粉丝要收）
 NOTFAN_NAMES={'于正','郭虎-','吴莫愁Momo-','陈哲远-','王佑硕','刘学义','黄小蕾'}
 def notfan(c): return (c['v'] and 1<=int(c.get('vt') or 0)<=7) or c['name'] in NOTFAN_NAMES
+CELEB=set(json.load(open('tools/celebs.json'))) if os.path.exists('tools/celebs.json') else set()   # 艺人/公众人物 uid（留言放「艺人与公众人物留言」）
 CPIC=json.load(open(ARG['--cpics'])) if '--cpics' in ARG else {}
 PHRASE=r'杀青快乐|杀青大吉|开机大吉|开机快乐|拍摄顺利|一切顺利|期待[^，,。！!？?\s]{0,10}|早日(相见|见面)|一起(看|支持|追)|速速|冲呀|冲冲|上线了|宣传委员|新剧|好剧|新角色|新造型|生日快乐|节日快乐|中秋快乐|新年快乐|恭喜|入围|大吉'
 GENERIC=r'期待|好看|好美|美美|太美了|绝美|支持|加油|冲鸭|冲冲冲|爱你|喜欢|姐姐|老婆|宝宝|谨言|吴谨言|小吴|盐盐|来了|打卡|签到|晚安|早安|哈哈+|啊+|呀+|哇+|好好看|漂亮|可爱|帅|绝了|yyds|❤|~|～|！|!|。|，|,|\.|\?|？'
@@ -68,15 +69,21 @@ for pid,raw in R.items():
     pick=random.Random(pid).sample(pool,min(5,len(pool)))
     if len(pick)<5: pick+=random.Random(pid+'x').sample(extra,min(5-len(pick),len(extra)))
   top=sorted([conv(c) for c in pick],key=lambda c:-c['likes'])
+  cel=[{"comment":conv(c),"replies":[conv({**r,'v':0,'pn':r.get('pn',0)}) for r in c['sub']]} for c in sorted(cm,key=lambda c:c['t']) if c['uid'] in CELEB and c['uid']!=ME and not c['sub']]   # 她回复过的留言照旧放「她有回复」（第一位）
+  celids={a['comment']['id'] for a in cel}
+  cel+=[a for a in C.get(pid,{}).get('celeb',[]) if a['comment']['id'] not in celids]
   auth=[]
-  for c in cm:   # 她回复过的留言不受封杀名单限制，全收；她自己发的留言（超话帖常见）记成 isAuthorComment
+  for c in cm:
+    # 她回复过的留言不受封杀名单限制，全收；她自己发的留言（超话帖常见）记成 isAuthorComment
+    if c['uid'] in CELEB and c['uid']!=ME and not c['sub']: continue
     if c['uid']==ME: auth.append({"comment":conv(c),"replies":[conv({**r,'v':0,'pn':r.get('pn',0)}) for r in c['sub']],"isAuthorComment":True})
     elif c['sub']: auth.append({"comment":conv(c),"replies":[conv({**r,'v':0,'pn':r.get('pn',0)}) for r in c['sub']],"isAuthorComment":False})
   old=C.get(pid,{})
   have={a['comment']['id'] for a in auth}
   auth+=[a for a in old.get('author',[]) if a['comment']['id'] not in have]
   auth.sort(key=lambda a:a['comment']['time'])
-  C[pid]={"scanned":len(cm),"top":top,"author":auth}
+  auth=[a for a in auth if a['comment']['id'] not in {x['comment']['id'] for x in cel}]
+  C[pid]={"scanned":len(cm),"top":top,"author":auth,**({"celeb":cel} if cel else {})}
   report[pid]=(len(cm),len(pool))
 if '--candidates' in ARG:
   json.dump(CAND,open(ARG['--candidates'],'w'),ensure_ascii=False,indent=0); print('candidates written'); sys.exit()

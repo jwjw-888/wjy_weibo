@@ -15,7 +15,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-11-02-6">
+<meta name="site-build" content="2026-11-05-1">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -146,6 +146,15 @@ a.pic{display:block;cursor:pointer}
 .cmt.mine{background:var(--mine);border-radius:4px;padding:8px 10px;margin:0 -10px}
 .replies .t b{color:var(--link);font-weight:400}
 .lbl{font-size:12px;color:var(--muted)}
+details.celeb{background:#A9D1D1;border:1px solid #A9D1D1;border-radius:8px;margin:-2px -6px 0;padding:0}
+details.celeb>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px 10px;font-weight:700;font-size:14px;color:#1f3d3d}
+details.celeb>summary::-webkit-details-marker{display:none}
+details.celeb>summary span{flex:1;min-width:0}
+details.celeb>summary i{font-style:normal;font-weight:400;font-size:12.5px;color:#2f5555;white-space:nowrap}
+details.celeb>summary i::after{content:" ›"}
+details.celeb[open]>summary i::after{content:" ⌄"}
+details.celeb .list{display:grid;gap:10px;padding:10px;background:var(--card);border-radius:0 0 7px 7px}
+details.celeb .cmt.vip{background:#e2f0f0;border-radius:4px;padding:8px 10px;margin:0 -10px}
 details.herreply{background:#f0768b;border:1px solid #f0768b;border-radius:8px;margin:-2px -6px 0;padding:0}
 details.herreply>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px 10px;font-weight:700;font-size:14px;color:#fff}
 details.herreply>summary::-webkit-details-marker{display:none}
@@ -395,6 +404,12 @@ function commentsHtml(p, q) {
       ? cmtHtml(a.comment, q, true) + (a.replies.length ? `<div class="replies">${a.replies.map(r => replyHtml(r, q)).join("")}</div>` : "") + "</div></div>"
       : cmtHtml(a.comment, q) + `<div class="replies">${a.replies.map(r => replyHtml(r, q)).join("")}</div></div></div>`).join("") + `</div></details>`;
   }
+  // 顺序：她的回复（第一位）→ 艺人/公众人物留言（底色 #A9D1D1）→ 粉丝留言
+  const cel = c.celeb || [];
+  if (cel.length) {
+    const hit = q && cel.some(a => [a.comment, ...a.replies].some(x => norm(ctext(x)).includes(norm(q))));
+    h += `<details class="celeb"${hit ? " open" : ""}><summary><span>${T(`艺人与公众人物留言（${cel.length} 则）`, `Comments from celebrities & public figures (${cel.length})`)}</span><i>${T("查看", "View")}</i></summary><div class="list">` + cel.map(a => cmtHtml(a.comment, q).replace('<div class="cmt"', '<div class="cmt vip"') + (a.replies.length ? `<div class="replies">${a.replies.map(r => replyHtml(r, q)).join("")}</div>` : "") + "</div></div>").join("") + `</div></details>`;
+  }
   if (c.top.length) {
     h += `<details class="hot"${q && c.top.some(x => norm(ctext(x)).includes(norm(q))) ? " open" : ""}><summary>${T(`粉丝留言（随机 ${c.top.length} 则）`, `Fan comments (${c.top.length} at random)`)}</summary><div class="list">${c.top.map(x => cmtHtml(x, q, x.uid === "1278603180") + "</div></div>").join("")}</div></details>`;
   }
@@ -404,7 +419,7 @@ function commentsHtml(p, q) {
 function haystack(p) {
   if (p.blank) return "";
   const c = (DATA.comments || {})[p.id];
-  const ct = c ? [...c.top, ...c.author.flatMap(a => [a.comment, ...a.replies])].map(x => x.user + " " + x.text + (EN && ENX.c[x.id] ? " " + ENX.c[x.id] : "")).join("\n") : "";
+  const ct = c ? [...c.top, ...[...(c.celeb || []), ...c.author].flatMap(a => [a.comment, ...a.replies])].map(x => x.user + " " + x.text + (EN && ENX.c[x.id] ? " " + ENX.c[x.id] : "")).join("\n") : "";
   const e = tp(p);
   return norm([p.text, p.rt && p.rt.text, p.rt && p.rt.user, p.region, p.video && p.video.title, e.t, e.r, e.v, EN && REGION_EN[p.region]].filter(Boolean).join("\n")) + "\n" + norm(ct);
 }
@@ -421,7 +436,7 @@ function render() {
     if (filter === "pic" && !(p.pics.some(x => !x.isVideo) || (p.rt && p.rt.pics.length))) return false;
     if (filter === "video" && !(p.video || p.pics.some(x => x.isVideo) || (p.rt && p.rt.video))) return false;
     if (filter === "essay" && !p.essay) return false;
-    if (filter === "reply" && !((DATA.comments || {})[p.id] && DATA.comments[p.id].author.length)) return false;
+    if (filter === "reply" && !((DATA.comments || {})[p.id] && (DATA.comments[p.id].author.length || (DATA.comments[p.id].celeb || []).some(a => a.replies.length)))) return false;
     if (ql && !haystack(p).includes(ql)) return false;
     return true;
   });
