@@ -11,7 +11,7 @@ def texts():
     if p.get('note'): yield p['note']
   for v in C.values():
     for c in v['top']: yield c['text']
-    for a in v.get('author',[]):
+    for a in v.get('author',[])+v.get('celeb',[]):
       for c in [a['comment']]+a.get('replies',[]): yield c['text']
   for t in L.values(): yield t
 key=lambda t: hashlib.md5(t.encode()).hexdigest()[:10]

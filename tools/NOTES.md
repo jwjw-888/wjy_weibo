@@ -120,3 +120,8 @@
 - 她的留言：她在自己超话帖下发的留言记成 `isAuthorComment: true`（她自己在该留言下的回复放 `replies`）；她回复粉丝的照常放「她有回复」。她的回复常藏在楼中楼里，要对 `total_number` 大于预览数的每一楼用 `buildComments?fetch_level=1&id=<楼id>` 翻完找 uid 1278603180。留言里的图片编号用 m.weibo.cn `/comments/hotflow`、`/comments/hotFlowChild` 取。
 - 粉丝留言照一般规则人工挑 5 则（tools/picks.json）。
 - 她留在粉丝帖下的评论（2024 年等，她自己的帖已半年可见看不到）：照超话原样，**主体是粉丝的帖**（posts.json 加 `fan: {user, avatar}`、`cmtOn: true`，avatar 存 avatars/u/），**她的评论放 comments.json 的 author（isAuthorComment）**，黄底区预设展开。找法：s.weibo.com 按小时搜该超话的帖（timescope=custom:YYYY-MM-DD-HH:...，每次请求间隔 ≥1.5 秒，否则会被挡 418），再用 weibo.com buildComments 查每帖有没有 uid 1278603180。
+
+## 艺人与公众人物留言（2026-11-05 起）
+- 艺人/公众人物（演员、歌手、导演、编剧、配音演员等，看微博认证说明 verified_reason；不含官方/后援会等蓝 V 机构、也不含「博主」「超话主持人」）的留言全部备份，放在「艺人与公众人物留言」区，底色 #A9D1D1。
+- 留言区顺序：她的回复（第一位）→ 艺人与公众人物留言 → 粉丝留言。她回复过的艺人留言只放在「她有回复」，不在艺人区重复。
+- 名单在 `tools/celebs.json`（uid）；pick_comments.py 会自动把名单里的人放进 comments.json 的 `celeb`。以后遇到新的黄 V 留言者，用 `/ajax/profile/info?uid=` 看认证说明，是艺人就加进名单。

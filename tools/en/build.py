@@ -13,7 +13,7 @@ for p in P:
   if p.get('note') and k(p['note']): e['n']=k(p['note'])
   if e: out['p'][p['id']]=e
 for v in C.values():
-  for c in v['top']+[x for a in v.get('author',[]) for x in [a['comment']]+a.get('replies',[])]:
+  for c in v['top']+[x for a in v.get('author',[])+v.get('celeb',[]) for x in [a['comment']]+a.get('replies',[])]:
     if k(c['text']): out['c'][c['id']]=k(c['text'])
 for u,t in L.items():
   if k(t): out['l'][u]=k(t)
