@@ -16,7 +16,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-11-06-2">
+<meta name="site-build" content="2026-11-06-3">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -657,7 +657,7 @@ new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) more(); }, 
 const enP = EN ? fetch("data/en.json").then(r => r.ok ? r.json() : null).catch(() => null) : Promise.resolve(null);
 const loadFail = () => {
   // 两份都失败才显示失败；只有完整资料失败时，保留最新几条并提示
-  if (!DATA && headFailed && fullFailed) { view = null; $("loadmore").hidden = true; $("count").textContent = ""; $("feed").innerHTML = `<div class="empty">${T("数据载入失败，请检查网路后", "Failed to load data — check your connection and ")}<a href="#" onclick="location.reload();return false">${T("重新整理", "refresh")}</a></div>`; }
+  if (!DATA && headFailed && fullFailed) { $("meta").textContent = T("载入失败", "Failed to load"); view = null; $("loadmore").hidden = true; $("count").textContent = ""; $("feed").innerHTML = `<div class="empty">${T("数据载入失败，请检查网路后", "Failed to load data — check your connection and ")}<a href="#" onclick="location.reload();return false">${T("重新整理", "refresh")}</a></div>`; }
   else if (DATA && !FULL && fullFailed) { $("count").innerHTML = T(`网路较慢，目前只显示最新 ${DATA.posts.filter(p => !p.ch).length} 条，`, `Slow connection — showing only the latest posts. `) + `<a href="#" onclick="location.reload();return false">${T("重新整理", "Refresh")}</a>`; $("loadmore").hidden = true; }
 };
 getJSON("data/head.json", 1, 15000).then(h => enP.then(enx => {
