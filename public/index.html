@@ -16,7 +16,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-11-06-3">
+<meta name="site-build" content="2026-11-06-4">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -556,6 +556,10 @@ const mName = k => T(`${k.slice(0, 4)}年${+k.slice(5)}月`, `${MONTH_EN[+k.slic
 function mLabel() { $("mbtn").textContent = !MSEL.size ? T("全部月份", "All months") : MSEL.size === 1 ? mName([...MSEL][0]) : T(`已选 ${MSEL.size} 个月`, `${MSEL.size} months`); }
 function mDraw() {
   const ys = Object.keys(MP.years).sort().reverse();
+  // 资料还没到：月份选单先显示载入中，不能选（避免选到不存在的年份）
+  if (!ys.length) { $("myears").innerHTML = ""; $("mgrid").innerHTML = `<div class="mwait" style="grid-column:1/-1;text-align:center;color:var(--muted);padding:18px 0">${T("资料载入中，请稍候…", "Loading, please wait…")}</div>`; $("myear").disabled = true; return; }
+  $("myear").disabled = false;
+  if (!MP.years[MP.y]) MP.y = ys[0];
   $("myears").innerHTML = ys.map(y => { const n = [...MSEL].filter(k => k.startsWith(y)).length; return `<button class="chip" data-y="${y}" aria-pressed="${y === MP.y}">${y}${n ? `<small>${n}</small>` : ""}</button>`; }).join("");
   const has = new Set(MP.years[MP.y] || []);
   $("mgrid").innerHTML = Array.from({length: 12}, (_, i) => { const k = `${MP.y}-${String(i + 1).padStart(2, "0")}`; return `<button data-k="${k}"${has.has(k) ? "" : " disabled"} aria-pressed="${MSEL.has(k)}">${T(`${i + 1}月`, MONTH_EN[i])}</button>`; }).join("");
@@ -564,7 +568,7 @@ function mDraw() {
 }
 function mOpen(open) {
   $("mpanel").hidden = $("mshade").hidden = !open; $("mbtn").setAttribute("aria-expanded", open);
-  if (open) { MP.y = MP.y || Object.keys(MP.years).sort().pop(); mDraw(); const b = $("myears").querySelector('[aria-pressed="true"]'); if (b) b.scrollIntoView({inline: "center", block: "nearest"}); }
+  if (open) { if (!MP.years[MP.y]) MP.y = Object.keys(MP.years).sort().pop() || ""; mDraw(); const b = $("myears").querySelector('[aria-pressed="true"]'); if (b) b.scrollIntoView({inline: "center", block: "nearest"}); }
 }
 function mApply() { mLabel(); mDraw(); render(); toTop(); }
 $("mbtn").addEventListener("click", e => { e.stopPropagation(); mOpen($("mpanel").hidden); });
@@ -638,6 +642,7 @@ function applyData(b, full) {
   m.months.forEach(k => { const y = k.slice(0, 4); (byYear[y] = byYear[y] || []).push(k); });
   d.dims = b.dims || {}; d.comments = b.cm || {};
   DATA = d; META = m; FULL = full; EMO = b.emo || {}; LINKS = b.links || {}; MP.years = byYear;
+  if (!$("mpanel").hidden) mDraw();
   if (DATA.avatar && $("pavatar") && $("pavatar").tagName !== "IMG") $("pavatar").outerHTML = `<img class="avatar" id="pavatar" src="${esc(DATA.avatar)}" alt="${T("吴谨言头像", "Wu Jinyan avatar")}">`;
   $("meta").innerHTML = T(`<span><b>${m.wbN}</b> 条微博</span>${m.chN ? `<span><b>${m.chN}</b> 条超话</span>` : ""}<span><b>${m.picN}</b> 张图片</span><span>${ymd(m.first)} 至 ${ymd(m.last)}</span><span>最近备份 ${ymd(DATA.fetchedAt)}</span>`, `<span><b>${m.wbN}</b> posts</span>${m.chN ? `<span><b>${m.chN}</b> Super Topic posts</span>` : ""}<span><b>${m.picN}</b> images</span><span>${ymd(m.first)} to ${ymd(m.last)}</span><span>Last backup ${ymd(DATA.fetchedAt)}</span>`);
 }
