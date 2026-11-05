@@ -15,7 +15,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-11-05-3">
+<meta name="site-build" content="2026-11-05-4">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -425,6 +425,8 @@ function haystack(p) {
 }
 
 function render() {
+  // 资料还没下载完时（网路慢），先不画；下载完会自动画一次，期间点的筛选、月份也会套用
+  if (!DATA) { $("feed").innerHTML = `<div class="empty">${T("资料载入中，请稍候…", "Loading, please wait…")}</div>`; return; }
   const q = $("q").value.trim();
   const ql = norm(q);
   const list = DATA.posts.filter(p => {
@@ -593,7 +595,10 @@ if (EN) {
   $("footnote").innerHTML = "<b>This is a fan-made archive, not an official website.</b> All information is subject to the posts officially published on actress Wu Jinyan's Weibo; copyright of the text and images belongs to Wu Jinyan. Videos are not archived — only cover screenshots are kept; posts from the last six months have an \"Original\" link to Weibo. Repost, comment and like counts are as of the time of backup. Some older posts no longer visible on Wu Jinyan's own page come from @盐圈大管家's \"小吴老师的半年可见\" reposts and from \"吴谨言的微博书\" (2010 – 2024). English translations are fan translations; drama titles use their official English names where they exist.";
   set("#xtop", "Close", "aria-label"); set("#prev", "Previous", "aria-label"); set("#next", "Next", "aria-label"); set("#close", "✕ Close");
 }
-Promise.all([fetch("data/all.json").then(r => r.json()), EN ? fetch("data/en.json").then(r => r.ok ? r.json() : null).catch(() => null) : null]).then(([{d, dims, cm, emo, links}, enx]) => {
+// 下载资料；网路不稳失败时自动重试 2 次
+const getJSON = (u, n = 2) => fetch(u, n < 2 ? {cache: "reload"} : {}).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).catch(e => n > 0 ? new Promise(ok => setTimeout(ok, 1500)).then(() => getJSON(u, n - 1)) : Promise.reject(e));
+render();
+Promise.all([getJSON("data/all.json"), EN ? fetch("data/en.json").then(r => r.ok ? r.json() : null).catch(() => null) : null]).then(([{d, dims, cm, emo, links}, enx]) => {
   if (enx) ENX = enx;
   DATA = d; DATA.dims = dims; DATA.comments = cm; EMO = emo; LINKS = links;
   if (DATA.avatar) $("pavatar").outerHTML = `<img class="avatar" src="${esc(DATA.avatar)}" alt="${T("吴谨言头像", "Wu Jinyan avatar")}">`;
