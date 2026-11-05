@@ -16,7 +16,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-11-06-1">
+<meta name="site-build" content="2026-11-06-2">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -250,7 +250,8 @@ details.hot .list{display:grid;gap:10px;margin-top:10px}
 const ORIGINAL_BASE = "https://pub-db270e9d94f24f01a0f04c10bbdc80af.r2.dev/";
 const TZ = "Asia/Shanghai";
 
-let DATA = null, FULL = false, filter = "all", EMO = null, LINKS = null;
+let headFailed = false, fullFailed = false;
+let DATA = null, META = null, FULL = false, filter = "all", EMO = null, LINKS = null;
 // 语言：中文 / ENG（英文翻译在 data/en.json，只有选英文才下载）
 // 语言：每次打开都从中文开始；切换后只在这次浏览期间有效（sessionStorage）
 let LANG = "zh"; try { localStorage.removeItem("lang"); if (sessionStorage.getItem("lang") === "en") LANG = "en"; } catch (e) {}
@@ -426,11 +427,17 @@ function haystack(p) {
 }
 
 function render() {
+  try { renderFeed(); } catch (e) {
+    console.error(e); view = null; $("loadmore").hidden = true;
+    $("feed").innerHTML = `<div class="empty">${T("显示出错，请", "Something went wrong — please ")}<a href="#" onclick="location.reload();return false">${T("重新整理页面", "refresh the page")}</a></div>`;
+  }
+}
+function renderFeed() {
   // 资料还没下载完时（网路慢），先不画；下载完会自动画一次，期间点的筛选、月份也会套用
-  if (!DATA) { $("feed").innerHTML = `<div class="empty">${T("资料载入中，请稍候…", "Loading, please wait…")}</div>`; return; }
+  if (!DATA) { if (headFailed && fullFailed) loadFail(); else $("feed").innerHTML = `<div class="empty">${T("资料载入中，请稍候…", "Loading, please wait…")}</div>`; return; }
   const q = $("q").value.trim();
   // 先显示的是最新几条（head.json）；完整资料还没到时，筛选/搜索/选月份先显示载入中，到了会自动套用
-  if (!FULL && (filter !== "all" || q || MSEL.size)) { view = null; $("feed").innerHTML = `<div class="empty">${T("完整资料载入中，请稍候…", "Loading full archive, please wait…")}</div>`; $("loadmore").hidden = true; $("count").textContent = ""; return; }
+  if (!FULL && (filter !== "all" || q || MSEL.size)) { view = null; $("feed").innerHTML = `<div class="empty">${fullFailed ? T("网路较慢，完整资料载入失败，筛选与搜索暂时无法使用，请", "Slow connection — the full archive failed to load, so filters and search are unavailable. Please ") + `<a href="#" onclick="location.reload();return false">${T("重新整理", "refresh")}</a>` : T("完整资料载入中，请稍候…", "Loading full archive, please wait…")}</div>`; $("loadmore").hidden = true; $("count").textContent = ""; return; }
   const ql = norm(q);
   const list = DATA.posts.filter(p => {
     if (MSEL.size && !MSEL.has(monthKey(p.time))) return false;
@@ -451,7 +458,7 @@ function render() {
   list.forEach(p => { const k = monthKey(p.time); view.perMonth[k] = (view.perMonth[k] || 0) + 1; });
   $("feed").innerHTML = list.length ? "" : `<div class="empty">${T("没有找到符合条件的微博", "No posts match your filters")}</div>`;
   more();
-  $("count").textContent = (q || MSEL.size || filter !== "all") ? T(`找到 ${list.length} 条`, `${list.length} found`) : T(`共 ${FULL ? list.length : DATA.meta.wbN} 条，按时间从新到旧`, `${FULL ? list.length : DATA.meta.wbN} posts, newest first`);
+  $("count").textContent = (q || MSEL.size || filter !== "all") ? T(`找到 ${list.length} 条`, `${list.length} found`) : T(`共 ${FULL ? list.length : META.wbN} 条，按时间从新到旧`, `${FULL ? list.length : META.wbN} posts, newest first`);
 }
 let view = null;
 // 换月份、类型或搜索后，跳回列表开头，不然往下滑很远时会看到一片空白
@@ -615,14 +622,23 @@ function metaOf(posts) {
   const chN = posts.filter(p => p.ch).length;
   return {wbN: posts.length - chN, chN, picN, first: times[0], last: times[times.length - 1], months};
 }
-function applyData({d, dims, cm, emo, links}) {
-  DATA = d; DATA.dims = dims; DATA.comments = cm; EMO = emo; LINKS = links;
-  if (DATA.avatar && $("pavatar") && $("pavatar").tagName !== "IMG") $("pavatar").outerHTML = `<img class="avatar" id="pavatar" src="${esc(DATA.avatar)}" alt="${T("吴谨言头像", "Wu Jinyan avatar")}">`;
-  DATA.posts.sort((a, b) => b.time.localeCompare(a.time) || ((b.via && b.via.time) || "").localeCompare((a.via && a.via.time) || ""));
-  const m = FULL ? metaOf(DATA.posts) : (d.meta || metaOf(DATA.posts));
+// 资料格式检查：下载到的不是正确的资料（例如网路被导到别的网页、档案不完整）就当作失败，不要拿来显示
+function validBundle(b) {
+  return !!(b && typeof b === "object" && b.d && typeof b.d === "object" && Array.isArray(b.d.posts) && b.d.posts.length &&
+    b.d.posts.every(p => p && typeof p.id === "string" && typeof p.time === "string" && Array.isArray(p.pics)) &&
+    (b.dims == null || typeof b.dims === "object") && (b.cm == null || typeof b.cm === "object"));
+}
+// 套用资料：先全部检查、整理好，最后才一次换上（换到一半出错时，原本画面的资料不受影响）；不改动下载到的原始资料
+function applyData(b, full) {
+  if (!validBundle(b)) throw new Error("invalid data");
+  const d = Object.assign({}, b.d, {posts: b.d.posts.slice()});
+  d.posts.sort((x, y) => y.time.localeCompare(x.time) || ((y.via && y.via.time) || "").localeCompare((x.via && x.via.time) || ""));
+  const m = full ? metaOf(d.posts) : (b.d.meta && Array.isArray(b.d.meta.months) ? b.d.meta : metaOf(d.posts));
   const byYear = {};
   m.months.forEach(k => { const y = k.slice(0, 4); (byYear[y] = byYear[y] || []).push(k); });
-  MP.years = byYear;
+  d.dims = b.dims || {}; d.comments = b.cm || {};
+  DATA = d; META = m; FULL = full; EMO = b.emo || {}; LINKS = b.links || {}; MP.years = byYear;
+  if (DATA.avatar && $("pavatar") && $("pavatar").tagName !== "IMG") $("pavatar").outerHTML = `<img class="avatar" id="pavatar" src="${esc(DATA.avatar)}" alt="${T("吴谨言头像", "Wu Jinyan avatar")}">`;
   $("meta").innerHTML = T(`<span><b>${m.wbN}</b> 条微博</span>${m.chN ? `<span><b>${m.chN}</b> 条超话</span>` : ""}<span><b>${m.picN}</b> 张图片</span><span>${ymd(m.first)} 至 ${ymd(m.last)}</span><span>最近备份 ${ymd(DATA.fetchedAt)}</span>`, `<span><b>${m.wbN}</b> posts</span>${m.chN ? `<span><b>${m.chN}</b> Super Topic posts</span>` : ""}<span><b>${m.picN}</b> images</span><span>${ymd(m.first)} to ${ymd(m.last)}</span><span>Last backup ${ymd(DATA.fetchedAt)}</span>`);
 }
 // 完整资料到了：若读者还在看默认列表，就无缝接上（不跳回顶部），否则重新套用筛选
@@ -639,19 +655,21 @@ function swapToFull() {
 render();
 new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) more(); }, {rootMargin: "800px"}).observe($("loadmore"));
 const enP = EN ? fetch("data/en.json").then(r => r.ok ? r.json() : null).catch(() => null) : Promise.resolve(null);
+const loadFail = () => {
+  // 两份都失败才显示失败；只有完整资料失败时，保留最新几条并提示
+  if (!DATA && headFailed && fullFailed) { view = null; $("loadmore").hidden = true; $("count").textContent = ""; $("feed").innerHTML = `<div class="empty">${T("数据载入失败，请检查网路后", "Failed to load data — check your connection and ")}<a href="#" onclick="location.reload();return false">${T("重新整理", "refresh")}</a></div>`; }
+  else if (DATA && !FULL && fullFailed) { $("count").innerHTML = T(`网路较慢，目前只显示最新 ${DATA.posts.filter(p => !p.ch).length} 条，`, `Slow connection — showing only the latest posts. `) + `<a href="#" onclick="location.reload();return false">${T("重新整理", "Refresh")}</a>`; $("loadmore").hidden = true; }
+};
 getJSON("data/head.json", 1, 15000).then(h => enP.then(enx => {
   if (FULL) return;
   if (enx) ENX = enx;
-  applyData(h); render();
-})).catch(() => {});
+  applyData(h, false); render(); if (fullFailed) loadFail();
+})).catch(e => { console.error("head.json", e); headFailed = true; loadFail(); });
 getJSON("data/all.json", 2, 40000).then(a => enP.then(enx => {
   if (enx) ENX = enx;
-  const had = !!DATA; FULL = true; applyData(a);
+  const had = !!DATA; applyData(a, true);
   had ? swapToFull() : render();
-})).catch(() => {
-  if (!DATA) $("feed").innerHTML = `<div class="empty">${T("数据载入失败，请检查网路后重新整理页面", "Failed to load data — check your connection and refresh")}</div>`;
-  else $("count").textContent = T("网路较慢，目前只显示最新几条，请稍后重新整理", "Slow connection — showing only the latest posts; please refresh later");
-});
+})).catch(e => { console.error("all.json", e); fullFailed = true; loadFail(); });
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
 
