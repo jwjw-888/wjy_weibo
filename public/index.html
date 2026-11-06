@@ -16,7 +16,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-11-06-4">
+<meta name="site-build" content="2026-11-06-5">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -267,7 +267,14 @@ const tp = p => (EN && ENX.p[p.id]) || {};
 const ctext = c => (EN && ENX.c[c.id]) || c.text;
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const fmt = (iso, opt) => new Intl.DateTimeFormat("zh-CN", {timeZone: TZ, ...opt}).format(new Date(iso));
+// 兼容旧浏览器：有些手机内建浏览器不支持指定时区，改用「UTC+8」自己换算，避免整页出错
+if (!Array.prototype.flatMap) Array.prototype.flatMap = function (f, t) { return [].concat.apply([], this.map(f, t)); };
+let TZ_OK = true; try { new Intl.DateTimeFormat("zh-CN", {timeZone: TZ}).format(new Date()); } catch (e) { TZ_OK = false; }
+const fmt = (iso, opt) => {
+  try { return TZ_OK ? new Intl.DateTimeFormat("zh-CN", Object.assign({timeZone: TZ}, opt)).format(new Date(iso))
+                     : new Intl.DateTimeFormat("zh-CN", Object.assign({timeZone: "UTC"}, opt)).format(new Date(+new Date(iso) + 8 * 3600e3)); }
+  catch (e) { return new Date(+new Date(iso) + 8 * 3600e3).toISOString().slice(0, 16).replace("T", " "); }
+};
 const ymd = iso => fmt(iso, {year:"numeric", month:"2-digit", day:"2-digit"}).replace(/\//g, "-");
 const hm = iso => fmt(iso, {hour:"2-digit", minute:"2-digit", hour12:false});
 const monthKey = iso => ymd(iso).slice(0, 7);
@@ -658,7 +665,8 @@ function swapToFull() {
   more();
 }
 render();
-new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) more(); }, {rootMargin: "800px"}).observe($("loadmore"));
+if ("IntersectionObserver" in window) new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) more(); }, {rootMargin: "800px"}).observe($("loadmore"));
+else addEventListener("scroll", () => { const r = $("loadmore").getBoundingClientRect(); if (r.top < innerHeight + 800) more(); }, {passive: true});
 const enP = EN ? fetch("data/en.json").then(r => r.ok ? r.json() : null).catch(() => null) : Promise.resolve(null);
 const loadFail = () => {
   // 两份都失败才显示失败；只有完整资料失败时，保留最新几条并提示
