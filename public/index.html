@@ -16,7 +16,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-11-06-5">
+<meta name="site-build" content="2026-11-06-6">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -197,6 +197,21 @@ details.hot .list{display:grid;gap:10px;margin-top:10px}
 </style>
 <!-- Microsoft Clarity（访客统计，专案 z6pvep9vf7） -->
 <script type="text/javascript">(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window, document, "clarity", "script", "z6pvep9vf7");</script>
+<script>
+// 把网站版本和出错的详细内容记到 Clarity（「自定义标记」build / js_error），方便查是哪一版、哪一行出错
+(function () {
+  var b = (document.querySelector('meta[name="site-build"]') || {}).content || "?";
+  try { clarity("set", "build", b); } catch (e) {}
+  function rep(msg, src, line, col) {
+    try {
+      var m = String(msg || "").slice(0, 120) + (line ? " @" + String(src || "").split("/").pop() + ":" + line + ":" + (col || "") : "");
+      clarity("set", "js_error", m); clarity("event", "js_error");
+    } catch (e) {}
+  }
+  addEventListener("error", function (e) { if (e && e.message) rep(e.message, e.filename, e.lineno, e.colno); });
+  addEventListener("unhandledrejection", function (e) { var r = e && e.reason; rep("promise: " + (r && (r.message || r) || "")); });
+})();
+</script>
 </head>
 <body>
 
