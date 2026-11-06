@@ -30,3 +30,5 @@
 盐粒/盐粒儿（粉丝名）Little Salts | 奶盐（吴谨言自称/粉丝对她的称呼）Milky Salt | 不锈钢女王 Stainless Steel Queen | 宣传委员 publicity officer
 ## 角色
 魏璎珞 Wei Yingluo | 薛芳菲 Xue Fangfei | 孟廷辉 Meng Tinghui | 阮卿卿 Ruan Qingqing | 祝阮 Zhu Ruan | 秦长歌 Qin Changge（秦总 Boss Qin）| 英寡（御廷谣男主）Ying Gua | 素玄（王佑硕，凤不栖）Su Xuan | 程蔚然 Cheng Weiran（程律 Lawyer Cheng） | 眉林 Meilin | 姚子衿 Yao Zijin | 易二（传家，易家二小姐）Second Miss Yi | 明霜 Ming Shuang
+
+- 英文里的剧名、书名不用书名号《》，直接写英文名（2026-11-06）
