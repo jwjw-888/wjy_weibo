@@ -16,7 +16,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-11-07-3">
+<meta name="site-build" content="2026-11-07-4">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -127,6 +127,9 @@ a.pic{display:block;cursor:pointer}
 .vnote{font-size:12px;color:var(--muted);margin-top:4px}
 .rt{margin:10px -16px 0;background:var(--sunken);padding:10px 16px 12px;min-width:0}
 .rt .text{margin-top:0;font-size:14px}
+.rtwho{color:#eb7350}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .rtwho{color:#f08a6a}}
+:root[data-theme="dark"] .rtwho{color:#f08a6a}
 .rt .rtime{font-size:12px;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums}
 .acts{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);margin-top:12px}
 .acts span{display:flex;align-items:center;justify-content:center;gap:6px;height:40px;color:var(--soft);font-size:13px;font-variant-numeric:tabular-nums}
@@ -381,7 +384,7 @@ function postHtml(p, q) {
   if (p.region) meta.push(`<span>${T("发布于 " + esc(p.region), "posted in " + esc(REGION_EN[p.region] || p.region))}</span>`);
   let rt = "";
   if (p.rt) {
-    const who = p.rt.url ? `<a href="${p.rt.url}" target="_blank" rel="noopener noreferrer">@${esc(p.rt.user)}</a>` : `@${esc(p.rt.user)}`;
+    const who = p.rt.url ? `<a class="rtwho" href="${p.rt.url}" target="_blank" rel="noopener noreferrer">@${esc(p.rt.user)}</a>` : `<span class="rtwho">@${esc(p.rt.user)}</span>`;
     rt = `<div class="rt"><div class="text">${who}${T("：", ": ")}${rich(tp(p).r || p.rt.text, q)}</div>${picsHtml({...p.rt, _vt: tp(p).rv})}${p.rt.time ? `<div class="rtime">${wbTime(p.rt.time)}</div>` : ""}</div>`;
   }
   const acts = p.archive ? "" : `<div class="acts"><span>${ICON.rt}${p.reposts ? num(p.reposts) : T("转发", "Repost")}</span><span>${ICON.cm}${p.comments ? num(p.comments) : T("评论", "Comment")}</span><span>${ICON.lk}${p.likes ? num(p.likes) : T("赞", "Like")}</span></div>`;
