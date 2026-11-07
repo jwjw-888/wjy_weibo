@@ -25,3 +25,9 @@ hd={k:v for k,v in dims.items() if k in keys}
 meta['size']=os.path.getsize(D+'all.json')  # 完整资料大小，网页显示下载进度用
 dump({'d':{**{k:v for k,v in posts.items() if k!='posts'},'posts':head,'meta':meta},'dims':hd,'cm':{p['id']:cm[p['id']] for p in head if p['id'] in cm},'emo':emo,'links':links},'head.json')
 print('head',len(head),os.path.getsize(D+'head.json'),'all',os.path.getsize(D+'all.json'))
+
+# 把资料大小写进 index.html，网页一开始（资料还没到）就能显示下载百分比
+import re
+ip=os.path.join(D,'..','index.html'); h=open(ip,encoding='utf-8').read()
+h=re.sub(r'<meta name="data-size" content="[^"]*">','<meta name="data-size" content="%d,%d">'%(os.path.getsize(D+'head.json'),os.path.getsize(D+'all.json')),h,count=1)
+open(ip,'w',encoding='utf-8').write(h)

@@ -16,7 +16,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-11-07-10">
+<meta name="data-size" content="45439,1499169">
+<meta name="site-build" content="2026-11-07-11">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -466,10 +467,10 @@ function render() {
 }
 function renderFeed() {
   // 资料还没下载完时（网路慢），先不画；下载完会自动画一次，期间点的筛选、月份也会套用
-  if (!DATA) { if (headFailed && fullFailed) loadFail(); else $("feed").innerHTML = `<div class="empty">${T("资料载入中，请稍候…", "Loading, please wait…")}</div>`; return; }
+  if (!DATA) { if (headFailed && fullFailed) loadFail(); else $("feed").innerHTML = `<div class="empty">${T("资料载入中", "Loading")}<span class="ldpct" data-k="head">${pctTxt("head")}</span>${T("，请稍候…", ", please wait…")}</div>`; return; }
   const q = $("q").value.trim(); qState(q);
   // 先显示的是最新几条（head.json）；完整资料还没到时，筛选/搜索/选月份先显示载入中，到了会自动套用
-  if (!FULL && (filter !== "all" || q || MSEL.size)) { view = null; $("feed").innerHTML = `<div class="empty">${fullFailed ? T("网路较慢，完整资料载入失败，筛选与搜索暂时无法使用，请", "Slow connection — the full archive failed to load, so filters and search are unavailable. Please ") + `<a href="#" onclick="location.reload();return false">${T("重新整理", "refresh")}</a>` : T("完整资料载入中，请稍候…", "Loading full archive, please wait…")}</div>`; $("loadmore").hidden = true; $("count").textContent = ""; return; }
+  if (!FULL && (filter !== "all" || q || MSEL.size)) { view = null; $("feed").innerHTML = `<div class="empty">${fullFailed ? T("网路较慢，完整资料载入失败，筛选与搜索暂时无法使用，请", "Slow connection — the full archive failed to load, so filters and search are unavailable. Please ") + `<a href="#" onclick="location.reload();return false">${T("重新整理", "refresh")}</a>` : T("完整资料载入中", "Loading full archive") + `<span class="ldpct" data-k="all">${pctTxt("all")}</span>` + T("，请稍候…", ", please wait…")}</div>`; $("loadmore").hidden = true; $("count").textContent = ""; return; }
   const ql = norm(q);
   const list = DATA.posts.filter(p => {
     if (MSEL.size && !MSEL.has(monthKey(p.time))) return false;
@@ -591,7 +592,7 @@ function mLabel() { $("mbtn").textContent = !MSEL.size ? T("全部月份", "All 
 function mDraw() {
   const ys = Object.keys(MP.years).sort().reverse();
   // 资料还没到：月份选单先显示载入中，不能选（避免选到不存在的年份）
-  if (!ys.length) { $("myears").innerHTML = ""; $("mgrid").innerHTML = `<div class="mwait" style="grid-column:1/-1;text-align:center;color:var(--muted);padding:18px 0">${T("资料载入中，请稍候…", "Loading, please wait…")}</div>`; $("myear").disabled = true; return; }
+  if (!ys.length) { $("myears").innerHTML = ""; $("mgrid").innerHTML = `<div class="mwait" style="grid-column:1/-1;text-align:center;color:var(--muted);padding:18px 0">${T("资料载入中", "Loading")}<span class="ldpct" data-k="all">${pctTxt("all")}</span>${T("，请稍候…", ", please wait…")}</div>`; $("myear").disabled = true; return; }
   $("myear").disabled = false;
   if (!MP.years[MP.y]) MP.y = ys[0];
   $("myears").innerHTML = ys.map(y => { const n = [...MSEL].filter(k => k.startsWith(y)).length; return `<button class="chip" data-y="${y}" aria-pressed="${y === MP.y}">${y}${n ? `<small>${n}</small>` : ""}</button>`; }).join("");
@@ -666,11 +667,15 @@ const getJSON = (u, n = 2, ms = 30000, prog) => {
     .catch(e => n > 0 ? new Promise(ok => setTimeout(ok, 1500)).then(() => getJSON(u, n - 1, ms * 1.5, prog)) : Promise.reject(e));
 };
 // 还在下载完整资料时，底部显示进度，读者知道不是坏掉
-let fullGot = 0;
+let fullGot = 0, headGot = 0;
+const SIZES = (() => { try { const m = document.querySelector('meta[name="data-size"]').content.split(",").map(Number); return {head: m[0] || 0, all: m[1] || 0}; } catch (e) { return {head: 0, all: 0}; } })();
+function pctOf(k) { const got = k === "head" ? headGot : fullGot, tot = (k === "all" && META && META.size) || SIZES[k]; return tot && got ? Math.min(99, Math.floor(got * 100 / tot)) : 0; }
+function pctTxt(k) { const v = pctOf(k); return v ? T(`（${v}%）`, ` (${v}%)`) : ""; }
+function updPct() { document.querySelectorAll(".ldpct").forEach(e => { e.textContent = pctTxt(e.dataset.k); }); loadmoreText(); }
 function loadmoreText() {
   const el = $("loadmore"); if (!el) return;
   if (FULL) { el.textContent = T("载入更多…", "Loading more…"); return; }
-  const tot = META && META.size, pc = tot ? Math.min(99, Math.floor(fullGot * 100 / tot)) : 0;
+  const pc = pctOf("all");
   el.textContent = T(`正在下载更早的微博${pc ? `（${pc}%）` : ""}，网路较慢时请稍候…`, `Downloading older posts${pc ? ` (${pc}%)` : ""} — please wait on slow connections…`);
 }
 function metaOf(posts) {
@@ -720,12 +725,12 @@ const loadFail = () => {
   if (!DATA && headFailed && fullFailed) { $("meta").textContent = T("载入失败", "Failed to load"); view = null; $("loadmore").hidden = true; $("count").textContent = ""; $("feed").innerHTML = `<div class="empty">${T("数据载入失败，请检查网路后", "Failed to load data — check your connection and ")}<a href="#" onclick="location.reload();return false">${T("重新整理", "refresh")}</a></div>`; }
   else if (DATA && !FULL && fullFailed) { $("count").innerHTML = T(`网路较慢，目前只显示最新 ${DATA.posts.filter(p => !p.ch).length} 条，`, `Slow connection — showing only the latest posts. `) + `<a href="#" onclick="location.reload();return false">${T("重新整理", "Refresh")}</a>`; $("loadmore").hidden = true; }
 };
-getJSON("data/head.json", 1, 15000).then(h => enP.then(enx => {
+getJSON("data/head.json", 1, 15000, g => { headGot = g; updPct(); }).then(h => enP.then(enx => {
   if (FULL) return;
   if (enx) ENX = enx;
   applyData(h, false); render(); if (fullFailed) loadFail();
 })).catch(e => { console.error("head.json", e); headFailed = true; loadFail(); });
-getJSON("data/all.json", 2, 30000, g => { fullGot = g; loadmoreText(); }).then(a => enP.then(enx => {
+getJSON("data/all.json", 2, 30000, g => { fullGot = g; updPct(); }).then(a => enP.then(enx => {
   if (enx) ENX = enx;
   const had = !!DATA; applyData(a, true);
   had ? swapToFull() : render();
