@@ -16,7 +16,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-11-07-8">
+<meta name="site-build" content="2026-11-07-9">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -57,7 +57,15 @@ a.topic{color:var(--tag)}
 .bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--card);border-radius:8px;padding:10px 12px;margin-bottom:10px;box-shadow:0 1px 0 var(--line)}
 .search{display:flex;gap:8px}
 .search input,.search select{font:inherit;font-size:14px;border:0;background:var(--sunken);color:var(--fg);border-radius:16px;padding:7px 14px;min-width:0}
-.search input{flex:1}
+.search .qwrap{flex:1;min-width:0;display:flex;align-items:center;gap:6px;background:var(--sunken);border:1.5px solid var(--muted);border-radius:18px;padding:0 6px 0 10px}
+.search .qwrap input{flex:1;min-width:0;background:none;padding:7px 0;border-radius:0;outline:none}
+.search .qwrap input::-webkit-search-cancel-button{display:none}
+.qwrap .qico{width:16px;height:16px;flex:0 0 auto;color:var(--muted)}
+.qwrap:focus-within{border-color:var(--accent)}
+.qwrap.on{border-color:var(--accent);background:var(--accent-soft)}
+.qwrap.on .qico{color:var(--accent)}
+.qwrap.on input{font-weight:600}
+.qx{flex:0 0 auto;border:0;background:var(--accent);color:#fff;font:inherit;font-size:13px;font-weight:600;border-radius:12px;padding:3px 10px;cursor:pointer;white-space:nowrap}
 .search select{display:none}
 .mbtn{flex:0 0 auto;font:inherit;font-size:14px;border:0;background:var(--sunken);color:var(--fg);border-radius:16px;padding:7px 12px 7px 14px;cursor:pointer;white-space:nowrap}
 .mbtn::after{content:"";display:inline-block;width:6px;height:6px;margin-left:8px;border:solid var(--muted);border-width:0 1.5px 1.5px 0;transform:translateY(-3px) rotate(45deg)}
@@ -230,7 +238,7 @@ details.hot .list{display:grid;gap:10px;margin-top:10px}
   </header>
   <div class="bar">
     <div class="search">
-      <input id="q" type="search" placeholder="搜索微博、话题、评论" autocomplete="off">
+      <div class="qwrap" id="qwrap"><svg class="qico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><input id="q" type="search" placeholder="搜索微博、话题、评论" autocomplete="off"><button type="button" class="qx" id="qx" aria-label="清除搜索" hidden>清除</button></div>
       <button class="mbtn" id="mbtn" type="button" aria-haspopup="true" aria-expanded="false">全部月份</button>
     </div>
     <div class="mshade" id="mshade" hidden></div><div class="mpanel" id="mpanel" hidden><div class="mhead">选择月份<small>可复选</small></div><div class="myears" id="myears"></div><div class="mgrid" id="mgrid"></div><div class="mact"><button type="button" id="myear">全选本年</button><button type="button" id="mall">清除</button><button type="button" id="mdone" class="mdone">完成</button></div></div>
@@ -459,7 +467,7 @@ function render() {
 function renderFeed() {
   // 资料还没下载完时（网路慢），先不画；下载完会自动画一次，期间点的筛选、月份也会套用
   if (!DATA) { if (headFailed && fullFailed) loadFail(); else $("feed").innerHTML = `<div class="empty">${T("资料载入中，请稍候…", "Loading, please wait…")}</div>`; return; }
-  const q = $("q").value.trim();
+  const q = $("q").value.trim(); qState(q);
   // 先显示的是最新几条（head.json）；完整资料还没到时，筛选/搜索/选月份先显示载入中，到了会自动套用
   if (!FULL && (filter !== "all" || q || MSEL.size)) { view = null; $("feed").innerHTML = `<div class="empty">${fullFailed ? T("网路较慢，完整资料载入失败，筛选与搜索暂时无法使用，请", "Slow connection — the full archive failed to load, so filters and search are unavailable. Please ") + `<a href="#" onclick="location.reload();return false">${T("重新整理", "refresh")}</a>` : T("完整资料载入中，请稍候…", "Loading full archive, please wait…")}</div>`; $("loadmore").hidden = true; $("count").textContent = ""; return; }
   const ql = norm(q);
@@ -573,6 +581,8 @@ $("chips").addEventListener("click", e => {
   document.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === c));
   render(); toTop();
 });
+function qState(q){ const w=$("qwrap"), x=$("qx"); if(!w) return; w.classList.toggle("on", !!q); x.hidden = !q; }
+$("qx").addEventListener("click", () => { $("q").value = ""; render(); toTop(); });
 let timer; $("q").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(() => { render(); toTop(); }, 150); });
 // 月份选择：小面板（年份一排 + 12 个月格子），可复选多个月份
 const MP = {years: {}, y: ""}, MSEL = new Set();
@@ -623,7 +633,7 @@ if (EN) {
   document.title = "Wu Jinyan Weibo Archive";
   const set = (sel, txt, attr) => { const el = typeof sel === "string" ? document.querySelector(sel) : sel; if (el) attr ? el.setAttribute(attr, txt) : (el.textContent = txt); };
   set("#pn", "Wu Jinyan"); set("#pnt", "Fan archive"); set("#pdt", "An archive of Wu Jinyan's Weibo · Her Weibo page");
-  set("#meta", "Loading…"); set("#q", "Search posts & comments", "placeholder");
+  set("#meta", "Loading…"); set("#q", "Search posts & comments", "placeholder"); set("#qx", "Clear"); set("#qx", "Clear search", "aria-label");
   set("#mbtn", "All months"); set(".mhead", ""); document.querySelector(".mhead").innerHTML = "Choose months<small>multiple OK</small>";
   set("#myear", "Whole year"); set("#mall", "Clear"); set("#mdone", "Done");
   set("#chips", "Filter by type", "aria-label");
