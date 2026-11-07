@@ -22,5 +22,6 @@ for p in head:
   for x in p['pics']+(p['rt']['pics'] if p.get('rt') else []): keys.add(x.get('src'))
   if p.get('video'): keys.add(p['video'].get('cover'))
 hd={k:v for k,v in dims.items() if k in keys}
+meta['size']=os.path.getsize(D+'all.json')  # 完整资料大小，网页显示下载进度用
 dump({'d':{**{k:v for k,v in posts.items() if k!='posts'},'posts':head,'meta':meta},'dims':hd,'cm':{p['id']:cm[p['id']] for p in head if p['id'] in cm},'emo':emo,'links':links},'head.json')
 print('head',len(head),os.path.getsize(D+'head.json'),'all',os.path.getsize(D+'all.json'))

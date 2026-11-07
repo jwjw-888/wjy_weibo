@@ -16,7 +16,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-11-07-9">
+<meta name="site-build" content="2026-11-07-10">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -526,7 +526,7 @@ function more() {
   const before = $("feed").querySelectorAll(".pbody .text").length;
   $("feed").insertAdjacentHTML("beforeend", html);
   clampTexts([...$("feed").querySelectorAll(".pbody .text")].slice(before));
-  $("loadmore").hidden = FULL && view.shown >= view.list.length;
+  $("loadmore").hidden = FULL && view.shown >= view.list.length; loadmoreText();
 }
 
 // lightbox
@@ -645,14 +645,34 @@ if (EN) {
 }
 // 下载资料：先拿很小的 head.json（最新几条）马上显示，同时在背景下载完整的 all.json；
 // 网路慢或卡住时：单次超过时限就中断重试（最多 2 次），完整资料失败时最新几条仍可看
-const getJSON = (u, n = 2, ms = 30000) => {
+// 逾时改成「卡住才算」：只要还在收到资料就继续等（中国网路慢但有在下载时，不会下载到一半被中断重来）
+const getJSON = (u, n = 2, ms = 30000, prog) => {
   const ac = typeof AbortController === "function" ? new AbortController() : null;
-  const t = ac ? setTimeout(() => ac.abort(), ms) : 0;
+  let t = 0; const arm = () => { clearTimeout(t); if (ac) t = setTimeout(() => ac.abort(), ms); };
+  arm();
   return fetch(u, Object.assign(n < 2 ? {cache: "reload"} : {}, ac ? {signal: ac.signal} : {}))
-    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(r => {
+      if (!r.ok) throw new Error(r.status);
+      if (!r.body || !r.body.getReader || typeof TextDecoder !== "function") return r.json();
+      const rd = r.body.getReader(), parts = []; let got = 0;
+      const pump = () => rd.read().then(({done, value}) => {
+        if (done) { const all = new Uint8Array(got); let o = 0; parts.forEach(x => { all.set(x, o); o += x.length; }); return JSON.parse(new TextDecoder().decode(all)); }
+        arm(); parts.push(value); got += value.length; if (prog) try { prog(got); } catch (e) {}
+        return pump();
+      });
+      return pump();
+    })
     .then(j => { clearTimeout(t); return j; }, e => { clearTimeout(t); throw e; })
-    .catch(e => n > 0 ? new Promise(ok => setTimeout(ok, 1500)).then(() => getJSON(u, n - 1, ms * 1.5)) : Promise.reject(e));
+    .catch(e => n > 0 ? new Promise(ok => setTimeout(ok, 1500)).then(() => getJSON(u, n - 1, ms * 1.5, prog)) : Promise.reject(e));
 };
+// 还在下载完整资料时，底部显示进度，读者知道不是坏掉
+let fullGot = 0;
+function loadmoreText() {
+  const el = $("loadmore"); if (!el) return;
+  if (FULL) { el.textContent = T("载入更多…", "Loading more…"); return; }
+  const tot = META && META.size, pc = tot ? Math.min(99, Math.floor(fullGot * 100 / tot)) : 0;
+  el.textContent = T(`正在下载更早的微博${pc ? `（${pc}%）` : ""}，网路较慢时请稍候…`, `Downloading older posts${pc ? ` (${pc}%)` : ""} — please wait on slow connections…`);
+}
 function metaOf(posts) {
   const times = posts.map(p => p.time).sort();
   const months = [...new Set(posts.map(p => monthKey(p.time)))];
@@ -688,7 +708,7 @@ function swapToFull() {
   view.list = list; view.perMonth = per;
   $("feed").querySelectorAll("h2.month[data-k]").forEach(h => { const sm = h.querySelector("small"); if (sm) sm.textContent = T(`${per[h.dataset.k]} 条`, `${per[h.dataset.k]} posts`); });
   $("count").textContent = T(`共 ${list.length} 条，按时间从新到旧`, `${list.length} posts, newest first`);
-  $("loadmore").hidden = view.shown >= view.list.length;
+  $("loadmore").hidden = view.shown >= view.list.length; loadmoreText();
   more();
 }
 render();
@@ -705,7 +725,7 @@ getJSON("data/head.json", 1, 15000).then(h => enP.then(enx => {
   if (enx) ENX = enx;
   applyData(h, false); render(); if (fullFailed) loadFail();
 })).catch(e => { console.error("head.json", e); headFailed = true; loadFail(); });
-getJSON("data/all.json", 2, 40000).then(a => enP.then(enx => {
+getJSON("data/all.json", 2, 30000, g => { fullGot = g; loadmoreText(); }).then(a => enP.then(enx => {
   if (enx) ENX = enx;
   const had = !!DATA; applyData(a, true);
   had ? swapToFull() : render();
