@@ -16,7 +16,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-11-07-6">
+<meta name="site-build" content="2026-11-07-7">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -127,9 +127,7 @@ a.pic{display:block;cursor:pointer}
 .vnote{font-size:12px;color:var(--muted);margin-top:4px}
 .rt{margin:10px -16px 0;background:var(--sunken);padding:10px 16px 12px;min-width:0}
 .rt .text{margin-top:0;font-size:14px}
-.rtwho{color:#eb7350}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .rtwho{color:#f08a6a}}
-:root[data-theme="dark"] .rtwho{color:#f08a6a}
+.rtwho{color:var(--fg);font-weight:700}
 .rt .rtime{font-size:12px;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums}
 .acts{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);margin-top:12px}
 .acts span{display:flex;align-items:center;justify-content:center;gap:6px;height:40px;color:var(--soft);font-size:13px;font-variant-numeric:tabular-nums}
