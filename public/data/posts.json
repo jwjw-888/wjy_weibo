@@ -3,7 +3,7 @@
 "uid": "1278603180",
 "name": "吴谨言"
 },
-"fetchedAt": "2026-11-06T06:48:56.000Z",
+"fetchedAt": "2026-11-07T09:29:52.000Z",
 "posts": [
 {
 "id": "RbNSbB3yF",
@@ -80,6 +80,41 @@
 "likes": 33849,
 "avatar": "avatars/4c35efacly8igeu5j4h5kj20u00u0tbd.jpg",
 "essay": true
+},
+{
+"id": "Rqgwa4ZA0",
+"mid": "5362600261190028",
+"url": "https://weibo.com/1278603180/Rqgwa4ZA0",
+"time": "2026-11-07T04:49:56.000Z",
+"top": false,
+"source": "",
+"region": "浙江",
+"text": "大家吃🥟了吗？ \n#一条微博记录立冬##言色生活# ​​​",
+"pics": [
+{
+"src": "img/4c35efacgy1iitj8mu8ltj22c0340e81.jpg",
+"orig": "https://wx2.sinaimg.cn/large/4c35efacgy1iitj8mu8ltj22c0340e81.jpg",
+"r2": false,
+"live": "live/001WCn2Gjx08Cb7h4K2H0h0411002fsZ0k01.mp4"
+},
+{
+"src": "img/4c35efacgy1iitj8ky93yj22c0340kjl.jpg",
+"orig": "https://wx2.sinaimg.cn/large/4c35efacgy1iitj8ky93yj22c0340kjl.jpg",
+"r2": false,
+"live": "live/001nnozLjx08Cb7h7TyT0h0411002KtE0k01.mp4"
+},
+{
+"src": "img/4c35efacgy1iitj8iu0vdj22c0340e81.jpg",
+"orig": "https://wx2.sinaimg.cn/large/4c35efacgy1iitj8iu0vdj22c0340e81.jpg",
+"r2": false,
+"live": "live/002Jjv3Jjx08Cb7h1NN50h0411001R2c0k01.mp4"
+}
+],
+"video": null,
+"reposts": 10187,
+"comments": 10741,
+"likes": 12864,
+"avatar": "avatars/4c35efacly8igeu5j4h5kj20u00u0tbd.jpg"
 },
 {
 "id": "RpdYmEWDf",

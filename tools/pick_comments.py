@@ -61,14 +61,18 @@ for pid,raw in R.items():
     if len(co)<4 or co in texts: continue
     c['_sc']=0;texts.add(co);users.add(c['uid']);extra.append(c)
   CAND[pid]=[{'id':c['id'],'user':c['name'],'likes':c['l'],'text':c['x']} for c in pool+extra]
+  manual=False
   if pid in PICKS:
     byid={c['id']:c for c in cm}
-    pick=[byid[i] for i in PICKS[pid] if i in byid]
+    oldtop={c['id']:c for c in C.get(pid,{}).get('top',[])}
+    # 用户指定、不在抓到的留言里的（例如截图补的、转发带评论），沿用 comments.json 里已存的那则，并照 picks 的顺序排
+    manual=any(i not in byid and i in oldtop for i in PICKS[pid])
+    pick=[byid[i] if i in byid else oldtop[i] for i in PICKS[pid] if i in byid or i in oldtop]
   else:
     pool=sorted(pool,key=lambda c:-c['_sc'])[:15]   # 没有人工挑选时：内容最多的 15 则里随机挑
     pick=random.Random(pid).sample(pool,min(5,len(pool)))
     if len(pick)<5: pick+=random.Random(pid+'x').sample(extra,min(5-len(pick),len(extra)))
-  top=sorted([conv(c) for c in pick],key=lambda c:-c['likes'])
+  top=[c if 'user' in c else conv(c) for c in pick] if manual else sorted([conv(c) for c in pick],key=lambda c:-c['likes'])
   cel=[{"comment":conv(c),"replies":[conv({**r,'v':0,'pn':r.get('pn',0)}) for r in c['sub']]} for c in sorted(cm,key=lambda c:c['t']) if c['uid'] in CELEB and c['uid']!=ME and not c['sub']]   # 她回复过的留言照旧放「她有回复」（第一位）
   celids={a['comment']['id'] for a in cel}
   cel+=[a for a in C.get(pid,{}).get('celeb',[]) if a['comment']['id'] not in celids]
