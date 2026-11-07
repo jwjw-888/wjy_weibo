@@ -1,9 +1,10 @@
 # 用法：python3 tools/pick_comments.py <浏览器抓的评论 json>   （格式 {贴文id: [精简评论...]}）
 # 每篇随机挑 5 位粉丝「有内容」的留言；吴谨言回复过的另放 author。规则见 tools/NOTES.md「评论区选法」。
 import json,re,random,datetime,sys,os
+# 已有粉丝留言的帖子：固定原本挑的人，只更新点赞数；加 --repick 才会重新挑（须用户指示）
 # 选项：--candidates <输出档>  只列出每篇的候选留言给 Claude 挑；--picks <picks.json>  用人工挑好的评论 id
 R=json.load(open(sys.argv[1]))
-ARG=dict(zip(sys.argv[2::2],sys.argv[3::2]))
+_av=[a for a in sys.argv[2:] if a!='--repick']; ARG=dict(zip(_av[0::2],_av[1::2]))
 PICKS=json.load(open(ARG['--picks'])) if '--picks' in ARG else {}
 CAND={}
 C=json.load(open('public/data/comments.json'))
@@ -62,7 +63,16 @@ for pid,raw in R.items():
     c['_sc']=0;texts.add(co);users.add(c['uid']);extra.append(c)
   CAND[pid]=[{'id':c['id'],'user':c['name'],'likes':c['l'],'text':c['x']} for c in pool+extra]
   manual=False
-  if pid in PICKS:
+  old_entry=C.get(pid,{})
+  # 已经备份过的粉丝留言固定不变（用户 2026-11-07 定）：只更新点赞数；要换人得用户下指令，并加 --repick
+  if old_entry.get('top') and '--repick' not in sys.argv:
+    likes={c['id']:c['l'] for c in cm}
+    top=[dict(c,likes=likes.get(c['id'],c['likes'])) for c in old_entry['top']]
+    keep=True
+  else:
+    keep=False
+  if keep: pass
+  elif pid in PICKS:
     byid={c['id']:c for c in cm}
     oldtop={c['id']:c for c in C.get(pid,{}).get('top',[])}
     # 用户指定、不在抓到的留言里的（例如截图补的、转发带评论），沿用 comments.json 里已存的那则，并照 picks 的顺序排
@@ -72,7 +82,7 @@ for pid,raw in R.items():
     pool=sorted(pool,key=lambda c:-c['_sc'])[:15]   # 没有人工挑选时：内容最多的 15 则里随机挑
     pick=random.Random(pid).sample(pool,min(5,len(pool)))
     if len(pick)<5: pick+=random.Random(pid+'x').sample(extra,min(5-len(pick),len(extra)))
-  top=[c if 'user' in c else conv(c) for c in pick] if manual else sorted([conv(c) for c in pick],key=lambda c:-c['likes'])
+  if not keep: top=[c if 'user' in c else conv(c) for c in pick] if manual else sorted([conv(c) for c in pick],key=lambda c:-c['likes'])
   cel=[{"comment":conv(c),"replies":[conv({**r,'v':0,'pn':r.get('pn',0)}) for r in c['sub']]} for c in sorted(cm,key=lambda c:c['t']) if c['uid'] in CELEB and c['uid']!=ME and not c['sub']]   # 她回复过的留言照旧放「她有回复」（第一位）
   celids={a['comment']['id'] for a in cel}
   cel+=[a for a in C.get(pid,{}).get('celeb',[]) if a['comment']['id'] not in celids]
