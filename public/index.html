@@ -16,21 +16,21 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="site-build" content="2026-11-07-4">
+<meta name="site-build" content="2026-11-07-5">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
   --bg:#dcdee3; --card:#ffffff; --sunken:#f7f7f8; --line:#eeeeee;
-  --fg:#333333; --muted:#8a8a8a; --soft:#636363; --link:#84c1ff; --accent:#ff8200; --accent-soft:#fff3e8; --reply:#fbf3ee; --mine:#ffdee7; --tag:#84c1ff;
+  --fg:#333333; --muted:#8a8a8a; --soft:#636363; --link:#84c1ff; --accent:#ff8200; --accent-soft:#fff3e8; --reply:#fbf3ee; --mine:#ffdee7; --tag:#84c1ff; --name:#eb7350;
   --shade:rgba(0,0,0,.97);
   --body:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#070707; --card:#1c1c1c; --sunken:#262626; --line:#2c2c2c;
-  --fg:#dadada; --muted:#8a8a8a; --soft:#a5a5a5; --link:#84c1ff; --accent:#ff9a33; --accent-soft:#33261a; --reply:#2b2320; --mine:#4a2833; --tag:#84c1ff; color-scheme:dark}}
+  --fg:#dadada; --muted:#8a8a8a; --soft:#a5a5a5; --link:#84c1ff; --accent:#ff9a33; --accent-soft:#33261a; --reply:#2b2320; --mine:#4a2833; --tag:#84c1ff; --name:#f08a6a; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#070707; --card:#1c1c1c; --sunken:#262626; --line:#2c2c2c;
-  --fg:#dadada; --muted:#8a8a8a; --soft:#a5a5a5; --link:#84c1ff; --accent:#ff9a33; --accent-soft:#33261a; --reply:#2b2320; --mine:#4a2833; --tag:#84c1ff; color-scheme:dark}
+  --fg:#dadada; --muted:#8a8a8a; --soft:#a5a5a5; --link:#84c1ff; --accent:#ff9a33; --accent-soft:#33261a; --reply:#2b2320; --mine:#4a2833; --tag:#84c1ff; --name:#f08a6a; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;line-height:1.6}
@@ -142,14 +142,14 @@ a.pic{display:block;cursor:pointer}
 .cmt .ava.me{background:linear-gradient(135deg,#ffb36b,#ff7a3d);color:#fff;object-fit:cover}
 .cmt .c{min-width:0;flex:1}
 .cmt .c .t{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}
-.cmt .c .t b{font-weight:400;color:var(--link)}
+.cmt .c .t b{font-weight:400;color:var(--name)}
 .cmt .c .m{font-size:12px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums;display:flex;gap:12px}
 .replies{margin-top:6px;background:var(--mine);border-radius:4px;padding:8px 10px;display:grid;gap:6px}
 .replies .t,.cmt.mine .c .t{font-weight:700}
 .replies .t b,.cmt.mine .c .t b{font-weight:700}
 .replies .t .m{font-weight:400}
 .cmt.mine{background:var(--mine);border-radius:4px;padding:8px 10px;margin:0 -10px}
-.replies .t b{color:var(--link);font-weight:400}
+.replies .t b{color:var(--name);font-weight:400}
 .lbl{font-size:12px;color:var(--muted)}
 details.celeb{background:#A9D1D1;border:1px solid #A9D1D1;border-radius:8px;margin:-2px -6px 0;padding:0}
 details.celeb>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px 10px;font-weight:700;font-size:14px;color:#1f3d3d}
