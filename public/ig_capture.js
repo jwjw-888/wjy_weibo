@@ -9,19 +9,36 @@
   const H = {"X-IG-App-ID": "936619743392459", "X-Requested-With": "XMLHttpRequest"};
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const log = (...a) => console.log("%c[IG备份]", "color:#c13584;font-weight:bold", ...a);
-  const get = async u => { for (let i = 0; i < 4; i++) { const r = await fetch(u, {headers: H, credentials: "include"}); if (r.ok) return r.json(); log("读取失败", r.status, "等一下重试…"); await sleep(5000 * (i + 1)); } throw new Error("读取失败：" + u); };
+  // 404/400 表示这个读法 IG 不支援了，不重试，直接换下一个读法
+  const get = async u => { for (let i = 0; i < 4; i++) { const r = await fetch(u, {headers: H, credentials: "include"}); if (r.ok) return r.json(); log("读取失败", r.status, u); if (r.status === 404 || r.status === 400) break; log("等一下重试…"); await sleep(5000 * (i + 1)); } throw new Error("读取失败：" + u); };
+  const tryGet = async u => { try { return await get(u); } catch (e) { return null; } };
 
   const user = location.pathname.split("/").filter(Boolean)[0];
   if (location.hostname !== "www.instagram.com" || !user) { alert("请先打开她的 IG 主页（www.instagram.com/帐号/）再执行"); return; }
-  const prof = (await get(`/api/v1/users/web_profile_info/?username=${encodeURIComponent(user)}`)).data.user;
-  log("帐号", prof.username, prof.full_name, "贴文数", prof.edge_owner_to_timeline_media && prof.edge_owner_to_timeline_media.count);
+  // 帐号资料：先用 web_profile_info；IG 不给的话，从网页原始码找帐号 ID，再从贴文里拿名字、头像
+  let prof = null, info = await tryGet(`/api/v1/users/web_profile_info/?username=${encodeURIComponent(user)}`);
+  if (info && info.data && info.data.user) { const u = info.data.user; prof = {id: u.id, username: u.username, full_name: u.full_name, bio: u.biography, followers: u.edge_followed_by && u.edge_followed_by.count, following: u.edge_follow && u.edge_follow.count, avatarUrl: (u.hd_profile_pic_url_info || {}).url || u.profile_pic_url_hd}; }
+  if (!prof) {
+    const html = document.documentElement.innerHTML;
+    const m = html.match(/"profilePage_(\d+)"/) || html.match(/"profile_id":"(\d+)"/) || html.match(/"target_id":"(\d+)"/) || html.match(new RegExp('"pk":"(\\d+)","username":"' + user.replace(/\./g, '\\.') + '"')) || html.match(new RegExp('"id":"(\\d+)","username":"' + user + '"'));
+    const meta = (document.querySelector('meta[property="og:description"]') || {}).content || "";
+    prof = {id: m ? m[1] : "", username: user, bio: ""};
+    log("改用备用读法，帐号 ID", prof.id || "（找不到，改用帐号名称读取）", meta);
+  }
 
   const items = []; let max = "";
+  const feedUrl = mx => prof.id ? `/api/v1/feed/user/${prof.id}/?count=33${mx ? "&max_id=" + encodeURIComponent(mx) : ""}` : `/api/v1/feed/user/${encodeURIComponent(user)}/username/?count=33${mx ? "&max_id=" + encodeURIComponent(mx) : ""}`;
   do {
-    const r = await get(`/api/v1/feed/user/${prof.id}/?count=33${max ? "&max_id=" + encodeURIComponent(max) : ""}`);
+    let r = await tryGet(feedUrl(max));
+    if (!r && prof.id && !items.length) { prof.id = ""; r = await tryGet(feedUrl(max)); }
+    if (!r) { if (!items.length) throw new Error("IG 不给读取贴文（请把 Console 的红字截图给 Claude）"); log("后面的贴文读取失败，先用已读到的", items.length, "则"); break; }
     items.push(...(r.items || [])); log("已读取", items.length, "则");
+    if (r.user && !prof.full_name) { prof.id = prof.id || String(r.user.pk || r.user.id || ""); prof.full_name = r.user.full_name; prof.avatarUrl = prof.avatarUrl || (r.user.hd_profile_pic_url_info || {}).url || r.user.profile_pic_url; }
     max = r.more_available ? r.next_max_id : ""; await sleep(1200);
   } while (max);
+  const u0 = items[0] && (items[0].user || items[0].owner);
+  if (u0) { prof.full_name = prof.full_name || u0.full_name; prof.avatarUrl = prof.avatarUrl || (u0.hd_profile_pic_url_info || {}).url || u0.profile_pic_url; prof.id = prof.id || String(u0.pk || u0.id || ""); }
+  log("帐号", prof.username, prof.full_name, "ID", prof.id);
 
   const best = m => ((m.image_versions2 || {}).candidates || []).slice().sort((a, b) => b.width * b.height - a.width * a.height)[0] || null;
   const posts = items.map(it => {
@@ -35,9 +52,7 @@
       media: ms.map((m, i) => { const c = best(m); return {i, key: `ig/${it.code}_${i}.jpg`, url: c && c.url, w: c && c.width, h: c && c.height, video: m.media_type === 2, dur: m.video_duration ? Math.round(m.video_duration) : undefined}; })
     };
   });
-  const data = {at: new Date().toISOString(), profile: {username: prof.username, full_name: prof.full_name, bio: prof.biography, id: prof.id,
-    followers: prof.edge_followed_by && prof.edge_followed_by.count, following: prof.edge_follow && prof.edge_follow.count,
-    avatarUrl: (prof.hd_profile_pic_url_info || {}).url || prof.profile_pic_url_hd}, posts};
+  const data = {at: new Date().toISOString(), profile: prof, posts};
   log("读取完成", posts.length, "则贴文，请点右上角粉红色按钮");
 
   const download = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(data)], {type: "application/json"})); a.download = "ig_data.json"; document.body.appendChild(a); a.click(); a.remove(); };

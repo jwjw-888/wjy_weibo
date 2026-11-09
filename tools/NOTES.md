@@ -135,5 +135,5 @@
 ## IG 备份（2026-11-09 起）
 - 网页：`public/ig.html`（主页「超话空降」旁的「IG备份 ›」链接进去），资料 `public/data/ig.json`，压缩图 `public/thumbs/ig/`（长边 1080），原图在 R2 `ig/<贴文代码>_<序号>.jpg`、头像 `ig/avatar.jpg`。
 - 只备份贴文文字和图片；视频只存封面，点「原贴」到 IG 看。
-- 抓取：用户在电脑浏览器登入 IG、打开她的主页，Console 贴上 `tools/ig_capture.js` → 点粉红色按钮 → 开出 `ig-receive.html`（IG 的 CSP 不准直接连外站，所以由上传页代传）。上传页把每张图 POST `/r2-ig` 让 worker 从 IG 图床存进 R2，抓不到的由 IG 分页下载后 PUT `/r2-ig?key=`；资料放 `/staging/7`。
+- 抓取：用户在电脑浏览器登入 IG、打开她的主页，Console 贴上 `public/ig_capture.js`（网址 https://wjy-weibo.jwjw888.workers.dev/ig_capture.js） → 点粉红色按钮 → 开出 `ig-receive.html`（IG 的 CSP 不准直接连外站，所以由上传页代传）。上传页把每张图 POST `/r2-ig` 让 worker 从 IG 图床存进 R2，抓不到的由 IG 分页下载后 PUT `/r2-ig?key=`；资料放 `/staging/7`。
 - 整理：`python3 tools/ig_build.py`（从 /staging/7 取资料、经 `GET /r2-ig/<档名>` 取原图做压缩图、合并进 ig.json，旧贴文保留），确认后 DELETE /staging/7。
