@@ -136,4 +136,4 @@
 - 网页：`public/ig.html`（主页「超话空降」旁的「IG备份 ›」链接进去），资料 `public/data/ig.json`，压缩图 `public/thumbs/ig/`（长边 1080），原图在 R2 `ig/<贴文代码>_<序号>.jpg`、头像 `ig/avatar.jpg`。
 - 贴文文字、图片都备份；视频（2026-11-09 起）只存 R2 的 `ig/video/<代码>_<序号>.mp4`，不进 GitHub，ig.json 的 `vsrc` 记路径，大图里直接播放。
 - 抓取（IG 的 /api/v1/ 对脚本一律 404，改为拦截 IG 网页自己的资料、自动卷动到底）：用户在电脑浏览器登入 IG、打开她的主页，Console 贴上 `public/ig_capture.js`（网址 https://wjy-weibo.jwjw888.workers.dev/ig_capture.js） → 点粉红色按钮 → 开出 `ig-receive.html`（IG 的 CSP 不准直接连外站，所以由上传页代传）。上传页把每张图 POST `/r2-ig` 让 worker 从 IG 图床存进 R2，抓不到的由 IG 分页下载后 PUT `/r2-ig?key=`；资料放 `/staging/7`。
-- 整理：`python3 tools/ig_build.py`（从 /staging/7 取资料、经 `GET /r2-ig/<档名>` 取原图做压缩图、合并进 ig.json，旧贴文保留），确认后 DELETE /staging/7。
+- 整理：`python3 tools/ig_build.py`（会把 ig.json 大小写进 ig.html 的 data-size，网页显示下载百分比；从 /staging/7 取资料、经 `GET /r2-ig/<档名>` 取原图做压缩图、合并进 ig.json，旧贴文保留），确认后 DELETE /staging/7。

@@ -39,3 +39,9 @@ for p in new["posts"]:
 posts = sorted(byc.values(), key=lambda p: p["time"], reverse=True)
 json.dump({"at": new["at"], "profile": prof, "posts": posts}, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
 print("贴文", len(posts), "图片", sum(len(p["media"]) for p in posts), "ig.json", os.path.getsize(OUT), "失败", new.get("failed"))
+
+# 把 ig.json 大小写进 ig.html，网页一开始就能显示下载百分比
+import re
+hp = "public/ig.html"; h = open(hp, encoding="utf-8").read()
+h = re.sub(r'<meta name="data-size" content="[^"]*">', '<meta name="data-size" content="%d">' % os.path.getsize(OUT), h, count=1)
+open(hp, "w", encoding="utf-8").write(h)

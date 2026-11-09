@@ -9,6 +9,8 @@
 <link rel="apple-touch-icon" href="icons/icon3-180.png">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="data-size" content="83952">
+<link rel="preload" href="data/ig.json" as="fetch" crossorigin>
 <style>
 /* 版面仿 Instagram 个人主页：头像＋资料、分页标签、三栏（宽萤幕四栏）直式方格；点开是贴文视窗 */
 :root{
@@ -74,6 +76,9 @@ button{font:inherit;color:inherit}
 .tile .ov svg{width:20px;height:20px;fill:#fff}
 @media (hover:hover){.tile:hover .ov{opacity:1}}
 .empty{text-align:center;color:var(--muted);padding:60px 16px}
+.empty .bar{width:min(240px,70%);height:4px;border-radius:2px;background:var(--sunken);margin:14px auto 0;overflow:hidden}
+.empty .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#f9ce34,#ee2a7b,#6228d7);transition:width .2s}
+.empty a{color:#0095f6;font-weight:600}
 .loadmore{text-align:center;color:var(--muted);font-size:13px;padding:20px 0}
 .note{font-size:12px;color:var(--muted);max-width:935px;margin:16px auto 40px;line-height:1.6}
 mark{background:#ffe58a;color:#000;border-radius:2px}
@@ -198,7 +203,7 @@ mark{background:#ffe58a;color:#000;border-radius:2px}
     <select id="yr" aria-label="年份"><option value="">全部年份</option></select>
   </div>
   <div class="count" id="count"></div>
-  <main class="grid" id="grid"></main>
+  <main class="grid" id="grid"><div class="empty" style="grid-column:1/-1" id="ld">资料载入中，请稍候…</div></main>
   <div id="loadmore" class="loadmore" hidden>载入更多…</div>
   <p class="note" id="footnote"><b>本站为粉丝自制存档，非官方网站</b>，内容来自吴谨言的 Instagram，文字、图片与视频版权归演员吴谨言所有。视频点开即可播放；若无法播放，可点「原贴」到 Instagram 观看。按赞、留言数字为备份当时的数据。</p>
 </div>
@@ -397,7 +402,34 @@ let sx = null, sy = 0;
 $("media").addEventListener("touchstart", e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, {passive: true});
 $("media").addEventListener("touchend", e => { if (sx == null) return; const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) stepImg(dx < 0 ? 1 : -1); sx = null; });
 
-fetch("data/ig.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(d => {
+// 下载资料（跟微博备份一样）：显示下载百分比；网路卡住（30 秒没收到资料）才中断重试，最多重试 2 次
+const SIZE = (() => { try { return +document.querySelector('meta[name="data-size"]').content || 0; } catch (e) { return 0; } })();
+function ldShow(got) {
+  const el = $("ld"); if (!el) return;
+  const pc = SIZE && got ? Math.min(99, Math.floor(got * 100 / SIZE)) : 0;
+  el.innerHTML = T("资料载入中", "Loading") + (pc ? T(`（${pc}%）`, ` (${pc}%)`) : "") + T("，网路较慢时请稍候…", " — please wait on slow connections…") + `<div class="bar"><i style="width:${pc}%"></i></div>`;
+}
+ldShow(0);
+const getJSON = (u, n = 2, ms = 30000, prog) => {
+  const ac = typeof AbortController === "function" ? new AbortController() : null;
+  let t = 0; const arm = () => { clearTimeout(t); if (ac) t = setTimeout(() => ac.abort(), ms); };
+  arm();
+  return fetch(u, Object.assign(n < 2 ? {cache: "reload"} : {}, ac ? {signal: ac.signal} : {}))
+    .then(r => {
+      if (!r.ok) throw new Error(r.status);
+      if (!r.body || !r.body.getReader || typeof TextDecoder !== "function") return r.json();
+      const rd = r.body.getReader(), parts = []; let got = 0;
+      const pump = () => rd.read().then(({done, value}) => {
+        if (done) { const all = new Uint8Array(got); let o = 0; parts.forEach(x => { all.set(x, o); o += x.length; }); return JSON.parse(new TextDecoder().decode(all)); }
+        arm(); parts.push(value); got += value.length; if (prog) try { prog(got); } catch (e) {}
+        return pump();
+      });
+      return pump();
+    })
+    .then(j => { clearTimeout(t); return j; }, e => { clearTimeout(t); throw e; })
+    .catch(e => n > 0 ? new Promise(ok => setTimeout(ok, 1500)).then(() => { if (prog) prog(0); return getJSON(u, n - 1, ms * 1.5, prog); }) : Promise.reject(e));
+};
+getJSON("data/ig.json", 2, 30000, ldShow).then(d => {
   D = d; D.posts.sort((a, b) => (!!b.pinned - !!a.pinned) || (a.time < b.time ? 1 : -1));
   const P = D.profile, url = `https://www.instagram.com/${encodeURIComponent(P.username)}/`;
   if (P.avatar) $("pav").outerHTML = `<img src="thumbs/${esc(P.avatar)}" alt="">`;
@@ -417,7 +449,7 @@ fetch("data/ig.json").then(r => { if (!r.ok) throw new Error(r.status); return r
   const h = location.hash.slice(1); if (h) { const k = LIST.findIndex(p => p.code === h); if (k >= 0) { if (MOBILE()) { openFeed(k); } else { while (k >= shown) more(); cur = k; ci = 0; showPost(); $("modal").hidden = false; document.body.style.overflow = "hidden"; } } }
 }).catch(() => {
   $("since").textContent = "";
-  $("grid").innerHTML = `<div class="empty" style="grid-column:1/-1">${T("IG 备份准备中，敬请期待", "The Instagram archive is coming soon")}</div>`;
+  $("grid").innerHTML = `<div class="empty" style="grid-column:1/-1">${T("网路较慢，资料载入失败，请", "Slow connection — loading failed. Please ")}<a href="#" onclick="location.reload();return false">${T("重新整理", "refresh")}</a>${T("再试一次", " and try again")}</div>`;
 });
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
