@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>IG 备份上传</title>
+<style>
+:root{--bg:#f4f4f5;--card:#fff;--fg:#222;--muted:#777;--accent:#c13584}
+@media (prefers-color-scheme:dark){:root{--bg:#111;--card:#1c1c1c;--fg:#ddd;--muted:#999;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+main{max-width:560px;margin:40px auto;padding:0 16px}
+.card{background:var(--card);border-radius:10px;padding:20px}
+h1{font-size:20px;margin:0 0 8px}
+.bar{height:10px;background:rgba(127,127,127,.2);border-radius:5px;overflow:hidden;margin:14px 0 6px}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+#log{font-size:13px;color:var(--muted);white-space:pre-wrap;max-height:240px;overflow:auto}
+#st{font-weight:600}
+label{display:inline-block;margin-top:12px;font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<main><div class="card">
+  <h1>IG 备份上传</h1>
+  <div id="st">等待 IG 页面送来资料…</div>
+  <div class="bar"><i id="bar"></i></div>
+  <div id="log"></div>
+  <label>没有自动开始？选择脚本下载的 ig_data.json：<input type="file" id="file" accept=".json,application/json"></label>
+</div></main>
+<script>
+const $ = id => document.getElementById(id), IG = "https://www.instagram.com";
+const log = s => { $("log").textContent += s + "\n"; $("log").scrollTop = 1e9; };
+const st = s => $("st").textContent = s;
+let started = false, blobWait = null;
+const blobs = new Map();
+window.addEventListener("message", e => {
+  if (e.origin !== IG) return;
+  const m = e.data || {};
+  if (m.type === "data" && !started) run(m.data);
+  if (m.type === "blob") blobs.set(m.key, m.blob || null);
+  if (m.type === "blobs-done" && blobWait) blobWait();
+});
+if (window.opener) window.opener.postMessage("ready", IG);
+$("file").addEventListener("change", async e => { const f = e.target.files[0]; if (f && !started) run(JSON.parse(await f.text())); });
+
+async function run(data) {
+  started = true;
+  const P = data.posts || [];
+  const jobs = [{key: "ig/avatar.jpg", url: data.profile.avatarUrl, force: true}];
+  for (const p of P) for (const m of p.media) if (m.url) jobs.push(m);
+  st(`收到 ${P.length} 则贴文、${jobs.length} 张图，开始存图…`);
+  let done = 0; const fail = [];
+  const one = async j => {
+    const r = await fetch("r2-ig", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({url: j.url, key: j.key, force: j.force})}).then(r => r.json()).catch(e => ({status: "error", error: String(e)}));
+    j.r2 = r.status === "saved" || r.status === "exists";
+    if (!j.r2) fail.push(j);
+    done++; $("bar").style.width = (done / jobs.length * 90) + "%";
+    if (done % 25 === 0) log(`图片 ${done}/${jobs.length}`);
+  };
+  const q = jobs.slice(); await Promise.all([0, 1, 2, 3].map(async () => { while (q.length) await one(q.shift()); }));
+  log(`网站存图完成，失败 ${fail.length} 张`);
+  if (fail.length && window.opener) {
+    st(`有 ${fail.length} 张请 IG 页面帮忙下载…`);
+    await new Promise(res => { blobWait = res; window.opener.postMessage({type: "need", list: fail.map(j => ({key: j.key, url: j.url}))}, IG); setTimeout(res, 120000); });
+    for (const j of fail) {
+      const b = blobs.get(j.key); if (!b) continue;
+      const r = await fetch("r2-ig?key=" + encodeURIComponent(j.key), {method: "PUT", body: b}).then(r => r.json()).catch(() => ({}));
+      j.r2 = r.status === "saved";
+    }
+  }
+  const still = jobs.filter(j => !j.r2).map(j => j.key);
+  if (still.length) log("仍然失败：" + still.join(", "));
+  st("上传资料到暂存区…");
+  const out = {...data, profile: {...data.profile, avatar: jobs[0].r2 ? "ig/avatar.jpg" : ""}, posts: P.map(p => ({...p, media: p.media.map(({url, ...m}) => m)})), failed: still};
+  delete out.profile.avatarUrl;
+  const r = await fetch("staging/7", {method: "PUT", body: JSON.stringify(out)}).then(r => r.json()).catch(e => ({error: String(e)}));
+  $("bar").style.width = "100%";
+  if (r.status === "stored") st(`完成！${P.length} 则贴文、${jobs.length - still.length}/${jobs.length} 张图已存好。回去告诉 Claude「IG 跑完了」。`);
+  else st("资料上传失败：" + JSON.stringify(r));
+}
+</script>
+</body>
+</html>

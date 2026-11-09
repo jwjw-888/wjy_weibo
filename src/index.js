@@ -21,7 +21,51 @@ async function loadAllow(env, request) {
 
 // 暂存区：浏览器把抓到的资料传上来，Claude 再取走整理。只有 10 个固定位置、每个最多 90 MB。
 const CORS = {"Access-Control-Allow-Origin": "https://weibo.com", "Access-Control-Allow-Methods": "GET, PUT, POST, DELETE, OPTIONS", "Access-Control-Allow-Headers": "content-type", "Access-Control-Max-Age": "86400"};
-const STAGING_ORIGINS = ["https://weibo.com", "https://weiboshu.com", "https://m.weibo.cn", "https://s.weibo.com"];
+const STAGING_ORIGINS = ["https://weibo.com", "https://weiboshu.com", "https://m.weibo.cn", "https://s.weibo.com", "https://www.instagram.com"];
+
+// IG 原图：存到 R2 的 ig/<贴文代码>_<序号>.jpg（或 ig/avatar.jpg）。
+// POST {url,key}：worker 从 IG 图床抓；抓不到时浏览器可改用 PUT ?key=... 直接上传图片本身。
+// GET /r2-ig/<档名>：取回（Claude 做压缩图用）。
+const IG_KEY = /^ig\/[A-Za-z0-9_-]{1,80}\.(jpg|webp|png)$/;
+const IG_HOST = /(^|\.)(cdninstagram\.com|fbcdn\.net)$/;
+const isImg = b => { const u = new Uint8Array(b.slice(0, 12)); return (u[0] === 0xff && u[1] === 0xd8) || (u[0] === 0x89 && u[1] === 0x50) || (u[8] === 0x57 && u[9] === 0x45 && u[10] === 0x42 && u[11] === 0x50) || (u[4] === 0x66 && u[5] === 0x74 && u[6] === 0x79 && u[7] === 0x70); };
+const ctOf = k => k.endsWith(".webp") ? "image/webp" : k.endsWith(".png") ? "image/png" : "image/jpeg";
+async function igArchive(request, env, url) {
+  const o = request.headers.get("Origin"), C = {...CORS, "Access-Control-Allow-Origin": STAGING_ORIGINS.includes(o) ? o : "https://www.instagram.com"};
+  if (request.method === "OPTIONS") return new Response(null, {status: 204, headers: C});
+  const res = await igInner(request, env, url);
+  const h = new Headers(res.headers); for (const [k, v] of Object.entries(C)) h.set(k, v);
+  return new Response(res.body, {status: res.status, headers: h});
+}
+async function igInner(request, env, url) {
+  if (request.method === "GET") {
+    const key = "ig/" + url.pathname.slice("/r2-ig/".length);
+    if (!IG_KEY.test(key)) return json({error: "bad key"}, 400);
+    const obj = await env.BUCKET.get(key);
+    if (!obj) return json({key, status: "missing"}, 404);
+    return new Response(obj.body, {headers: {"content-type": ctOf(key), "cache-control": "no-store"}});
+  }
+  if (request.method === "PUT") {
+    const key = url.searchParams.get("key") || "";
+    if (!IG_KEY.test(key)) return json({error: "bad key"}, 400);
+    const body = await request.arrayBuffer();
+    if (body.byteLength < 500 || body.byteLength > 30 * 1024 * 1024 || !isImg(body)) return json({key, status: "bad-image"}, 400);
+    await env.BUCKET.put(key, body, {httpMetadata: {contentType: ctOf(key)}});
+    return json({key, status: "saved", size: body.byteLength});
+  }
+  if (request.method !== "POST") return json({error: "method"}, 405);
+  const {url: src, key, force} = await request.json().catch(() => ({}));
+  if (!IG_KEY.test(key || "")) return json({error: "bad key"}, 400);
+  let u; try { u = new URL(src); } catch { return json({key, error: "bad url"}, 400); }
+  if (u.protocol !== "https:" || !IG_HOST.test(u.hostname)) return json({key, error: "not instagram image"}, 403);
+  if (!force) { const head = await env.BUCKET.head(key); if (head) return json({key, status: "exists", size: head.size}); }
+  const up = await fetch(u.toString(), {headers: {"Referer": "https://www.instagram.com/", "User-Agent": "Mozilla/5.0"}});
+  if (!up.ok) return json({key, status: "fetch-failed", code: up.status}, 502);
+  const body = await up.arrayBuffer();
+  if (body.byteLength < 500 || body.byteLength > 30 * 1024 * 1024 || !isImg(body)) return json({key, status: "bad-image", size: body.byteLength}, 502);
+  await env.BUCKET.put(key, body, {httpMetadata: {contentType: ctOf(key)}});
+  return json({key, status: "saved", size: body.byteLength});
+}
 async function staging(request, env, url) {
   const o = request.headers.get("Origin"), C = {...CORS, "Access-Control-Allow-Origin": STAGING_ORIGINS.includes(o) ? o : CORS["Access-Control-Allow-Origin"]};
   if (request.method === "OPTIONS") return new Response(null, {status: 204, headers: C});
@@ -96,6 +140,7 @@ export default {
     const url = new URL(request.url);
     if (url.pathname.startsWith("/staging/")) return staging(request, env, url);
     if (url.pathname === "/usage") return usage(env);
+    if (url.pathname === "/r2-ig" || url.pathname.startsWith("/r2-ig/")) return igArchive(request, env, url);
     if (url.pathname === "/r2-live") return liveArchive(request, env);
     // 用户上传的替换原图：先 PUT 到暂存区，再搬到 posts.json 里标了 custom 的路径。
     if (url.pathname === "/r2-promote" && request.method === "POST") {

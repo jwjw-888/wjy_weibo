@@ -88,6 +88,10 @@ a.topic{color:var(--tag)}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:0 0 auto;font:inherit;font-size:13px;border:0;background:transparent;color:var(--soft);border-radius:14px;padding:3px 12px;cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.chip.iglink{color:#c13584;display:inline-flex;align-items:center}
+.chip.iglink::after{content:"›";margin-left:3px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip.iglink{color:#e56aae}}
+:root[data-theme="dark"] .chip.iglink{color:#e56aae}
 .count{font-size:12px;color:var(--muted);margin-top:6px;padding-left:4px}
 /* feed */
 .month{font-size:12px;color:var(--soft);margin:14px 4px 6px;font-weight:400}
@@ -252,6 +256,7 @@ details.hot .list{display:grid;gap:10px;margin-top:10px}
       <button class="chip" data-f="reply" aria-pressed="false">她有回复</button>
       <button class="chip" data-f="essay" aria-pressed="false">角色感言</button>
       <button class="chip" data-f="ch" aria-pressed="false">超话空降</button>
+      <a class="chip iglink" href="ig.html" id="iglink">IG备份</a>
     </div>
     <div class="count" id="count"></div>
   </div>
@@ -577,7 +582,7 @@ $("feed").addEventListener("click", e => {
   const t = e.target.closest("a.topic"); if (t) { e.preventDefault(); $("q").value = t.dataset.topic; render(); window.scrollTo({top: 0}); }
 });
 $("chips").addEventListener("click", e => {
-  const c = e.target.closest(".chip"); if (!c) return;
+  const c = e.target.closest(".chip"); if (!c || c.tagName === "A") return;
   filter = c.dataset.f;
   document.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === c));
   render(); toTop();
@@ -640,6 +645,7 @@ if (EN) {
   set("#chips", "Filter by type", "aria-label");
   const chipEN = {all: "All", orig: "Original", rt: "Reposts", pic: "Images", video: "Videos", reply: "She replied", essay: "Role reflections", ch: "Super Topic drops"};
   document.querySelectorAll("#chips .chip").forEach(c => c.textContent = chipEN[c.dataset.f] || c.textContent);
+  set("#iglink", "IG Archive");
   set("#loadmore", "Loading more…");
   $("footnote").innerHTML = "<b>This is a fan-made archive, not an official website.</b> All information is subject to the posts officially published on actress Wu Jinyan's Weibo; copyright of the text and images belongs to Wu Jinyan. Videos are not archived — only cover screenshots are kept; posts from the last six months have an \"Original\" link to Weibo. Repost, comment and like counts are as of the time of backup. Some older posts no longer visible on Wu Jinyan's own page come from @盐圈大管家's \"小吴老师的半年可见\" reposts and from \"吴谨言的微博书\" (2010 – 2024). English translations are fan translations; drama titles use their official English names where they exist.";
   set("#xtop", "Close", "aria-label"); set("#prev", "Previous", "aria-label"); set("#next", "Next", "aria-label"); set("#close", "✕ Close");
