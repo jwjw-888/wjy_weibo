@@ -62,7 +62,17 @@ button{font:inherit;color:inherit}
 .tab[aria-pressed="true"]{color:var(--fg);border-top-color:var(--fg)}
 .tools{display:flex;gap:8px;max-width:935px;margin:0 auto 12px}
 .tools input,.tools select{font:inherit;font-size:14px;border:0;background:var(--sunken);color:var(--fg);border-radius:8px;padding:8px 12px;min-width:0}
-.tools input{flex:1}
+.tools .qwrap{flex:1;min-width:0;display:flex;align-items:center;gap:6px;background:var(--sunken);border:1.5px solid var(--muted);border-radius:18px;padding:0 6px 0 10px}
+.tools .qwrap input{flex:1;min-width:0;background:none;padding:8px 0;border-radius:0;outline:none}
+.tools .qwrap input::-webkit-search-cancel-button{display:none}
+.qwrap .qico{width:16px;height:16px;flex:0 0 auto;color:var(--muted)}
+.qwrap:focus-within{border-color:#ff8200}
+.qwrap.on{border-color:#ff8200;background:#fff3e8}
+.qwrap.on .qico{color:#ff8200}
+.qwrap.on input{font-weight:600}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .qwrap.on{background:#33261a}}
+:root[data-theme="dark"] .qwrap.on{background:#33261a}
+.qx{flex:0 0 auto;border:0;background:#ff8200;color:#fff;font:inherit;font-size:13px;font-weight:600;border-radius:12px;padding:3px 10px;cursor:pointer;white-space:nowrap}
 .count{max-width:935px;margin:0 auto 8px;color:var(--muted);font-size:12px}
 /* 方格 */
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;max-width:1400px;margin:0 auto}
@@ -199,7 +209,7 @@ mark{background:#ffe58a;color:#000;border-radius:2px}
     <button class="tab" data-t="video" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M10 9l5 3-5 3z" fill="currentColor"/></svg><span id="t2">视频</span></button>
   </nav>
   <div class="tools" id="tools" hidden>
-    <input id="q" type="search" placeholder="搜索 IG 贴文" autocomplete="off">
+    <div class="qwrap" id="qwrap"><svg class="qico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><input id="q" type="search" placeholder="搜索 IG 贴文" autocomplete="off"><button type="button" class="qx" id="qx" aria-label="清除搜索" hidden>清除</button></div>
     <select id="yr" aria-label="年份"><option value="">全部年份</option></select>
   </div>
   <div class="count" id="count"></div>
@@ -257,7 +267,7 @@ if (EN) {
   document.documentElement.lang = "en"; document.title = "Wu Jinyan Instagram Archive";
   $("back").textContent = "← Weibo archive"; $("pnt").textContent = "Fan archive"; $("igbtn").textContent = "Open Instagram"; $("fname").textContent = "Wu Jinyan";
   $("since").textContent = "Loading…"; $("t1").textContent = "Posts"; $("t2").textContent = "Videos"; $("tabs").setAttribute("aria-label", "Categories");
-  $("q").placeholder = "Search IG posts"; $("yr").options[0].textContent = "All years"; $("loadmore").textContent = "Loading more…";
+  $("q").placeholder = "Search IG posts"; $("qx").textContent = "Clear"; $("qx").setAttribute("aria-label", "Clear search"); $("yr").options[0].textContent = "All years"; $("loadmore").textContent = "Loading more…";
   $("footnote").innerHTML = "<b>This is a fan-made archive, not an official website.</b> Content comes from Wu Jinyan's Instagram; copyright of the text, images and videos belongs to Wu Jinyan. Tap a video to play it; if it won't play, tap \"Post\" to watch on Instagram. Like and comment counts are as of the time of backup.";
   $("mx").setAttribute("aria-label", "Close"); $("fback").setAttribute("aria-label", "Back"); $("pprev").setAttribute("aria-label", "Previous post"); $("pnext").setAttribute("aria-label", "Next post");
 }
@@ -285,6 +295,7 @@ function tile(p, k) {
 }
 function render() {
   const nq = norm($("q").value.trim()), y = $("yr").value;
+  { const on = !!$("q").value.trim(); $("qwrap").classList.toggle("on", on); $("qx").hidden = !on; }
   LIST = D.posts.filter(p => (tab !== "video" || hasVideo(p)) && (!y || ymd(p.time).startsWith(y)) && (!nq || norm(p.text).includes(nq) || norm(p.loc).includes(nq)));
   $("count").textContent = (nq || y || tab !== "all") ? T(`共 ${LIST.length} 则`, `${LIST.length} posts`) : "";
   $("grid").innerHTML = LIST.length ? "" : `<div class="empty" style="grid-column:1/-1">${T("没有符合的贴文", "No matching posts")}</div>`;
@@ -296,6 +307,7 @@ function more() {
   $("loadmore").hidden = shown >= LIST.length;
 }
 new IntersectionObserver(es => { if (es[0].isIntersecting && D && shown < LIST.length) more(); }, {rootMargin: "1200px"}).observe($("loadmore"));
+$("qx").addEventListener("click", () => { $("q").value = ""; render(); });
 let timer; $("q").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(render, 150); });
 $("yr").addEventListener("change", render);
 $("tabs").addEventListener("click", e => { const b = e.target.closest(".tab"); if (!b) return; tab = b.dataset.t; document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-pressed", x === b)); render(); });
