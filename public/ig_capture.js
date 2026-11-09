@@ -99,7 +99,7 @@
       views: it.play_count || it.view_count || undefined, type: it.product_type || "",
       pinned: !!(it.timeline_pinned_user_ids && it.timeline_pinned_user_ids.length),
       loc: it.location ? it.location.name : "", coauthors: (it.coauthor_producers || []).map(u => u.username),
-      media: ms.map((m, i) => { const c = best(m); return {i, key: `ig/${it.code}_${i}.jpg`, url: c && c.url, w: c && c.width, h: c && c.height, video: m.media_type === 2, dur: m.video_duration ? Math.round(m.video_duration) : undefined}; })
+      media: ms.map((m, i) => { const c = best(m), v = m.media_type === 2 ? (m.video_versions || []).slice().sort((a, b) => (b.width * b.height) - (a.width * a.height))[0] : null; return {i, key: `ig/${it.code}_${i}.jpg`, url: c && c.url, w: c && c.width, h: c && c.height, video: m.media_type === 2, dur: m.video_duration ? Math.round(m.video_duration) : undefined, vkey: v ? `ig/video/${it.code}_${i}.mp4` : undefined, vurl: v ? v.url : undefined}; })
     };
   });
   const data = {at: new Date().toISOString(), profile: prof, posts, expected: total, missing: stillMiss};

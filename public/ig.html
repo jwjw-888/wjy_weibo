@@ -76,7 +76,7 @@ a{color:var(--link);text-decoration:none}
 .note{font-size:12px;color:var(--muted);padding-block:8px 32px;margin:0 4px}
 .lb{position:fixed;inset:0;z-index:20;background:var(--shade);display:flex;flex-direction:column;color:#fff;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 .lb .stage{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;touch-action:pan-y}
-.lb img{max-width:100%;max-height:100%;object-fit:contain}
+.lb img,.lb video{max-width:100%;max-height:100%;object-fit:contain}
 .lb .tools{display:flex;align-items:center;gap:12px;padding:10px 16px;font-size:14px;font-variant-numeric:tabular-nums}
 .lb button{font:inherit;color:#fff;background:rgba(255,255,255,.14);border:0;border-radius:16px;padding:5px 14px;cursor:pointer}
 .lb a{color:#fff;margin-left:auto;font-size:13px}
@@ -112,10 +112,10 @@ a{color:var(--link);text-decoration:none}
   </div>
   <main id="feed"></main>
   <div id="loadmore" class="loadmore" hidden>载入更多…</div>
-  <p class="note" id="footnote"><b>本站为粉丝自制存档，非官方网站</b>，内容来自吴谨言的 Instagram，文字与图片版权归演员吴谨言所有。视频未存档，只保存封面截图，可点「原贴」到 Instagram 观看。按赞、留言数字为备份当时的数据。</p>
+  <p class="note" id="footnote"><b>本站为粉丝自制存档，非官方网站</b>，内容来自吴谨言的 Instagram，文字与图片版权归演员吴谨言所有。视频点开即可播放；若无法播放，可点「原贴」到 Instagram 观看。按赞、留言数字为备份当时的数据。</p>
 </div>
 <div class="lb" id="lb" hidden>
-  <div class="stage" id="stage"><img id="lbimg" alt=""></div>
+  <div class="stage" id="stage"><img id="lbimg" alt=""><video id="lbvid" playsinline controls preload="metadata" hidden></video></div>
   <button class="xtop" id="xtop" aria-label="关闭">✕</button>
   <button class="nav prev" id="prev" aria-label="上一张">‹</button>
   <button class="nav next" id="next" aria-label="下一张">›</button>
@@ -143,7 +143,7 @@ if (EN) {
   document.documentElement.lang = "en"; document.title = "Wu Jinyan Instagram Archive";
   $("back").textContent = "← Weibo archive"; $("pn").textContent = "Wu Jinyan"; $("pnt").textContent = "IG fan archive"; $("meta").textContent = "Loading…";
   $("q").placeholder = "Search IG posts"; $("yr").options[0].textContent = "All years"; $("loadmore").textContent = "Loading more…";
-  $("footnote").innerHTML = "<b>This is a fan-made archive, not an official website.</b> Content comes from Wu Jinyan's Instagram; copyright of the text and images belongs to Wu Jinyan. Videos are not archived — only cover screenshots are kept; tap \"Post\" to watch on Instagram. Like and comment counts are as of the time of backup.";
+  $("footnote").innerHTML = "<b>This is a fan-made archive, not an official website.</b> Content comes from Wu Jinyan's Instagram; copyright of the text and images belongs to Wu Jinyan. Tap a video to play it; if it won't play, tap \"Post\" to watch on Instagram. Like and comment counts are as of the time of backup.";
   $("close").textContent = "✕ Close"; $("lborig").textContent = "Original";
 }
 
@@ -202,15 +202,18 @@ $("feed").addEventListener("click", e => {
 // 看大图
 function openLb(k, i) { G = LIST[k].media; gk = k; gi = i; showLb(); $("lb").hidden = false; document.body.style.overflow = "hidden"; }
 function showLb() {
-  const m = G[gi]; $("lbimg").src = "thumbs/" + m.src;
-  const o = origUrl(m); if (o) { const im = new Image(); im.onload = () => { if (G[gi] === m) $("lbimg").src = o; }; im.src = o; }
+  const m = G[gi], v = $("lbvid");
+  if (m.vsrc) { $("lbimg").hidden = true; v.hidden = false; v.poster = "thumbs/" + m.src; v.src = ORIGINAL_BASE + m.vsrc; v.play().catch(() => {}); }
+  else { v.pause(); v.removeAttribute("src"); v.hidden = true; $("lbimg").hidden = false; $("lbimg").src = "thumbs/" + m.src; }
+  const o = origUrl(m); if (o && !m.vsrc) { const im = new Image(); im.onload = () => { if (G[gi] === m) $("lbimg").src = o; }; im.src = o; }
   $("lbn").textContent = G.length > 1 ? `${gi + 1} / ${G.length}` : "";
   $("lborig").href = o || ("https://www.instagram.com/p/" + LIST[gk].code + "/"); $("lborig").textContent = m.video ? T("到 IG 观看视频", "Watch on IG") : T("查看原图", "Original");
   if (m.video) $("lborig").href = "https://www.instagram.com/p/" + LIST[gk].code + "/";
+  if (m.vsrc) { $("lborig").href = ORIGINAL_BASE + m.vsrc; $("lborig").textContent = T("原始影片", "Original video"); }
   $("prev").hidden = $("next").hidden = G.length < 2;
 }
 const step = d => { gi = (gi + d + G.length) % G.length; showLb(); };
-const closeLb = () => { $("lb").hidden = true; document.body.style.overflow = ""; $("lbimg").removeAttribute("src"); };
+const closeLb = () => { const v = $("lbvid"); v.pause(); v.removeAttribute("src"); v.hidden = true; $("lb").hidden = true; document.body.style.overflow = ""; $("lbimg").removeAttribute("src"); };
 $("prev").onclick = () => step(-1); $("next").onclick = () => step(1); $("close").onclick = closeLb; $("xtop").onclick = closeLb;
 $("stage").addEventListener("click", e => { if (e.target === $("stage")) closeLb(); });
 document.addEventListener("keydown", e => { if ($("lb").hidden) return; if (e.key === "Escape") closeLb(); if (e.key === "ArrowLeft") step(-1); if (e.key === "ArrowRight") step(1); });

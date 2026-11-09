@@ -26,10 +26,11 @@ const STAGING_ORIGINS = ["https://weibo.com", "https://weiboshu.com", "https://m
 // IG 原图：存到 R2 的 ig/<贴文代码>_<序号>.jpg（或 ig/avatar.jpg）。
 // POST {url,key}：worker 从 IG 图床抓；抓不到时浏览器可改用 PUT ?key=... 直接上传图片本身。
 // GET /r2-ig/<档名>：取回（Claude 做压缩图用）。
-const IG_KEY = /^ig\/[A-Za-z0-9_-]{1,80}\.(jpg|webp|png)$/;
+const IG_KEY = /^ig\/(video\/[A-Za-z0-9_-]{1,80}\.mp4|[A-Za-z0-9_-]{1,80}\.(jpg|webp|png))$/;
+const VMAX = 100 * 1024 * 1024;
 const IG_HOST = /(^|\.)(cdninstagram\.com|fbcdn\.net)$/;
 const isImg = b => { const u = new Uint8Array(b.slice(0, 12)); return (u[0] === 0xff && u[1] === 0xd8) || (u[0] === 0x89 && u[1] === 0x50) || (u[8] === 0x57 && u[9] === 0x45 && u[10] === 0x42 && u[11] === 0x50) || (u[4] === 0x66 && u[5] === 0x74 && u[6] === 0x79 && u[7] === 0x70); };
-const ctOf = k => k.endsWith(".webp") ? "image/webp" : k.endsWith(".png") ? "image/png" : "image/jpeg";
+const ctOf = k => k.endsWith(".mp4") ? "video/mp4" : k.endsWith(".webp") ? "image/webp" : k.endsWith(".png") ? "image/png" : "image/jpeg";
 async function igArchive(request, env, url) {
   const o = request.headers.get("Origin"), C = {...CORS, "Access-Control-Allow-Origin": STAGING_ORIGINS.includes(o) ? o : "https://www.instagram.com"};
   if (request.method === "OPTIONS") return new Response(null, {status: 204, headers: C});
@@ -39,7 +40,7 @@ async function igArchive(request, env, url) {
 }
 async function igInner(request, env, url) {
   if (request.method === "GET") {
-    const key = "ig/" + url.pathname.slice("/r2-ig/".length);
+    const key = "ig/" + decodeURIComponent(url.pathname.slice("/r2-ig/".length));
     if (!IG_KEY.test(key)) return json({error: "bad key"}, 400);
     const obj = await env.BUCKET.get(key);
     if (!obj) return json({key, status: "missing"}, 404);
@@ -49,7 +50,7 @@ async function igInner(request, env, url) {
     const key = url.searchParams.get("key") || "";
     if (!IG_KEY.test(key)) return json({error: "bad key"}, 400);
     const body = await request.arrayBuffer();
-    if (body.byteLength < 500 || body.byteLength > 30 * 1024 * 1024 || !isImg(body)) return json({key, status: "bad-image"}, 400);
+    if (body.byteLength < 500 || body.byteLength > (key.endsWith(".mp4") ? VMAX : 30 * 1024 * 1024) || !isImg(body)) return json({key, status: "bad-image"}, 400);
     await env.BUCKET.put(key, body, {httpMetadata: {contentType: ctOf(key)}});
     return json({key, status: "saved", size: body.byteLength});
   }
@@ -61,6 +62,13 @@ async function igInner(request, env, url) {
   if (!force) { const head = await env.BUCKET.head(key); if (head) return json({key, status: "exists", size: head.size}); }
   const up = await fetch(u.toString(), {headers: {"Referer": "https://www.instagram.com/", "User-Agent": "Mozilla/5.0"}});
   if (!up.ok) return json({key, status: "fetch-failed", code: up.status}, 502);
+  if (key.endsWith(".mp4")) {
+    // 影片：不整个读进记忆体，直接串流存进 R2
+    const len = +(up.headers.get("content-length") || 0), ct = up.headers.get("content-type") || "";
+    if (!/^video\//.test(ct) || !len || len > VMAX) return json({key, status: "bad-video", ct, size: len}, 502);
+    await env.BUCKET.put(key, up.body, {httpMetadata: {contentType: "video/mp4"}});
+    return json({key, status: "saved", size: len});
+  }
   const body = await up.arrayBuffer();
   if (body.byteLength < 500 || body.byteLength > 30 * 1024 * 1024 || !isImg(body)) return json({key, status: "bad-image", size: body.byteLength}, 502);
   await env.BUCKET.put(key, body, {httpMetadata: {contentType: ctOf(key)}});

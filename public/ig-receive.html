@@ -47,7 +47,8 @@ async function run(data) {
   started = true;
   const P = data.posts || [];
   const jobs = [{key: "ig/avatar.jpg", url: data.profile.avatarUrl, force: true}];
-  for (const p of P) for (const m of p.media) if (m.url) jobs.push(m);
+  const vjobs = [];
+  for (const p of P) for (const m of p.media) { if (m.url) jobs.push(m); if (m.vurl) { const v = {key: m.vkey, url: m.vurl, media: m}; jobs.push(v); vjobs.push(v); } }
   st(`收到 ${P.length} 则贴文、${jobs.length} 张图，开始存图…`);
   let done = 0; const fail = [];
   const one = async j => {
@@ -68,10 +69,11 @@ async function run(data) {
       j.r2 = r.status === "saved";
     }
   }
+  for (const v of vjobs) v.media.vr2 = !!v.r2;
   const still = jobs.filter(j => !j.r2).map(j => j.key);
   if (still.length) log("仍然失败：" + still.join(", "));
   st("上传资料到暂存区…");
-  const out = {...data, profile: {...data.profile, avatar: jobs[0].r2 ? "ig/avatar.jpg" : ""}, posts: P.map(p => ({...p, media: p.media.map(({url, ...m}) => m)})), failed: still};
+  const out = {...data, profile: {...data.profile, avatar: jobs[0].r2 ? "ig/avatar.jpg" : ""}, posts: P.map(p => ({...p, media: p.media.map(({url, vurl, ...m}) => m)})), failed: still};
   delete out.profile.avatarUrl;
   const r = await fetch("staging/7", {method: "PUT", body: JSON.stringify(out)}).then(r => r.json()).catch(e => ({error: String(e)}));
   $("bar").style.width = "100%";
