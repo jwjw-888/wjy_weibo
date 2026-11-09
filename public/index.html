@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="data-size" content="45439,1499169">
-<meta name="site-build" content="2026-11-10-1">
+<meta name="site-build" content="2026-11-10-2">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -396,8 +396,8 @@ const ICON = {
   lk: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10v10H4V10zM7 10l4-7c1.5 0 2.5 1 2.2 2.6L12.5 9H19a2 2 0 0 1 2 2.3l-1.3 7A2 2 0 0 1 17.7 20H7"/></svg>'
 };
 const wbTime = (iso, dateOnly) => {
-  const y = ymd(iso), now = ymd(new Date().toISOString());
-  const d = y.slice(0, 4) === now.slice(0, 4) ? y.slice(5) : y.slice(2);
+  // 一律显示完整年份（例如 2026-11-07），不像微博今年只写月日
+  const d = ymd(iso);
   return dateOnly ? d : d + " " + hm(iso);
 };
 function postHtml(p, q) {
