@@ -20,12 +20,16 @@ def thumb(key, size=1080):
   im = Image.open(io.BytesIO(b)).convert("RGB"); im.thumbnail((size, size), Image.LANCZOS)
   im.save(path, "JPEG", quality=80, optimize=True, progressive=True); return True
 
+# 先并行做好全部压缩图（8 条线同时下载）
+from concurrent.futures import ThreadPoolExecutor
+keys = [m["key"] for p in new["posts"] for m in p["media"] if m.get("r2")]
+with ThreadPoolExecutor(8) as ex: done = dict(zip(keys, ex.map(thumb, keys)))
 prof = new["profile"]
 if prof.get("avatar") and not thumb(prof["avatar"], 240): prof["avatar"] = ""
 for p in new["posts"]:
   media = []
   for m in p["media"]:
-    ok = m.get("r2") and thumb(m["key"])
+    ok = m.get("r2") and (done.get(m["key"]) or thumb(m["key"]))
     if not ok: print("略过（没有图）", m["key"]); continue
     media.append({k: v for k, v in {"src": m["key"], "w": m.get("w"), "h": m.get("h"), "video": m.get("video") or None, "dur": m.get("dur")}.items() if v is not None})
   if not media: continue

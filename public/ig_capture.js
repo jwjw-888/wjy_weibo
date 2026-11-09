@@ -44,7 +44,9 @@
   log("开始自动往下卷动，目标约", total || "?", "则；请让这个分页保持在最前面");
 
   // 3) 一直卷到底：连续 10 次（约 20 秒）没有新贴文就当作到底
-  let still = 0, last = -1;
+  let still = 0, last = -1; const allLinks = new Set();
+  const grab = () => document.querySelectorAll('a[href*="/p/"],a[href*="/reel/"]').forEach(a => { const c = (a.getAttribute("href").match(/\/(?:p|reel)\/([^/?#]+)/) || [])[1]; if (c) allLinks.add(c); });
+  grab();
   while (still < 10) {
     window.scrollTo(0, document.documentElement.scrollHeight);
     await sleep(2000);
@@ -53,22 +55,38 @@
     log("已读取", n, "/", total || "?", "则（画面上", links.size, "则）");
     if (n === last) still++; else { still = 0; last = n; }
     if (total && n >= total) break;
-    window.__igLinks = links;
+    links.forEach(c => allLinks.add(c));
   }
 
-  // 4) 画面上有、但资料里没有的贴文：打开贴文网址补抓
-  const miss = [...(window.__igLinks || [])].filter(c => !found.has(c));
+  // 4) 画面上出现过、但资料里没有的贴文（通常是最上面一开始就显示的几则）：
+  //    先读贴文网页；还是没有的话，回到顶部一则一则点开（IG 点开时会载入完整资料），再关掉
+  let miss = [...allLinks].filter(c => !found.has(c));
   if (miss.length) log("补抓", miss.length, "则");
   for (const c of miss) {
     try { const h = await (await of(`/p/${c}/`, {credentials: "include"})).text(); const d = new DOMParser().parseFromString(h, "text/html"); d.querySelectorAll('script[type="application/json"]').forEach(s => eat(s.textContent)); } catch (e) {}
-    await sleep(800);
+    await sleep(600);
+  }
+  miss = miss.filter(c => !found.has(c));
+  if (miss.length) {
+    log("改用点开的方式补抓", miss.length, "则");
+    const home = location.href; window.scrollTo(0, 0); await sleep(2500);
+    for (const c of miss) {
+      let a = null;
+      for (let t = 0; t < 30 && !a; t++) { a = document.querySelector(`a[href*="/${c}/"]`); if (!a) { window.scrollBy(0, 600); await sleep(700); } }
+      if (!a) { log("找不到", c); continue; }
+      a.scrollIntoView({block: "center"}); await sleep(500); a.click();
+      for (let t = 0; t < 12 && !found.has(c); t++) await sleep(500);
+      log(found.has(c) ? "补到" : "没补到", c);
+      if (location.href !== home) { history.back(); await sleep(1500); }
+      document.dispatchEvent(new KeyboardEvent("keydown", {key: "Escape", bubbles: true})); await sleep(800);
+    }
   }
   window.fetch = of; XMLHttpRequest.prototype.send = os;
   const items = [...found.values()];
   if (!items.length) throw new Error("没有读到任何贴文（请把 Console 截图给 Claude）");
   const u0 = items.find(it => it.user && it.user.username === user);
   if (u0) { prof.full_name = prof.full_name || u0.user.full_name; prof.avatarUrl = prof.avatarUrl || (u0.user.hd_profile_pic_url_info || {}).url || u0.user.profile_pic_url; prof.id = prof.id || String(u0.user.pk || u0.user.id || ""); }
-  const stillMiss = miss.filter(c => !found.has(c));
+  const stillMiss = [...allLinks].filter(c => !found.has(c));
   if (stillMiss.length) log("仍然缺少", stillMiss.length, "则：", stillMiss.join(" "));
   log("帐号", prof.username, prof.full_name, "共", items.length, "则");
 
