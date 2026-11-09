@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="data-size" content="45439,1499169">
-<meta name="site-build" content="2026-11-10-2">
+<meta name="site-build" content="2026-11-10-3">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -661,7 +661,7 @@ if (EN) {
   set("#myear", "Whole year"); set("#mall", "Clear"); set("#mdone", "Done");
   set("#chips", "Filter by type", "aria-label");
   const chipEN = {all: "All", orig: "Original", rt: "Reposts", pic: "Images", video: "Videos", reply: "She replied", essay: "Role reflections", ch: "Super Topic drops"};
-  document.querySelectorAll("#chips .chip").forEach(c => c.textContent = chipEN[c.dataset.f] || c.textContent);
+  document.querySelectorAll("#chips .chip[data-f]").forEach(c => { if (chipEN[c.dataset.f]) c.textContent = chipEN[c.dataset.f]; });
   set("#iglink", "IG Archive");
   set("#loadmore", "Loading more…");
   $("footnote").innerHTML = "<b>This is a fan-made archive, not an official website.</b> All information is subject to the posts officially published on actress Wu Jinyan's Weibo; copyright of the text and images belongs to Wu Jinyan. Videos are not archived — only cover screenshots are kept; posts from the last six months have an \"Original\" link to Weibo. Repost, comment and like counts are as of the time of backup. Some older posts no longer visible on Wu Jinyan's own page come from @盐圈大管家's \"小吴老师的半年可见\" reposts and from \"吴谨言的微博书\" (2010 – 2024). English translations are fan translations; drama titles use their official English names where they exist.";
@@ -734,7 +734,7 @@ function swapToFull() {
   const list = DATA.posts.filter(p => !p.ch);
   const per = {}; list.forEach(p => { const k = monthKey(p.time); per[k] = (per[k] || 0) + 1; });
   view.list = list; view.perMonth = per;
-  $("feed").querySelectorAll("h2.month[data-k]").forEach(h => { const sm = h.querySelector("small"); if (sm) sm.textContent = T(`${per[h.dataset.k]} 条`, `${per[h.dataset.k]} posts`); });
+  $("feed").querySelectorAll("h2.month[data-k]").forEach(h => { const sm = h.querySelector("small"); if (sm) sm.textContent = T(`${per[h.dataset.k]} 条`, `${per[h.dataset.k]} post${per[h.dataset.k] > 1 ? "s" : ""}`); });
   $("count").textContent = T(`共 ${list.length} 条，按时间从新到旧`, `${list.length} posts, newest first`);
   $("loadmore").hidden = view.shown >= view.list.length; loadmoreText();
   more();
