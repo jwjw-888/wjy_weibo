@@ -128,6 +128,35 @@ mark{background:#ffe58a;color:#000;border-radius:2px}
 .likes{font-weight:600;margin-top:8px}
 .when{color:var(--muted);font-size:12px;margin-top:4px}
 .links{display:flex;gap:14px;margin-top:8px;font-size:12px}
+/* 手机：点缩图后进入「贴文」动态，像 IG App：从点的那则开始，往下滑一直看到旧贴文，往上滑看较新的 */
+.feedv{position:fixed;inset:0;z-index:30;background:var(--bg);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.fbar{position:sticky;top:0;z-index:2;display:flex;align-items:center;height:calc(44px + env(safe-area-inset-top,0px));padding:env(safe-area-inset-top,0px) 8px 0;background:var(--bg);border-bottom:1px solid var(--line)}
+.fbar button{border:0;background:none;font-size:30px;line-height:1;padding:0 12px 4px 6px;cursor:pointer;color:var(--fg)}
+.fbar .tt{flex:1;text-align:center;margin-right:42px;line-height:1.2}
+.fbar small{display:block;color:var(--muted);font-size:12px;font-weight:600}
+.fbar b{font-size:16px}
+.fp{padding-bottom:14px}
+.fh{display:flex;align-items:center;gap:10px;padding:10px 12px}
+.fh img{width:32px;height:32px;border-radius:50%;object-fit:cover;background:var(--sunken)}
+.fh .u{font-weight:600}.fh .loc{font-size:12px;color:var(--fg)}
+.fh .pinl{margin-left:auto;font-size:12px;color:var(--muted)}
+.carw{position:relative}
+.car{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;background:var(--sunken)}
+.car::-webkit-scrollbar{display:none}
+.car>div{flex:0 0 100%;scroll-snap-align:center;scroll-snap-stop:always;position:relative}
+.car img,.car video{display:block;width:100%;height:100%;object-fit:cover;background:#000}
+.ccount{position:absolute;top:12px;right:12px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;border-radius:12px;padding:2px 9px;pointer-events:none}
+.fdots{display:flex;justify-content:center;gap:4px;height:6px;margin:10px 0 -4px}
+.fdots i{width:6px;height:6px;border-radius:50%;background:var(--line)}
+.fdots i.on{background:#0095f6}
+.fa{display:flex;gap:16px;align-items:center;padding:8px 14px 0}
+.fa svg{width:24px;height:24px;fill:none;stroke:var(--fg);stroke-width:1.8}
+.fa .lk{margin-left:auto;display:flex;gap:14px;font-size:13px}
+.fl{font-weight:600;padding:8px 14px 0}
+.fc{padding:6px 14px 0;white-space:pre-wrap;word-break:break-word;line-height:1.45}
+.fc b{margin-right:6px}.fc a{color:var(--tag)}
+.fd{padding:6px 14px 0;color:var(--muted);font-size:12px}
+.fend{text-align:center;color:var(--muted);font-size:12px;padding:20px 0 calc(30px + env(safe-area-inset-bottom,0px))}
 /* 手机：贴文视窗占满整个画面，像 IG App */
 @media (max-width:900px){
   .modal{background:var(--bg);align-items:stretch;overflow:auto;display:block}
@@ -174,6 +203,10 @@ mark{background:#ffe58a;color:#000;border-radius:2px}
   <p class="note" id="footnote"><b>本站为粉丝自制存档，非官方网站</b>，内容来自吴谨言的 Instagram，文字、图片与视频版权归演员吴谨言所有。视频点开即可播放；若无法播放，可点「原贴」到 Instagram 观看。按赞、留言数字为备份当时的数据。</p>
 </div>
 
+<div class="feedv" id="feedv" hidden>
+  <div class="fbar"><button id="fback" aria-label="返回">‹</button><div class="tt"><small id="fuser"></small><b id="ftitle">贴文</b></div></div>
+  <div id="flist"></div>
+</div>
 <div class="modal" id="modal" hidden>
   <button class="mx" id="mx" aria-label="关闭">✕</button>
   <button class="pnav l" id="pprev" aria-label="上一则">‹</button>
@@ -221,7 +254,7 @@ if (EN) {
   $("since").textContent = "Loading…"; $("t1").textContent = "Posts"; $("t2").textContent = "Videos"; $("tabs").setAttribute("aria-label", "Categories");
   $("q").placeholder = "Search IG posts"; $("yr").options[0].textContent = "All years"; $("loadmore").textContent = "Loading more…";
   $("footnote").innerHTML = "<b>This is a fan-made archive, not an official website.</b> Content comes from Wu Jinyan's Instagram; copyright of the text, images and videos belongs to Wu Jinyan. Tap a video to play it; if it won't play, tap \"Post\" to watch on Instagram. Like and comment counts are as of the time of backup.";
-  $("mx").setAttribute("aria-label", "Close"); $("pprev").setAttribute("aria-label", "Previous post"); $("pnext").setAttribute("aria-label", "Next post");
+  $("mx").setAttribute("aria-label", "Close"); $("fback").setAttribute("aria-label", "Back"); $("pprev").setAttribute("aria-label", "Previous post"); $("pnext").setAttribute("aria-label", "Next post");
 }
 
 let D = null, LIST = [], shown = 0, PAGE = 24, tab = "all", cur = -1, ci = 0, pushed = false;
@@ -261,7 +294,53 @@ new IntersectionObserver(es => { if (es[0].isIntersecting && D && shown < LIST.l
 let timer; $("q").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(render, 150); });
 $("yr").addEventListener("change", render);
 $("tabs").addEventListener("click", e => { const b = e.target.closest(".tab"); if (!b) return; tab = b.dataset.t; document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-pressed", x === b)); render(); });
-$("grid").addEventListener("click", e => { const b = e.target.closest(".tile"); if (b) openPost(+b.dataset.k); });
+const MOBILE = () => matchMedia("(max-width:900px)").matches;
+$("grid").addEventListener("click", e => { const b = e.target.closest(".tile"); if (!b) return; MOBILE() ? openFeed(+b.dataset.k) : openPost(+b.dataset.k); });
+
+// 手机：贴文动态
+function fcard(p, k) {
+  const P = D.profile, name = esc(P.username), m0 = p.media[0], n = p.media.length;
+  const ar = m0.w && m0.h ? `${m0.w} / ${Math.min(m0.h, m0.w * 1.333)}` : "4 / 5";
+  const slides = p.media.map((m, i) => `<div>${m.vsrc ? `<video src="${esc(ORIGINAL_BASE + m.vsrc)}" poster="thumbs/${esc(m.src)}" controls playsinline muted loop preload="none"></video>` : `<img loading="lazy" decoding="async" src="thumbs/${esc(m.src)}" alt="">`}</div>`).join("");
+  const o = origUrl(m0);
+  const lk = [`<a href="${esc(igPost(p))}" target="_blank" rel="noopener noreferrer">${T("原贴", "Post")} ↗</a>`];
+  lk.push(m0.vsrc ? `<a class="og" href="${esc(ORIGINAL_BASE + m0.vsrc)}" target="_blank" rel="noopener noreferrer">${T("原始影片", "Original")}</a>` : `<a class="og" href="${esc(o || igPost(p))}" target="_blank" rel="noopener noreferrer">${T("原图", "Original")}</a>`);
+  return `<article class="fp" data-k="${k}" id="f-${esc(p.code)}"><div class="fh">${AV()}<div><div class="u">${name}${p.coauthors && p.coauthors.length ? " · " + p.coauthors.map(u => esc(u)).join(" · ") : ""}</div>${p.loc ? `<div class="loc">${esc(p.loc)}</div>` : ""}</div>${p.pinned ? `<span class="pinl">${T("置顶", "Pinned")}</span>` : ""}</div>`
+    + `<div class="carw"><div class="car" style="aspect-ratio:${ar}">${slides}</div>${n > 1 ? `<span class="ccount">1/${n}</span>` : ""}</div>`
+    + (n > 1 ? `<div class="fdots">${p.media.map((_, i) => `<i class="${i ? "" : "on"}"></i>`).join("")}</div>` : "")
+    + `<div class="fa">${SV.heart}${SV.cmt}<span class="lk">${lk.join("")}</span></div>`
+    + `<div class="fl">${T(`${num(p.likes)} 次赞 · ${num(p.comments)} 则留言`, `${num(p.likes)} likes · ${num(p.comments)} comments`)}</div>`
+    + (p.text ? `<div class="fc"><b>${name}</b>${linkify(p.text, norm($("q").value.trim()))}</div>` : "")
+    + `<div class="fd">${longDate(p.time)} ${hm(p.time)}</div></article>`;
+}
+let vio = null;
+function openFeed(k) {
+  $("fuser").textContent = D.profile.username;
+  $("ftitle").textContent = tab === "video" ? T("视频", "Videos") : T("贴文", "Posts");
+  $("flist").innerHTML = LIST.map(fcard).join("") + `<div class="fend">${T("已经到底了", "You're all caught up")}</div>`;
+  $("feedv").hidden = false; document.body.style.overflow = "hidden";
+  const el = $("flist").children[k]; $("feedv").scrollTop = el ? el.offsetTop - $("feedv").querySelector(".fbar").offsetHeight : 0;
+  // 影片：滑到画面中间时自动静音播放，滑走就暂停（跟 IG 一样）
+  if (vio) vio.disconnect();
+  if ("IntersectionObserver" in window) { vio = new IntersectionObserver(es => es.forEach(e => { const v = e.target; if (e.isIntersecting && e.intersectionRatio > .6) v.play().catch(() => {}); else v.pause(); }), {root: $("feedv"), threshold: [0, .6, 1]}); $("flist").querySelectorAll("video").forEach(v => vio.observe(v)); }
+  try { history.pushState({ig: 1}, "", "#" + LIST[k].code); pushed = true; } catch (e) {}
+}
+function closeFeed(fromPop) {
+  if ($("feedv").hidden) return;
+  $("feedv").hidden = true; document.body.style.overflow = ""; if (vio) vio.disconnect();
+  $("flist").innerHTML = "";
+  if (!fromPop && pushed) { pushed = false; history.back(); } else pushed = false;
+}
+$("fback").onclick = () => closeFeed();
+// 左右滑多张照片时，更新 1/5 和小圆点、原图连结
+$("feedv").addEventListener("scroll", e => {
+  const c = e.target; if (!c.classList || !c.classList.contains("car")) return;
+  const i = Math.round(c.scrollLeft / c.clientWidth), card = c.closest(".fp"), p = LIST[+card.dataset.k], m = p.media[i]; if (!m) return;
+  const cc = card.querySelector(".ccount"); if (cc) cc.textContent = `${i + 1}/${p.media.length}`;
+  card.querySelectorAll(".fdots i").forEach((d, j) => d.classList.toggle("on", j === i));
+  const og = card.querySelector(".og"); if (og) { og.href = m.vsrc ? ORIGINAL_BASE + m.vsrc : (origUrl(m) || igPost(p)); og.textContent = m.vsrc ? T("原始影片", "Original") : T("原图", "Original"); }
+}, true);
+$("flist").addEventListener("click", e => { const t = e.target.closest("a[data-q]"); if (t) { e.preventDefault(); $("q").value = t.dataset.q; closeFeed(); render(); $("tools").scrollIntoView({block: "start"}); } });
 
 // 贴文视窗
 function openPost(k) {
@@ -301,7 +380,7 @@ function closePost(fromPop) {
   $("modal").hidden = true; $("media").innerHTML = ""; document.body.style.overflow = "";
   if (!fromPop && pushed) { pushed = false; history.back(); } else pushed = false;
 }
-window.addEventListener("popstate", () => closePost(true));
+window.addEventListener("popstate", () => { closePost(true); closeFeed(true); });
 $("mx").onclick = () => closePost(); $("pprev").onclick = () => stepPost(-1); $("pnext").onclick = () => stepPost(1);
 $("modal").addEventListener("click", e => {
   if (e.target === $("modal")) return closePost();
@@ -335,7 +414,7 @@ fetch("data/ig.json").then(r => { if (!r.ok) throw new Error(r.status); return r
   $("yr").insertAdjacentHTML("beforeend", years.map(y => `<option value="${y}">${EN ? y : y + "年"}</option>`).join(""));
   $("tools").hidden = false; render();
   // 网址带 #贴文代码 时直接打开那则
-  const h = location.hash.slice(1); if (h) { const k = LIST.findIndex(p => p.code === h); if (k >= 0) { while (k >= shown) more(); cur = k; ci = 0; showPost(); $("modal").hidden = false; document.body.style.overflow = "hidden"; } }
+  const h = location.hash.slice(1); if (h) { const k = LIST.findIndex(p => p.code === h); if (k >= 0) { if (MOBILE()) { openFeed(k); } else { while (k >= shown) more(); cur = k; ci = 0; showPost(); $("modal").hidden = false; document.body.style.overflow = "hidden"; } } }
 }).catch(() => {
   $("since").textContent = "";
   $("grid").innerHTML = `<div class="empty" style="grid-column:1/-1">${T("IG 备份准备中，敬请期待", "The Instagram archive is coming soon")}</div>`;
