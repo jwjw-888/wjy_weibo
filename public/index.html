@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="data-size" content="45439,1499169">
-<meta name="site-build" content="2026-11-07-11">
+<meta name="site-build" content="2026-11-09-1">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -56,6 +56,9 @@ a.topic{color:var(--tag)}
 .meta b{color:var(--fg);font-weight:600;margin-right:3px}
 /* sticky filter bar */
 .bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--card);border-radius:8px;padding:10px 12px;margin-bottom:10px;box-shadow:0 1px 0 var(--line)}
+/* 完整资料还在下载时，筛选列底部的细进度条 */
+.ldtop{position:absolute;left:12px;right:12px;bottom:0;height:3px;border-radius:2px;background:var(--sunken);overflow:hidden}
+.ldtop i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffb36b,var(--accent));transition:width .2s}
 .search{display:flex;gap:8px}
 .search input,.search select{font:inherit;font-size:14px;border:0;background:var(--sunken);color:var(--fg);border-radius:16px;padding:7px 14px;min-width:0}
 .search .qwrap{flex:1;min-width:0;display:flex;align-items:center;gap:6px;background:var(--sunken);border:1.5px solid var(--muted);border-radius:18px;padding:0 6px 0 10px}
@@ -192,6 +195,9 @@ details.hot .list{display:grid;gap:10px;margin-top:10px}
 .cpic img{width:100%;height:100%;object-fit:cover;display:block}
 .empty{text-align:center;color:var(--muted);padding:48px 0;background:var(--card);border-radius:8px}
 .loadmore{text-align:center;color:var(--muted);font-size:13px;padding:12px 0 20px}
+/* 下载进度条（网路慢时） */
+.ldbar{width:min(240px,70%);height:4px;border-radius:2px;background:var(--sunken);margin:12px auto 0;overflow:hidden}
+.ldbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffb36b,var(--accent));transition:width .2s}
 .note{font-size:12px;color:var(--muted);padding-block:8px 32px;margin:0 4px}
 /* lightbox */
 .lb{position:fixed;inset:0;z-index:20;background:var(--shade);display:flex;flex-direction:column;color:#fff;
@@ -260,6 +266,7 @@ details.hot .list{display:grid;gap:10px;margin-top:10px}
       <a class="chip iglink" href="ig.html"><svg class="igico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.8l1.3-2h4.8l1.3 2h1.8A2.5 2.5 0 0 1 20 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span id="iglink">IG备份</span></a>
     </div>
     <div class="count" id="count"></div>
+    <div class="ldtop" id="ldtop" aria-hidden="true"><i data-k="all"></i></div>
   </div>
 </div>
 <div class="wrap">
@@ -473,10 +480,10 @@ function render() {
 }
 function renderFeed() {
   // 资料还没下载完时（网路慢），先不画；下载完会自动画一次，期间点的筛选、月份也会套用
-  if (!DATA) { if (headFailed && fullFailed) loadFail(); else $("feed").innerHTML = `<div class="empty">${T("资料载入中", "Loading")}<span class="ldpct" data-k="head">${pctTxt("head")}</span>${T("，请稍候…", ", please wait…")}</div>`; return; }
+  if (!DATA) { if (headFailed && fullFailed) loadFail(); else $("feed").innerHTML = `<div class="empty">${T("资料载入中", "Loading")}<span class="ldpct" data-k="head">${pctTxt("head")}</span>${T("，请稍候…", ", please wait…")}<div class="ldbar"><i data-k="head" style="width:${pctOf("head")}%"></i></div></div>`; return; }
   const q = $("q").value.trim(); qState(q);
   // 先显示的是最新几条（head.json）；完整资料还没到时，筛选/搜索/选月份先显示载入中，到了会自动套用
-  if (!FULL && (filter !== "all" || q || MSEL.size)) { view = null; $("feed").innerHTML = `<div class="empty">${fullFailed ? T("网路较慢，完整资料载入失败，筛选与搜索暂时无法使用，请", "Slow connection — the full archive failed to load, so filters and search are unavailable. Please ") + `<a href="#" onclick="location.reload();return false">${T("重新整理", "refresh")}</a>` : T("完整资料载入中", "Loading full archive") + `<span class="ldpct" data-k="all">${pctTxt("all")}</span>` + T("，请稍候…", ", please wait…")}</div>`; $("loadmore").hidden = true; $("count").textContent = ""; return; }
+  if (!FULL && (filter !== "all" || q || MSEL.size)) { view = null; $("feed").innerHTML = `<div class="empty">${fullFailed ? T("网路较慢，完整资料载入失败，筛选与搜索暂时无法使用，请", "Slow connection — the full archive failed to load, so filters and search are unavailable. Please ") + `<a href="#" onclick="location.reload();return false">${T("重新整理", "refresh")}</a>` : T("完整资料载入中", "Loading full archive") + `<span class="ldpct" data-k="all">${pctTxt("all")}</span>` + T("，请稍候…", ", please wait…") + `<div class="ldbar"><i data-k="all" style="width:${pctOf("all")}%"></i></div>`}</div>`; $("loadmore").hidden = true; $("count").textContent = ""; return; }
   const ql = norm(q);
   const list = DATA.posts.filter(p => {
     if (MSEL.size && !MSEL.has(monthKey(p.time))) return false;
@@ -598,7 +605,7 @@ function mLabel() { $("mbtn").textContent = !MSEL.size ? T("全部月份", "All 
 function mDraw() {
   const ys = Object.keys(MP.years).sort().reverse();
   // 资料还没到：月份选单先显示载入中，不能选（避免选到不存在的年份）
-  if (!ys.length) { $("myears").innerHTML = ""; $("mgrid").innerHTML = `<div class="mwait" style="grid-column:1/-1;text-align:center;color:var(--muted);padding:18px 0">${T("资料载入中", "Loading")}<span class="ldpct" data-k="all">${pctTxt("all")}</span>${T("，请稍候…", ", please wait…")}</div>`; $("myear").disabled = true; return; }
+  if (!ys.length) { $("myears").innerHTML = ""; $("mgrid").innerHTML = `<div class="mwait" style="grid-column:1/-1;text-align:center;color:var(--muted);padding:18px 0">${T("资料载入中", "Loading")}<span class="ldpct" data-k="all">${pctTxt("all")}</span>${T("，请稍候…", ", please wait…")}<div class="ldbar"><i data-k="all" style="width:${pctOf("all")}%"></i></div></div>`; $("myear").disabled = true; return; }
   $("myear").disabled = false;
   if (!MP.years[MP.y]) MP.y = ys[0];
   $("myears").innerHTML = ys.map(y => { const n = [...MSEL].filter(k => k.startsWith(y)).length; return `<button class="chip" data-y="${y}" aria-pressed="${y === MP.y}">${y}${n ? `<small>${n}</small>` : ""}</button>`; }).join("");
@@ -678,12 +685,12 @@ let fullGot = 0, headGot = 0;
 const SIZES = (() => { try { const m = document.querySelector('meta[name="data-size"]').content.split(",").map(Number); return {head: m[0] || 0, all: m[1] || 0}; } catch (e) { return {head: 0, all: 0}; } })();
 function pctOf(k) { const got = k === "head" ? headGot : fullGot, tot = (k === "all" && META && META.size) || SIZES[k]; return tot && got ? Math.min(99, Math.floor(got * 100 / tot)) : 0; }
 function pctTxt(k) { const v = pctOf(k); return v ? T(`（${v}%）`, ` (${v}%)`) : ""; }
-function updPct() { document.querySelectorAll(".ldpct").forEach(e => { e.textContent = pctTxt(e.dataset.k); }); loadmoreText(); }
+function updPct() { document.querySelectorAll(".ldpct").forEach(e => { e.textContent = pctTxt(e.dataset.k); }); document.querySelectorAll(".ldbar i,.ldtop i").forEach(e => { e.style.width = pctOf(e.dataset.k) + "%"; }); const lt = $("ldtop"); if (lt) lt.hidden = FULL || fullFailed; loadmoreText(); }
 function loadmoreText() {
   const el = $("loadmore"); if (!el) return;
   if (FULL) { el.textContent = T("载入更多…", "Loading more…"); return; }
   const pc = pctOf("all");
-  el.textContent = T(`正在下载更早的微博${pc ? `（${pc}%）` : ""}，网路较慢时请稍候…`, `Downloading older posts${pc ? ` (${pc}%)` : ""} — please wait on slow connections…`);
+  el.innerHTML = esc(T(`正在下载更早的微博${pc ? `（${pc}%）` : ""}，网路较慢时请稍候…`, `Downloading older posts${pc ? ` (${pc}%)` : ""} — please wait on slow connections…`)) + `<div class="ldbar"><i style="width:${pc}%"></i></div>`;
 }
 function metaOf(posts) {
   const times = posts.map(p => p.time).sort();
@@ -707,7 +714,7 @@ function applyData(b, full) {
   const byYear = {};
   m.months.forEach(k => { const y = k.slice(0, 4); (byYear[y] = byYear[y] || []).push(k); });
   d.dims = b.dims || {}; d.comments = b.cm || {};
-  DATA = d; META = m; FULL = full; EMO = b.emo || {}; LINKS = b.links || {}; MP.years = byYear;
+  DATA = d; META = m; FULL = full; if (full && $("ldtop")) $("ldtop").hidden = true; EMO = b.emo || {}; LINKS = b.links || {}; MP.years = byYear;
   if (!$("mpanel").hidden) mDraw();
   if (DATA.avatar && $("pavatar") && $("pavatar").tagName !== "IMG") $("pavatar").outerHTML = `<img class="avatar" id="pavatar" src="${esc(DATA.avatar)}" alt="${T("吴谨言头像", "Wu Jinyan avatar")}">`;
   $("meta").innerHTML = T(`<span><b>${m.wbN}</b> 条微博</span>${m.chN ? `<span><b>${m.chN}</b> 条超话</span>` : ""}<span><b>${m.picN}</b> 张图片</span><span>${ymd(m.first)} 至 ${ymd(m.last)}</span><span>最近备份 ${ymd(DATA.fetchedAt)}</span>`, `<span><b>${m.wbN}</b> posts</span>${m.chN ? `<span><b>${m.chN}</b> Super Topic posts</span>` : ""}<span><b>${m.picN}</b> images</span><span>${ymd(m.first)} to ${ymd(m.last)}</span><span>Last backup ${ymd(DATA.fetchedAt)}</span>`);
@@ -741,7 +748,7 @@ getJSON("data/all.json", 2, 30000, g => { fullGot = g; updPct(); }).then(a => en
   if (enx) ENX = enx;
   const had = !!DATA; applyData(a, true);
   had ? swapToFull() : render();
-})).catch(e => { console.error("all.json", e); fullFailed = true; loadFail(); });
+})).catch(e => { console.error("all.json", e); fullFailed = true; if ($("ldtop")) $("ldtop").hidden = true; loadFail(); });
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
 
