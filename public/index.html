@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="data-size" content="45439,1499169">
-<meta name="site-build" content="2026-11-09-1">
+<meta name="site-build" content="2026-11-10-1">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -100,6 +100,10 @@ a.topic{color:var(--tag)}
 /* feed */
 .month{font-size:12px;color:var(--soft);margin:14px 4px 6px;font-weight:400}
 .month small{margin-left:6px}
+.month.first{display:flex;align-items:center;flex-wrap:nowrap}
+.sortsw{margin-left:10px;display:inline-flex;background:var(--sunken);border-radius:12px;padding:2px;white-space:nowrap;flex:0 0 auto}
+.sortsw button{border:0;background:none;font:inherit;font-size:12px;color:var(--soft);padding:2px 10px;border-radius:10px;cursor:pointer;white-space:nowrap}
+.sortsw button[aria-pressed="true"]{background:var(--card);color:var(--accent);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.12)}
 .feed{display:grid;gap:10px;padding-bottom:24px}
 article{background:var(--card);border-radius:8px;min-width:0;overflow:hidden}
 .pbody{padding:16px 16px 4px}
@@ -498,15 +502,19 @@ function renderFeed() {
     if (ql && !haystack(p).includes(ql)) return false;
     return true;
   });
+  // 只有用了日期、类型筛选或搜索时，才显示「从新到旧／从旧到新」；回到全部时恢复从新到旧
+  const sortable = !!(q || MSEL.size || filter !== "all");
+  if (!sortable) SORT_OLD = false;
+  if (SORT_OLD) list.reverse();
   gallery = [];
-  view = {list, q, shown: 0, cur: ""};
+  view = {list, q, shown: 0, cur: "", sortable};
   view.perMonth = {};
   list.forEach(p => { const k = monthKey(p.time); view.perMonth[k] = (view.perMonth[k] || 0) + 1; });
   $("feed").innerHTML = list.length ? "" : `<div class="empty">${T("没有找到符合条件的微博", "No posts match your filters")}</div>`;
   more();
   $("count").textContent = (q || MSEL.size || filter !== "all") ? T(`找到 ${list.length} 条`, `${list.length} found`) : T(`共 ${FULL ? list.length : META.wbN} 条，按时间从新到旧`, `${FULL ? list.length : META.wbN} posts, newest first`);
 }
-let view = null;
+let view = null, SORT_OLD = false;
 // 换月份、类型或搜索后，跳回列表开头，不然往下滑很远时会看到一片空白
 function toTop() {
   const y = document.querySelector(".profile").offsetHeight;
@@ -533,7 +541,7 @@ function more() {
   const end = Math.min(view.list.length, view.shown + 30);
   for (let i = view.shown; i < end; i++) {
     const p = view.list[i], k = monthKey(p.time);
-    if (k !== view.cur) { view.cur = k; const [y, mo] = k.split("-"); html += `<h2 class="month" data-k="${k}">${T(`${y}年${+mo}月`, `${MONTH_LONG[mo - 1]} ${y}`)}<small>${T(`${view.perMonth[k]} 条`, `${view.perMonth[k]} post${view.perMonth[k] > 1 ? "s" : ""}`)}</small></h2>`; }
+    if (k !== view.cur) { view.cur = k; const [y, mo] = k.split("-"); const sw = i === 0 && view.sortable; html += `<h2 class="month${sw ? " first" : ""}" data-k="${k}">${T(`${y}年${+mo}月`, `${MONTH_LONG[mo - 1]} ${y}`)}<small>${T(`${view.perMonth[k]} 条`, `${view.perMonth[k]} post${view.perMonth[k] > 1 ? "s" : ""}`)}</small>${sw ? `<span class="sortsw" role="group" aria-label="${T("排列顺序", "Sort order")}"><button type="button" data-sort="new" aria-pressed="${!SORT_OLD}">${T("从新到旧", "Newest")}</button><button type="button" data-sort="old" aria-pressed="${SORT_OLD}">${T("从旧到新", "Oldest")}</button></span>` : ""}</h2>`; }
     html += postHtml(p, view.q);
   }
   view.shown = end;
@@ -586,6 +594,7 @@ $("stage").addEventListener("touchstart", e => { tx = e.touches[0].clientX; }, {
 $("stage").addEventListener("touchend", e => { if (tx === null) return; const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 40 && lbItems.length > 1) step(dx < 0 ? 1 : -1); tx = null; });
 
 $("feed").addEventListener("click", e => {
+  const so = e.target.closest(".sortsw button"); if (so) { const old = so.dataset.sort === "old"; if (old !== SORT_OLD) { SORT_OLD = old; render(); toTop(); } return; }
   const b = e.target.closest(".pic"); if (b && b.tagName === "A") return; if (b) { openLb(+b.dataset.g, +b.dataset.i); return; }
   const t = e.target.closest("a.topic"); if (t) { e.preventDefault(); $("q").value = t.dataset.topic; render(); window.scrollTo({top: 0}); }
 });
