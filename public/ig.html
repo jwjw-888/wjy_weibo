@@ -8,118 +8,184 @@
 <link rel="icon" type="image/png" sizes="32x32" href="icons/icon3-32.png">
 <link rel="apple-touch-icon" href="icons/icon3-180.png">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#1c1c1c" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <style>
+/* 版面仿 Instagram 个人主页：头像＋资料、分页标签、三栏（宽萤幕四栏）直式方格；点开是贴文视窗 */
 :root{
-  --bg:#dcdee3; --card:#ffffff; --sunken:#f7f7f8; --line:#eeeeee;
-  --fg:#333333; --muted:#8a8a8a; --soft:#636363; --link:#4b92bc; --accent:#c13584; --accent-soft:#fbeaf3; --tag:#4b92bc;
-  --shade:rgba(0,0,0,.97);
-  --body:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+  --bg:#ffffff; --card:#ffffff; --sunken:#efefef; --line:#dbdbdb; --fg:#000000; --muted:#737373; --soft:#262626;
+  --link:#00376b; --tag:#00376b; --btn:#efefef; --btnh:#dbdbdb; --shade:rgba(0,0,0,.65);
+  --body:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#070707; --card:#1c1c1c; --sunken:#262626; --line:#2c2c2c;
-  --fg:#dadada; --muted:#8a8a8a; --soft:#a5a5a5; --link:#4b92bc; --accent:#e56aae; --accent-soft:#3a1f2e; --tag:#5ea3cc; color-scheme:dark}}
+  --bg:#000000; --card:#000000; --sunken:#262626; --line:#363636; --fg:#f5f5f5; --muted:#a8a8a8; --soft:#f5f5f5;
+  --link:#e0f1ff; --tag:#e0f1ff; --btn:#363636; --btnh:#262626; --shade:rgba(0,0,0,.75); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#070707; --card:#1c1c1c; --sunken:#262626; --line:#2c2c2c;
-  --fg:#dadada; --muted:#8a8a8a; --soft:#a5a5a5; --link:#4b92bc; --accent:#e56aae; --accent-soft:#3a1f2e; --tag:#5ea3cc; color-scheme:dark}
+  --bg:#000000; --card:#000000; --sunken:#262626; --line:#363636; --fg:#f5f5f5; --muted:#a8a8a8; --soft:#f5f5f5;
+  --link:#e0f1ff; --tag:#e0f1ff; --btn:#363636; --btnh:#262626; --shade:rgba(0,0,0,.75); color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;line-height:1.6}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--card)}
-img{max-width:100%}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--fg);font-family:var(--body);font-size:14px;line-height:18px}
 a{color:var(--link);text-decoration:none}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.wrap{max-width:640px;margin:0 auto;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
-.profile{background:var(--card);border-radius:0 0 8px 8px;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 14px;margin-bottom:10px}
-.top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
-.back{font-size:13px;color:var(--soft);background:var(--sunken);border-radius:14px;padding:3px 12px}
-.langsw{display:flex;background:var(--sunken);border-radius:16px;padding:3px;gap:2px}
-.langsw button{font:inherit;font-size:12px;border:0;background:transparent;color:var(--soft);border-radius:13px;padding:2px 10px;cursor:pointer}
-.langsw button[aria-pressed="true"]{background:var(--card);color:var(--fg);font-weight:600}
-.pinfo{display:flex;gap:14px;align-items:center}
-.avatar{width:76px;height:76px;border-radius:50%;flex:0 0 auto;padding:3px;background:linear-gradient(45deg,#f9a03f,#e1306c,#833ab4)}
-.avatar img,.avatar span{display:flex;width:100%;height:100%;border-radius:50%;object-fit:cover;border:2px solid var(--card);background:var(--sunken);align-items:center;justify-content:center;font-size:28px;color:var(--accent);font-weight:600}
-.pname{font-size:19px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.pname small{font-size:11px;font-weight:400;color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 5px}
-.pdesc{color:var(--soft);font-size:13px;white-space:pre-line}
-.meta{display:flex;flex-wrap:wrap;gap:2px 16px;margin-top:4px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
-.meta b{color:var(--fg);font-weight:600;margin-right:3px}
-.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--card);border-radius:8px;padding:10px 12px;margin-bottom:10px;box-shadow:0 1px 0 var(--line)}
-.search{display:flex;gap:8px}
-.search input,.search select{font:inherit;font-size:14px;border:0;background:var(--sunken);color:var(--fg);border-radius:16px;padding:7px 14px;min-width:0}
-.search input{flex:1}
-.search select{flex:0 0 auto}
-.count{font-size:12px;color:var(--muted);margin-top:6px}
-.post{background:var(--card);border-radius:8px;padding:14px 16px 0;margin-bottom:10px}
-.ph{display:flex;align-items:center;gap:10px}
-.ph img{width:36px;height:36px;border-radius:50%;object-fit:cover;background:var(--sunken)}
-.ph .who{font-weight:600}
-.ph .when{font-size:12px;color:var(--muted)}
-.pin{font-size:11px;color:var(--accent);border:1px solid currentColor;border-radius:3px;padding:0 4px;margin-left:6px;font-weight:400}
-.txt{margin-top:8px;white-space:pre-wrap;word-break:break-word}
-.txt a.tag{color:var(--tag)}
-.txt mark{background:#ffe58a;color:inherit;border-radius:2px}
-.pics{display:grid;gap:4px;margin-top:10px;grid-template-columns:repeat(3,1fr);max-width:min(100%,456px)}
-.pics.n1{grid-template-columns:1fr;max-width:min(100%,300px)}
-.pics.n2,.pics.n4{grid-template-columns:repeat(2,1fr);max-width:min(100%,304px)}
-.pic{position:relative;display:block;padding:0;border:0;background:var(--sunken);aspect-ratio:1;overflow:hidden;cursor:zoom-in;border-radius:4px}
-.pic img{width:100%;height:100%;object-fit:cover;display:block}
-.pics.n1 .pic{aspect-ratio:auto}
-.pics.n1 .pic img{height:auto;max-height:520px;object-fit:cover;object-position:top}
-.pic .vtag{position:absolute;right:5px;bottom:5px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;border-radius:3px;padding:0 5px;line-height:18px}
-.acts{display:flex;gap:18px;border-top:1px solid var(--line);margin-top:12px;height:42px;align-items:center;color:var(--soft);font-size:13px;font-variant-numeric:tabular-nums}
-.acts span{display:flex;align-items:center;gap:5px}
-.acts svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.6}
-.acts a{margin-left:auto;font-size:12px}
-.empty{background:var(--card);border-radius:8px;padding:40px 16px;text-align:center;color:var(--muted)}
-.loadmore{text-align:center;color:var(--muted);font-size:13px;padding:12px 0 20px}
-.note{font-size:12px;color:var(--muted);padding-block:8px 32px;margin:0 4px}
-.lb{position:fixed;inset:0;z-index:20;background:var(--shade);display:flex;flex-direction:column;color:#fff;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-.lb .stage{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;touch-action:pan-y}
-.lb img,.lb video{max-width:100%;max-height:100%;object-fit:contain}
-.lb .tools{display:flex;align-items:center;gap:12px;padding:10px 16px;font-size:14px;font-variant-numeric:tabular-nums}
-.lb button{font:inherit;color:#fff;background:rgba(255,255,255,.14);border:0;border-radius:16px;padding:5px 14px;cursor:pointer}
-.lb a{color:#fff;margin-left:auto;font-size:13px}
-.lb .closebtn{background:#fff;color:#111;font-weight:600;font-size:15px;padding:8px 22px;border-radius:20px}
-.lb .xtop{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:12px;width:40px;height:40px;padding:0;border-radius:50%;background:rgba(0,0,0,.6);border:1.5px solid rgba(255,255,255,.85);font-size:18px;z-index:2}
-.lb .nav{position:absolute;top:50%;transform:translateY(-50%);font-size:22px;padding:10px 14px}
-.lb .prev{left:8px}.lb .next{right:8px}
-@media (max-width:520px){.lb .nav{display:none}}
+img{max-width:100%}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid #0095f6;outline-offset:2px}
+.wrap{max-width:975px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-left,0px)) 0 max(16px,env(safe-area-inset-right,0px))}
+/* 顶部列 */
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:calc(12px + env(safe-area-inset-top,0px)) 0 0}
+.back{font-size:14px;font-weight:600;color:var(--fg);background:var(--btn);border-radius:8px;padding:6px 12px}
+.back:hover{background:var(--btnh)}
+.langsw{display:flex;background:var(--btn);border-radius:8px;padding:3px;gap:2px}
+.langsw button{font-size:12px;border:0;background:transparent;color:var(--muted);border-radius:6px;padding:3px 10px;cursor:pointer}
+.langsw button[aria-pressed="true"]{background:var(--bg);color:var(--fg);font-weight:600}
+/* 个人资料 */
+.prof{display:grid;grid-template-columns:minmax(0,1fr) 2fr;gap:0 28px;align-items:center;padding:30px 0 44px;max-width:935px;margin:0 auto}
+.av{justify-self:center;width:150px;height:150px;border-radius:50%;padding:4px;background:linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7)}
+.av img,.av span{display:flex;width:100%;height:100%;border-radius:50%;object-fit:cover;border:4px solid var(--bg);background:var(--sunken);align-items:center;justify-content:center;font-size:48px;color:var(--muted)}
+.uname{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:20px;line-height:25px;margin-bottom:18px}
+.uname a{color:var(--fg)}
+.uname small{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:1px 6px;line-height:16px}
+.igbtn{font-size:14px;font-weight:600;background:var(--btn);color:var(--fg);border-radius:8px;padding:7px 16px}
+.igbtn:hover{background:var(--btnh)}
+.stats{display:flex;gap:40px;font-size:16px;margin-bottom:18px}
+.stats b{font-weight:600}
+.fname{font-weight:600}
+.bio{white-space:pre-line;margin-top:2px}
+.since{color:var(--muted);font-size:12px;margin-top:6px}
+.mstats{display:none}
+/* 分页标签＋搜索 */
+.tabs{display:flex;justify-content:center;gap:60px;border-top:1px solid var(--line);max-width:935px;margin:0 auto}
+.tab{display:flex;align-items:center;gap:6px;height:52px;border:0;background:none;border-top:1px solid transparent;margin-top:-1px;color:var(--muted);font-size:12px;font-weight:600;letter-spacing:1px;cursor:pointer;text-transform:uppercase}
+.tab svg{width:12px;height:12px}
+.tab[aria-pressed="true"]{color:var(--fg);border-top-color:var(--fg)}
+.tools{display:flex;gap:8px;max-width:935px;margin:0 auto 12px}
+.tools input,.tools select{font:inherit;font-size:14px;border:0;background:var(--sunken);color:var(--fg);border-radius:8px;padding:8px 12px;min-width:0}
+.tools input{flex:1}
+.count{max-width:935px;margin:0 auto 8px;color:var(--muted);font-size:12px}
+/* 方格 */
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;max-width:1400px;margin:0 auto}
+@media (max-width:1100px){.grid{grid-template-columns:repeat(3,1fr)}}
+.tile{position:relative;display:block;padding:0;border:0;background:var(--sunken);aspect-ratio:3/4;overflow:hidden;cursor:pointer}
+.tile img{width:100%;height:100%;object-fit:cover;display:block}
+.tile .ico{position:absolute;top:8px;right:8px;width:20px;height:20px;color:#fff;filter:drop-shadow(0 0 2px rgba(0,0,0,.5))}
+.tile .pinico{right:auto;left:8px}
+.tile .ov{position:absolute;inset:0;background:rgba(0,0,0,.3);color:#fff;display:flex;align-items:center;justify-content:center;gap:28px;font-size:16px;font-weight:700;opacity:0;transition:opacity .15s}
+.tile .ov span{display:flex;align-items:center;gap:6px}
+.tile .ov svg{width:20px;height:20px;fill:#fff}
+@media (hover:hover){.tile:hover .ov{opacity:1}}
+.empty{text-align:center;color:var(--muted);padding:60px 16px}
+.loadmore{text-align:center;color:var(--muted);font-size:13px;padding:20px 0}
+.note{font-size:12px;color:var(--muted);max-width:935px;margin:16px auto 40px;line-height:1.6}
+mark{background:#ffe58a;color:#000;border-radius:2px}
+/* 手机：资料改成 IG App 的样子 */
+@media (max-width:735px){
+  .wrap{padding-left:0;padding-right:0}
+  .top{padding-left:16px;padding-right:16px}
+  .prof{grid-template-columns:auto 1fr;gap:0 20px;padding:16px 16px 18px}
+  .av{width:86px;height:86px;padding:3px}
+  .av img,.av span{border-width:3px;font-size:30px}
+  .uname{font-size:20px;margin-bottom:10px}
+  .stats{display:none}
+  .mstats{display:flex;justify-content:space-around;border-top:1px solid var(--line);padding:12px 0;text-align:center;color:var(--muted);font-size:14px}
+  .mstats b{display:block;color:var(--fg);font-weight:600}
+  .pbody{grid-column:1/-1;margin-top:14px}
+  .tabs{gap:0;border-top:0;border-bottom:1px solid var(--line)}.tab{flex:1;justify-content:center;border-top:0;margin-top:0;border-bottom:1px solid transparent;margin-bottom:-1px}.tab[aria-pressed="true"]{border-bottom-color:var(--fg)}
+  .tools{margin-top:10px}.tab span{display:none}.tab svg{width:24px;height:24px}
+  .tools{padding:0 16px}.count{padding:0 16px}
+  .grid{gap:2px}
+  .tile .ico{width:18px;height:18px;top:6px;right:6px}
+  .note{padding:0 16px}
+}
+/* 贴文视窗 */
+.modal{position:fixed;inset:0;z-index:30;background:var(--shade);display:flex;align-items:center;justify-content:center}
+.mx{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:14px;z-index:32;border:0;background:none;color:#fff;font-size:30px;line-height:1;cursor:pointer;padding:6px}
+.pnav{position:fixed;top:50%;transform:translateY(-50%);z-index:32;width:40px;height:40px;border-radius:50%;border:0;background:#fff;color:#000;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.pnav.l{left:16px}.pnav.r{right:16px}
+.box{display:flex;background:var(--card);max-width:calc(100vw - 140px);height:min(92vh,900px);border-radius:4px;overflow:hidden}
+.media{position:relative;background:#000;display:flex;align-items:center;justify-content:center;flex:0 1 auto;min-width:0}
+.media img,.media video{display:block;max-width:100%;max-height:100%;width:auto;height:100%;object-fit:contain}
+.cnav{position:absolute;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:50%;border:0;background:rgba(255,255,255,.85);color:#000;font-size:18px;line-height:1;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.cnav.l{left:10px}.cnav.r{right:10px}
+.dots{position:absolute;bottom:14px;left:0;right:0;display:flex;justify-content:center;gap:4px;pointer-events:none}
+.dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.45)}
+.dots i.on{background:#fff}
+.side{width:405px;flex:0 0 405px;display:flex;flex-direction:column;border-left:1px solid var(--line);min-height:0}
+.sh{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.sh img{width:32px;height:32px;border-radius:50%;object-fit:cover;background:var(--sunken)}
+.sh .u{font-weight:600}
+.sh .loc{font-size:12px;color:var(--muted)}
+.sc{flex:1;overflow:auto;padding:16px;min-height:0}
+.cap{display:flex;gap:12px}
+.cap img{width:32px;height:32px;border-radius:50%;object-fit:cover;flex:0 0 auto;background:var(--sunken)}
+.cap .t{white-space:pre-wrap;word-break:break-word;line-height:1.45}
+.cap .t b{margin-right:6px}
+.cap .t a{color:var(--tag)}
+.cap .d{color:var(--muted);font-size:12px;margin-top:10px}
+.sf{border-top:1px solid var(--line);padding:12px 16px}
+.sicons{display:flex;gap:16px;align-items:center}
+.sicons svg{width:24px;height:24px;fill:none;stroke:var(--fg);stroke-width:1.8}
+.sicons a{margin-left:auto;font-size:13px;font-weight:600}
+.likes{font-weight:600;margin-top:8px}
+.when{color:var(--muted);font-size:12px;margin-top:4px}
+.links{display:flex;gap:14px;margin-top:8px;font-size:12px}
+/* 手机：贴文视窗占满整个画面，像 IG App */
+@media (max-width:900px){
+  .modal{background:var(--bg);align-items:stretch;overflow:auto;display:block}
+  .pnav{display:none}
+  .mx{position:fixed;top:calc(6px + env(safe-area-inset-top,0px));right:8px;color:var(--fg);font-size:24px;padding:8px 10px}
+  .box{flex-direction:column;max-width:none;height:auto;border-radius:0;min-height:100%}
+  .sh{order:-1;border-bottom:0;padding:calc(10px + env(safe-area-inset-top,0px)) 56px 10px 14px}
+  .media{width:100%;touch-action:pan-y}
+  .media img,.media video{width:100%;height:auto;max-height:none}
+  .dots{bottom:-18px}.dots i{background:var(--line)}.dots i.on{background:#0095f6}
+  .side{width:auto;flex:none;border-left:0;display:contents}
+  .sf{order:2;border-top:0;padding:24px 14px 4px}
+  .sc{order:3;overflow:visible;padding:4px 14px 40px}
+  .cap img{display:none}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header class="profile">
-    <div class="top">
-      <a class="back" href="./" id="back">← 微博备份</a>
-      <div class="langsw" role="group" aria-label="Language"><button type="button" data-lang="zh" aria-pressed="true">中文</button><button type="button" data-lang="en" aria-pressed="false">ENG</button></div>
-    </div>
-    <div class="pinfo">
-      <div class="avatar"><span id="pav">言</span></div>
-      <div>
-        <div class="pname"><span id="pn">吴谨言</span><small id="pnt">IG 粉丝存档</small></div>
-        <div class="pdesc" id="pdesc"></div>
-        <div class="meta" id="meta">载入中…</div>
-      </div>
+  <div class="top">
+    <a class="back" href="./" id="back">← 微博备份</a>
+    <div class="langsw" role="group" aria-label="Language"><button type="button" data-lang="zh" aria-pressed="true">中文</button><button type="button" data-lang="en" aria-pressed="false">ENG</button></div>
+  </div>
+  <header class="prof">
+    <div class="av"><span id="pav">言</span></div>
+    <div>
+      <div class="uname"><a id="uname" href="#" target="_blank" rel="noopener noreferrer">wujinyan816</a><small id="pnt">粉丝存档</small><a class="igbtn" id="igbtn" href="#" target="_blank" rel="noopener noreferrer">到 Instagram</a></div>
+      <div class="stats" id="stats"></div>
+      <div class="pbody pb-desk"><div class="fname" id="fname">吴谨言</div><div class="bio" id="bio"></div><div class="since" id="since">载入中…</div></div>
     </div>
   </header>
-  <div class="bar" id="bar" hidden>
-    <div class="search">
-      <input id="q" type="search" placeholder="搜索 IG 贴文" autocomplete="off">
-      <select id="yr" aria-label="年份"><option value="">全部年份</option></select>
-    </div>
-    <div class="count" id="count"></div>
+  <div class="mstats" id="mstats"></div>
+  <nav class="tabs" id="tabs" aria-label="分类">
+    <button class="tab" data-t="all" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg><span id="t1">贴文</span></button>
+    <button class="tab" data-t="video" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M10 9l5 3-5 3z" fill="currentColor"/></svg><span id="t2">视频</span></button>
+  </nav>
+  <div class="tools" id="tools" hidden>
+    <input id="q" type="search" placeholder="搜索 IG 贴文" autocomplete="off">
+    <select id="yr" aria-label="年份"><option value="">全部年份</option></select>
   </div>
-  <main id="feed"></main>
+  <div class="count" id="count"></div>
+  <main class="grid" id="grid"></main>
   <div id="loadmore" class="loadmore" hidden>载入更多…</div>
-  <p class="note" id="footnote"><b>本站为粉丝自制存档，非官方网站</b>，内容来自吴谨言的 Instagram，文字与图片版权归演员吴谨言所有。视频点开即可播放；若无法播放，可点「原贴」到 Instagram 观看。按赞、留言数字为备份当时的数据。</p>
+  <p class="note" id="footnote"><b>本站为粉丝自制存档，非官方网站</b>，内容来自吴谨言的 Instagram，文字、图片与视频版权归演员吴谨言所有。视频点开即可播放；若无法播放，可点「原贴」到 Instagram 观看。按赞、留言数字为备份当时的数据。</p>
 </div>
-<div class="lb" id="lb" hidden>
-  <div class="stage" id="stage"><img id="lbimg" alt=""><video id="lbvid" playsinline controls preload="metadata" hidden></video></div>
-  <button class="xtop" id="xtop" aria-label="关闭">✕</button>
-  <button class="nav prev" id="prev" aria-label="上一张">‹</button>
-  <button class="nav next" id="next" aria-label="下一张">›</button>
-  <div class="tools"><button id="close" class="closebtn">✕ 关闭</button><span id="lbn"></span><a id="lborig" href="#" target="_blank" rel="noopener noreferrer">查看原图</a></div>
+
+<div class="modal" id="modal" hidden>
+  <button class="mx" id="mx" aria-label="关闭">✕</button>
+  <button class="pnav l" id="pprev" aria-label="上一则">‹</button>
+  <button class="pnav r" id="pnext" aria-label="下一则">›</button>
+  <div class="box" id="box">
+    <div class="media" id="media"></div>
+    <div class="side">
+      <div class="sh" id="sh"></div>
+      <div class="sc" id="sc"></div>
+      <div class="sf" id="sf"></div>
+    </div>
+  </div>
 </div>
 <script>
 const ORIGINAL_BASE = "https://pub-db270e9d94f24f01a0f04c10bbdc80af.r2.dev/";
@@ -131,9 +197,19 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":
 const fmt = (iso, opt) => { try { return new Intl.DateTimeFormat("zh-CN", Object.assign({timeZone: TZ}, opt)).format(new Date(iso)); } catch (e) { return new Date(+new Date(iso) + 8 * 3600e3).toISOString().slice(0, 16).replace("T", " "); } };
 const ymd = iso => fmt(iso, {year: "numeric", month: "2-digit", day: "2-digit"}).replace(/\//g, "-");
 const hm = iso => fmt(iso, {hour: "2-digit", minute: "2-digit", hour12: false});
+const MONTH_EN = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const longDate = iso => { const d = ymd(iso).split("-"); return EN ? `${MONTH_EN[+d[1] - 1]} ${+d[2]}, ${d[0]}` : `${d[0]}年${+d[1]}月${+d[2]}日`; };
 const num = n => n == null ? "" : EN ? (n >= 1e6 ? (n/1e6).toFixed(1).replace(/\.0$/,"") + "M" : n >= 1000 ? (n/1000).toFixed(1).replace(/\.0$/,"") + "K" : String(n)) : n >= 10000 ? (n/10000).toFixed(1).replace(/\.0$/,"") + "万" : String(n);
 const norm = s => String(s || "").toLowerCase();
 const origUrl = m => m.r2 === false ? "" : ORIGINAL_BASE + m.src;
+const igPost = p => "https://www.instagram.com/p/" + p.code + "/";
+const SV = {
+  multi: '<svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M19 2H9a3 3 0 0 0-3 3v1H5a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1h1a3 3 0 0 0 3-3V5a3 3 0 0 0-3-3zm1 13a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1z"/></svg>',
+  video: '<svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M17 2H7a5 5 0 0 0-5 5v10a5 5 0 0 0 5 5h10a5 5 0 0 0 5-5V7a5 5 0 0 0-5-5zm-7 14.2V7.8a.5.5 0 0 1 .76-.43l6.5 4.2a.5.5 0 0 1 0 .86l-6.5 4.2a.5.5 0 0 1-.76-.43z"/></svg>',
+  pin: '<svg class="ico pinico" viewBox="0 0 24 24" fill="currentColor"><path d="M16 3l5 5-3 1-4 4 1 5-2 2-4-4-5 5-1-1 5-5-4-4 2-2 5 1 4-4z"/></svg>',
+  heart: '<svg viewBox="0 0 24 24"><path d="M12 21s-8-5.1-8-11.2A4.8 4.8 0 0 1 12 6.6a4.8 4.8 0 0 1 8 3.2C20 15.9 12 21 12 21z"/></svg>',
+  cmt: '<svg viewBox="0 0 24 24"><path d="M20.7 16.6A9.5 9.5 0 1 0 17 20.4L22 22z"/></svg>'
+};
 
 document.querySelectorAll(".langsw button").forEach(b => {
   b.setAttribute("aria-pressed", b.dataset.lang === LANG);
@@ -141,23 +217,21 @@ document.querySelectorAll(".langsw button").forEach(b => {
 });
 if (EN) {
   document.documentElement.lang = "en"; document.title = "Wu Jinyan Instagram Archive";
-  $("back").textContent = "← Weibo archive"; $("pn").textContent = "Wu Jinyan"; $("pnt").textContent = "IG fan archive"; $("meta").textContent = "Loading…";
+  $("back").textContent = "← Weibo archive"; $("pnt").textContent = "Fan archive"; $("igbtn").textContent = "Open Instagram"; $("fname").textContent = "Wu Jinyan";
+  $("since").textContent = "Loading…"; $("t1").textContent = "Posts"; $("t2").textContent = "Videos"; $("tabs").setAttribute("aria-label", "Categories");
   $("q").placeholder = "Search IG posts"; $("yr").options[0].textContent = "All years"; $("loadmore").textContent = "Loading more…";
-  $("footnote").innerHTML = "<b>This is a fan-made archive, not an official website.</b> Content comes from Wu Jinyan's Instagram; copyright of the text and images belongs to Wu Jinyan. Tap a video to play it; if it won't play, tap \"Post\" to watch on Instagram. Like and comment counts are as of the time of backup.";
-  $("close").textContent = "✕ Close"; $("lborig").textContent = "Original";
+  $("footnote").innerHTML = "<b>This is a fan-made archive, not an official website.</b> Content comes from Wu Jinyan's Instagram; copyright of the text, images and videos belongs to Wu Jinyan. Tap a video to play it; if it won't play, tap \"Post\" to watch on Instagram. Like and comment counts are as of the time of backup.";
+  $("mx").setAttribute("aria-label", "Close"); $("pprev").setAttribute("aria-label", "Previous post"); $("pnext").setAttribute("aria-label", "Next post");
 }
 
-let D = null, LIST = [], shown = 0, PAGE = 15, G = [], gi = 0, gk = 0;
-const ICON = {
-  like: '<svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>',
-  cmt: '<svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4.1A8 8 0 1 1 20 12z"/></svg>'
-};
+let D = null, LIST = [], shown = 0, PAGE = 24, tab = "all", cur = -1, ci = 0, pushed = false;
+const AV = () => D.profile.avatar ? `<img src="thumbs/${esc(D.profile.avatar)}" alt="">` : `<img alt="">`;
+const hasVideo = p => p.media.some(m => m.video);
 function linkify(text, nq) {
-  // #话题、@帐号 变色；搜索字词标黄
   const parts = String(text).split(/([#＃][^\s#＃@]+|@[A-Za-z0-9._]+)/);
   return parts.map(s => {
-    if (/^[#＃]/.test(s)) return `<a class="tag" href="#" data-q="${esc(s)}">${mark(s, nq)}</a>`;
-    if (/^@/.test(s)) return `<a class="tag" href="https://www.instagram.com/${esc(s.slice(1))}/" target="_blank" rel="noopener noreferrer">${mark(s, nq)}</a>`;
+    if (/^[#＃]/.test(s)) return `<a href="#" data-q="${esc(s)}">${mark(s, nq)}</a>`;
+    if (/^@/.test(s)) return `<a href="https://www.instagram.com/${esc(s.slice(1))}/" target="_blank" rel="noopener noreferrer">${mark(s, nq)}</a>`;
     return mark(s, nq);
   }).join("");
 }
@@ -167,74 +241,104 @@ function mark(s, nq) {
   while ((j = ns.indexOf(nq, i)) !== -1) { out += esc(s.slice(i, j)) + "<mark>" + esc(s.slice(j, j + nq.length)) + "</mark>"; i = j + nq.length; }
   return out + esc(s.slice(i));
 }
-function card(p, k, nq) {
-  const n = p.media.length, cls = n === 1 ? "n1" : n === 2 ? "n2" : n === 4 ? "n4" : "";
-  const pics = p.media.map((m, i) => {
-    const ar = n === 1 && m.w && m.h ? ` style="aspect-ratio:${m.w}/${Math.min(m.h, m.w * 1.4)}"` : "";
-    return `<button class="pic" data-k="${k}" data-i="${i}"${ar} aria-label="${m.video ? T("视频封面", "Video cover") : T("图片", "Image")} ${i + 1}/${n}"><img loading="lazy" decoding="async" src="thumbs/${esc(m.src)}" alt="">${m.video ? `<span class="vtag">▶${m.dur ? " " + Math.floor(m.dur / 60) + ":" + String(m.dur % 60).padStart(2, "0") : ""}</span>` : ""}</button>`;
-  }).join("");
-  const av = D.profile.avatar ? `<img src="thumbs/${esc(D.profile.avatar)}" alt="">` : `<img alt="">`;
-  return `<article class="post"><div class="ph">${av}<div><div class="who">${esc(D.profile.full_name || D.profile.username)}${p.pinned ? `<span class="pin">${T("置顶", "Pinned")}</span>` : ""}</div><div class="when">${ymd(p.time)} ${hm(p.time)}${p.loc ? " · " + esc(p.loc) : ""}${p.coauthors && p.coauthors.length ? " · " + T("共同发布 ", "with ") + p.coauthors.map(u => "@" + esc(u)).join(" ") : ""}</div></div></div>`
-    + (p.text ? `<div class="txt">${linkify(p.text, nq)}</div>` : "")
-    + `<div class="pics ${cls}">${pics}</div>`
-    + `<div class="acts"><span>${ICON.like}${num(p.likes)}</span><span>${ICON.cmt}${num(p.comments)}</span><a href="https://www.instagram.com/p/${esc(p.code)}/" target="_blank" rel="noopener noreferrer">${T("原贴", "Post")} ↗</a></div></article>`;
+function tile(p, k) {
+  const m = p.media[0], ico = p.media.length > 1 ? SV.multi : m.video ? SV.video : "";
+  return `<button class="tile" data-k="${k}" aria-label="${esc(ymd(p.time))} ${esc((p.text || "").slice(0, 40))}"><img loading="lazy" decoding="async" src="thumbs/${esc(m.src)}" alt="">${ico}${p.pinned ? SV.pin : ""}<span class="ov"><span>${SV.heart}${num(p.likes)}</span><span>${SV.cmt.replace("<path", '<path fill="#fff"')}${num(p.comments)}</span></span></button>`;
 }
 function render() {
-  const q = $("q").value.trim(), nq = norm(q), y = $("yr").value;
-  LIST = D.posts.filter(p => (!y || ymd(p.time).startsWith(y)) && (!nq || norm(p.text).includes(nq) || norm(p.loc).includes(nq)));
-  $("count").textContent = T(`共 ${LIST.length} 则`, `${LIST.length} posts`);
-  $("feed").innerHTML = LIST.length ? "" : `<div class="empty">${T("没有符合的贴文", "No matching posts")}</div>`;
+  const nq = norm($("q").value.trim()), y = $("yr").value;
+  LIST = D.posts.filter(p => (tab !== "video" || hasVideo(p)) && (!y || ymd(p.time).startsWith(y)) && (!nq || norm(p.text).includes(nq) || norm(p.loc).includes(nq)));
+  $("count").textContent = (nq || y || tab !== "all") ? T(`共 ${LIST.length} 则`, `${LIST.length} posts`) : "";
+  $("grid").innerHTML = LIST.length ? "" : `<div class="empty" style="grid-column:1/-1">${T("没有符合的贴文", "No matching posts")}</div>`;
   shown = 0; more();
 }
 function more() {
-  const q = norm($("q").value.trim());
-  $("feed").insertAdjacentHTML("beforeend", LIST.slice(shown, shown + PAGE).map((p, j) => card(p, shown + j, q)).join(""));
+  $("grid").insertAdjacentHTML("beforeend", LIST.slice(shown, shown + PAGE).map((p, j) => tile(p, shown + j)).join(""));
   shown = Math.min(shown + PAGE, LIST.length);
   $("loadmore").hidden = shown >= LIST.length;
 }
-new IntersectionObserver(es => { if (es[0].isIntersecting && D && shown < LIST.length) more(); }, {rootMargin: "800px"}).observe($("loadmore"));
+new IntersectionObserver(es => { if (es[0].isIntersecting && D && shown < LIST.length) more(); }, {rootMargin: "1200px"}).observe($("loadmore"));
 let timer; $("q").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(render, 150); });
 $("yr").addEventListener("change", render);
-$("feed").addEventListener("click", e => {
-  const t = e.target.closest("a.tag[data-q]"); if (t) { e.preventDefault(); $("q").value = t.dataset.q; render(); window.scrollTo({top: 0}); return; }
-  const b = e.target.closest(".pic"); if (b) openLb(+b.dataset.k, +b.dataset.i);
-});
-// 看大图
-function openLb(k, i) { G = LIST[k].media; gk = k; gi = i; showLb(); $("lb").hidden = false; document.body.style.overflow = "hidden"; }
-function showLb() {
-  const m = G[gi], v = $("lbvid");
-  if (m.vsrc) { $("lbimg").hidden = true; v.hidden = false; v.poster = "thumbs/" + m.src; v.src = ORIGINAL_BASE + m.vsrc; v.play().catch(() => {}); }
-  else { v.pause(); v.removeAttribute("src"); v.hidden = true; $("lbimg").hidden = false; $("lbimg").src = "thumbs/" + m.src; }
-  const o = origUrl(m); if (o && !m.vsrc) { const im = new Image(); im.onload = () => { if (G[gi] === m) $("lbimg").src = o; }; im.src = o; }
-  $("lbn").textContent = G.length > 1 ? `${gi + 1} / ${G.length}` : "";
-  $("lborig").href = o || ("https://www.instagram.com/p/" + LIST[gk].code + "/"); $("lborig").textContent = m.video ? T("到 IG 观看视频", "Watch on IG") : T("查看原图", "Original");
-  if (m.video) $("lborig").href = "https://www.instagram.com/p/" + LIST[gk].code + "/";
-  if (m.vsrc) { $("lborig").href = ORIGINAL_BASE + m.vsrc; $("lborig").textContent = T("原始影片", "Original video"); }
-  $("prev").hidden = $("next").hidden = G.length < 2;
+$("tabs").addEventListener("click", e => { const b = e.target.closest(".tab"); if (!b) return; tab = b.dataset.t; document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-pressed", x === b)); render(); });
+$("grid").addEventListener("click", e => { const b = e.target.closest(".tile"); if (b) openPost(+b.dataset.k); });
+
+// 贴文视窗
+function openPost(k) {
+  cur = k; ci = 0; showPost();
+  if ($("modal").hidden) { $("modal").hidden = false; document.body.style.overflow = "hidden"; try { history.pushState({ig: 1}, "", "#" + LIST[k].code); pushed = true; } catch (e) {} }
+  else { try { history.replaceState({ig: 1}, "", "#" + LIST[k].code); } catch (e) {} }
 }
-const step = d => { gi = (gi + d + G.length) % G.length; showLb(); };
-const closeLb = () => { const v = $("lbvid"); v.pause(); v.removeAttribute("src"); v.hidden = true; $("lb").hidden = true; document.body.style.overflow = ""; $("lbimg").removeAttribute("src"); };
-$("prev").onclick = () => step(-1); $("next").onclick = () => step(1); $("close").onclick = closeLb; $("xtop").onclick = closeLb;
-$("stage").addEventListener("click", e => { if (e.target === $("stage")) closeLb(); });
-document.addEventListener("keydown", e => { if ($("lb").hidden) return; if (e.key === "Escape") closeLb(); if (e.key === "ArrowLeft") step(-1); if (e.key === "ArrowRight") step(1); });
-let sx = null; $("stage").addEventListener("touchstart", e => { sx = e.touches[0].clientX; }, {passive: true});
-$("stage").addEventListener("touchend", e => { if (sx == null || G.length < 2) return; const dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx) > 50) step(dx < 0 ? 1 : -1); sx = null; });
+function showPost() {
+  const p = LIST[cur], nq = norm($("q").value.trim()), P = D.profile, name = esc(P.username);
+  $("sh").innerHTML = `${AV()}<div><div class="u">${name}${p.coauthors && p.coauthors.length ? " · " + p.coauthors.map(u => esc(u)).join(" · ") : ""}</div>${p.loc ? `<div class="loc">${esc(p.loc)}</div>` : ""}</div>`;
+  $("sc").innerHTML = p.text ? `<div class="cap">${AV()}<div><div class="t"><b>${name}</b>${linkify(p.text, nq)}</div><div class="d">${longDate(p.time)} ${hm(p.time)}</div></div></div>` : "";
+  $("pprev").hidden = cur <= 0; $("pnext").hidden = cur >= LIST.length - 1;
+  showMedia();
+}
+function showMedia() {
+  const p = LIST[cur], m = p.media[ci], n = p.media.length;
+  const old = $("media").querySelector("video"); if (old) old.pause();
+  let h;
+  if (m.vsrc) h = `<video src="${esc(ORIGINAL_BASE + m.vsrc)}" poster="thumbs/${esc(m.src)}" controls playsinline autoplay preload="metadata"></video>`;
+  else h = `<img src="thumbs/${esc(m.src)}" alt="">`;
+  if (n > 1) h += (ci > 0 ? `<button class="cnav l" data-d="-1" aria-label="${T("上一张", "Previous")}">‹</button>` : "") + (ci < n - 1 ? `<button class="cnav r" data-d="1" aria-label="${T("下一张", "Next")}">›</button>` : "") + `<div class="dots">${p.media.map((_, i) => `<i class="${i === ci ? "on" : ""}"></i>`).join("")}</div>`;
+  $("media").innerHTML = h;
+  if (m.w && m.h) $("media").style.aspectRatio = `${m.w} / ${m.h}`; else $("media").style.aspectRatio = "";
+  const im = $("media").querySelector("img"), o = origUrl(m);
+  if (im && o) { const big = new Image(); big.onload = () => { if (LIST[cur] === p && p.media[ci] === m) im.src = o; }; big.src = o; }
+  const links = [`<a href="${esc(igPost(p))}" target="_blank" rel="noopener noreferrer">${T("原贴", "Post")} ↗</a>`];
+  if (m.vsrc) links.push(`<a href="${esc(ORIGINAL_BASE + m.vsrc)}" target="_blank" rel="noopener noreferrer">${T("原始影片", "Original video")}</a>`);
+  else if (o) links.push(`<a href="${esc(o)}" target="_blank" rel="noopener noreferrer">${T("查看原图", "Original image")}</a>`);
+  if (m.video && !m.vsrc) links.push(`<a href="${esc(igPost(p))}" target="_blank" rel="noopener noreferrer">${T("到 IG 观看视频", "Watch on IG")}</a>`);
+  $("sf").innerHTML = `<div class="sicons">${SV.heart}${SV.cmt}</div><div class="likes">${T(`${num(p.likes)} 次赞`, `${num(p.likes)} likes`)} · ${T(`${num(p.comments)} 则留言`, `${num(p.comments)} comments`)}</div><div class="when">${longDate(p.time)}</div><div class="links">${links.join("")}</div>`;
+}
+const stepImg = d => { const n = LIST[cur].media.length; const j = ci + d; if (j < 0 || j >= n) return false; ci = j; showMedia(); return true; };
+const stepPost = d => { const j = cur + d; if (j < 0 || j >= LIST.length) return; if (j >= shown) more(); openPost(j); };
+function closePost(fromPop) {
+  if ($("modal").hidden) return;
+  const v = $("media").querySelector("video"); if (v) v.pause();
+  $("modal").hidden = true; $("media").innerHTML = ""; document.body.style.overflow = "";
+  if (!fromPop && pushed) { pushed = false; history.back(); } else pushed = false;
+}
+window.addEventListener("popstate", () => closePost(true));
+$("mx").onclick = () => closePost(); $("pprev").onclick = () => stepPost(-1); $("pnext").onclick = () => stepPost(1);
+$("modal").addEventListener("click", e => {
+  if (e.target === $("modal")) return closePost();
+  const c = e.target.closest(".cnav"); if (c) { stepImg(+c.dataset.d); return; }
+  const t = e.target.closest("a[data-q]"); if (t) { e.preventDefault(); $("q").value = t.dataset.q; closePost(); render(); $("tools").scrollIntoView({block: "start"}); }
+});
+document.addEventListener("keydown", e => {
+  if ($("modal").hidden) return;
+  if (e.key === "Escape") closePost();
+  if (e.key === "ArrowLeft" && !stepImg(-1)) stepPost(-1);
+  if (e.key === "ArrowRight" && !stepImg(1)) stepPost(1);
+});
+let sx = null, sy = 0;
+$("media").addEventListener("touchstart", e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, {passive: true});
+$("media").addEventListener("touchend", e => { if (sx == null) return; const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) stepImg(dx < 0 ? 1 : -1); sx = null; });
 
 fetch("data/ig.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(d => {
   D = d; D.posts.sort((a, b) => (!!b.pinned - !!a.pinned) || (a.time < b.time ? 1 : -1));
-  const P = D.profile;
+  const P = D.profile, url = `https://www.instagram.com/${encodeURIComponent(P.username)}/`;
   if (P.avatar) $("pav").outerHTML = `<img src="thumbs/${esc(P.avatar)}" alt="">`;
-  $("pn").textContent = EN ? "Wu Jinyan" : (P.full_name || "吴谨言");
-  $("pdesc").innerHTML = `<a href="https://www.instagram.com/${esc(P.username)}/" target="_blank" rel="noopener noreferrer">@${esc(P.username)}</a>${P.bio ? "\n" + esc(P.bio) : ""}`;
-  const imgs = D.posts.reduce((s, p) => s + p.media.length, 0), t = D.posts.map(p => p.time).sort();
-  $("meta").innerHTML = T(`<span><b>${D.posts.length}</b>贴文</span><span><b>${imgs}</b>图片</span>`, `<span><b>${D.posts.length}</b>posts</span><span><b>${imgs}</b>images</span>`)
-    + (t.length ? `<span>${ymd(t[0])} – ${ymd(t[t.length - 1])}</span>` : "") + `<span>${T("备份于 ", "Backed up ")}${ymd(D.at)}</span>`;
+  $("uname").textContent = P.username; $("uname").href = url; $("igbtn").href = url;
+  $("fname").textContent = EN ? "Wu Jinyan" : (P.full_name || "吴谨言");
+  $("bio").textContent = P.bio || "";
+  const imgs = D.posts.reduce((s, p) => s + p.media.filter(m => !m.video).length, 0), vids = D.posts.reduce((s, p) => s + p.media.filter(m => m.video).length, 0);
+  const st = [[D.posts.length, T("贴文", "posts")], [imgs, T("图片", "photos")], [vids, T("视频", "videos")]];
+  $("stats").innerHTML = st.map(([n, l]) => `<span><b>${n}</b> ${l}</span>`).join("");
+  $("mstats").innerHTML = st.map(([n, l]) => `<span><b>${n}</b>${l}</span>`).join("");
+  const t = D.posts.map(p => p.time).sort();
+  $("since").textContent = (t.length ? `${ymd(t[0])} – ${ymd(t[t.length - 1])} · ` : "") + T("备份于 ", "Backed up ") + ymd(D.at);
   const years = [...new Set(D.posts.map(p => ymd(p.time).slice(0, 4)))].sort().reverse();
   $("yr").insertAdjacentHTML("beforeend", years.map(y => `<option value="${y}">${EN ? y : y + "年"}</option>`).join(""));
-  $("bar").hidden = false; render();
+  $("tools").hidden = false; render();
+  // 网址带 #贴文代码 时直接打开那则
+  const h = location.hash.slice(1); if (h) { const k = LIST.findIndex(p => p.code === h); if (k >= 0) { while (k >= shown) more(); cur = k; ci = 0; showPost(); $("modal").hidden = false; document.body.style.overflow = "hidden"; } }
 }).catch(() => {
-  $("meta").textContent = "";
-  $("feed").innerHTML = `<div class="empty">${T("IG 备份准备中，敬请期待", "The Instagram archive is coming soon")}</div>`;
+  $("since").textContent = "";
+  $("grid").innerHTML = `<div class="empty" style="grid-column:1/-1">${T("IG 备份准备中，敬请期待", "The Instagram archive is coming soon")}</div>`;
 });
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>

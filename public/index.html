@@ -88,7 +88,8 @@ a.topic{color:var(--tag)}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:0 0 auto;font:inherit;font-size:13px;border:0;background:transparent;color:var(--soft);border-radius:14px;padding:3px 12px;cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
-.chip.iglink{color:#c13584;display:inline-flex;align-items:center}
+.chip.iglink{color:#c13584;display:inline-flex;align-items:center;gap:4px}
+.chip.iglink .igico{width:15px;height:15px;flex:0 0 auto}
 .chip.iglink::after{content:"›";margin-left:3px}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip.iglink{color:#e56aae}}
 :root[data-theme="dark"] .chip.iglink{color:#e56aae}
@@ -256,7 +257,7 @@ details.hot .list{display:grid;gap:10px;margin-top:10px}
       <button class="chip" data-f="reply" aria-pressed="false">她有回复</button>
       <button class="chip" data-f="essay" aria-pressed="false">角色感言</button>
       <button class="chip" data-f="ch" aria-pressed="false">超话空降</button>
-      <a class="chip iglink" href="ig.html" id="iglink">IG备份</a>
+      <a class="chip iglink" href="ig.html"><svg class="igico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.8l1.3-2h4.8l1.3 2h1.8A2.5 2.5 0 0 1 20 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span id="iglink">IG备份</span></a>
     </div>
     <div class="count" id="count"></div>
   </div>
