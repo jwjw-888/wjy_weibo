@@ -37,9 +37,6 @@ button{font:inherit;color:inherit}
 .top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:calc(12px + env(safe-area-inset-top,0px)) 0 0}
 .back{font-size:14px;font-weight:600;color:var(--fg);background:var(--btn);border-radius:8px;padding:6px 12px}
 .back:hover{background:var(--btnh)}
-.langsw{display:flex;background:var(--btn);border-radius:8px;padding:3px;gap:2px}
-.langsw button{font-size:12px;border:0;background:transparent;color:var(--muted);border-radius:6px;padding:3px 10px;cursor:pointer}
-.langsw button[aria-pressed="true"]{background:var(--bg);color:var(--fg);font-weight:600}
 /* 个人资料 */
 .prof{display:grid;grid-template-columns:minmax(0,1fr) 2fr;gap:0 28px;align-items:center;padding:30px 0 44px;max-width:935px;margin:0 auto}
 .av{justify-self:center;width:150px;height:150px;border-radius:50%;padding:4px;background:linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7)}
@@ -193,7 +190,6 @@ mark{background:#ffe58a;color:#000;border-radius:2px}
 <div class="wrap">
   <div class="top">
     <a class="back" href="./" id="back">← 微博备份</a>
-    <div class="langsw" role="group" aria-label="Language"><button type="button" data-lang="zh" aria-pressed="true">中文</button><button type="button" data-lang="en" aria-pressed="false">ENG</button></div>
   </div>
   <header class="prof">
     <div class="av"><span id="pav">言</span></div>
@@ -259,10 +255,7 @@ const SV = {
   cmt: '<svg viewBox="0 0 24 24"><path d="M20.7 16.6A9.5 9.5 0 1 0 17 20.4L22 22z"/></svg>'
 };
 
-document.querySelectorAll(".langsw button").forEach(b => {
-  b.setAttribute("aria-pressed", b.dataset.lang === LANG);
-  b.addEventListener("click", () => { if (b.dataset.lang === LANG) return; try { sessionStorage.setItem("lang", b.dataset.lang); } catch (e) {} location.reload(); });
-});
+// IG 页没有语言切换，跟着微博页选的语言
 if (EN) {
   document.documentElement.lang = "en"; document.title = "Wu Jinyan Instagram Archive";
   $("back").textContent = "← Weibo archive"; $("pnt").textContent = "Fan archive"; $("igbtn").textContent = "Open Instagram"; $("fname").textContent = "Wu Jinyan";
