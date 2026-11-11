@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="data-size" content="45439,1504088">
-<meta name="site-build" content="2026-11-10-3">
+<meta name="site-build" content="2026-11-11-1">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -452,7 +452,7 @@ function commentsHtml(p, q) {
     const nRep = c.author.reduce((n, a) => n + (a.isAuthorComment ? 1 : 0) + a.replies.length, 0);
     const own = c.author.some(a => a.isAuthorComment);
     const hit = q && c.author.some(a => [a.comment, ...a.replies].some(x => norm(ctext(x)).includes(norm(q))));
-    h += `<details class="herreply"${hit || p.fan ? " open" : ""}><summary>${curAvatar ? `<img src="${esc(curAvatar)}" alt="">` : ""}<span>${own ? T(`吴谨言的留言和回复（${nRep} 条）`, `Wu Jinyan's comments & replies (${nRep})`) : T(`吴谨言回复了 ${nRep} 条评论`, `Wu Jinyan replied to ${nRep} comment${nRep > 1 ? "s" : ""}`)}</span><i>${T("查看", "View")}</i></summary><div class="list">` + c.author.map(a => a.isAuthorComment
+    h += `<details class="herreply"${hit ? " open" : ""}><summary>${curAvatar ? `<img src="${esc(curAvatar)}" alt="">` : ""}<span>${own ? T(`吴谨言的留言和回复（${nRep} 条）`, `Wu Jinyan's comments & replies (${nRep})`) : T(`吴谨言回复了 ${nRep} 条评论`, `Wu Jinyan replied to ${nRep} comment${nRep > 1 ? "s" : ""}`)}</span><i>${T("查看", "View")}</i></summary><div class="list">` + c.author.map(a => a.isAuthorComment
       ? cmtHtml(a.comment, q, true) + (a.replies.length ? `<div class="replies">${a.replies.map(r => replyHtml(r, q)).join("")}</div>` : "") + "</div></div>"
       : cmtHtml(a.comment, q) + `<div class="replies">${a.replies.map(r => replyHtml(r, q)).join("")}</div></div></div>`).join("") + `</div></details>`;
   }
