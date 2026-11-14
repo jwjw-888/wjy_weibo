@@ -74,6 +74,7 @@ button{font:inherit;color:inherit}
 /* 方格 */
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;max-width:1400px;margin:0 auto}
 @media (max-width:1100px){.grid{grid-template-columns:repeat(3,1fr)}}
+.nw{white-space:nowrap}
 .tile{position:relative;display:block;padding:0;border:0;background:var(--sunken);aspect-ratio:3/4;overflow:hidden;cursor:pointer}
 .tile img{width:100%;height:100%;object-fit:cover;display:block}
 .tile .ico{position:absolute;top:8px;right:8px;width:20px;height:20px;color:#fff;filter:drop-shadow(0 0 2px rgba(0,0,0,.5))}
@@ -284,7 +285,7 @@ function mark(s, nq) {
 }
 function tile(p, k) {
   const m = p.media[0], ico = p.media.length > 1 ? SV.multi : m.video ? SV.video : "";
-  return `<button class="tile" data-k="${k}" aria-label="${esc(ymd(p.time))} ${esc((p.text || "").slice(0, 40))}"><img loading="lazy" decoding="async" src="thumbs/${esc(m.src)}" alt="">${ico}${p.pinned ? SV.pin : ""}<span class="ov"><span>${SV.heart}${num(p.likes)}</span><span>${SV.cmt.replace("<path", '<path fill="#fff"')}${num(p.comments)}</span></span></button>`;
+  return `<button class="tile" data-k="${k}" aria-label="${esc(ymd(p.time))} ${esc((p.text || "").slice(0, 40))}"><img loading="lazy" decoding="async" src="thumbs/igt/${esc(m.src.split("/").pop())}" onerror="this.onerror=null;this.src='thumbs/${esc(m.src)}'" alt="">${ico}${p.pinned ? SV.pin : ""}<span class="ov"><span>${SV.heart}${num(p.likes)}</span><span>${SV.cmt.replace("<path", '<path fill="#fff"')}${num(p.comments)}</span></span></button>`;
 }
 function render() {
   const nq = norm($("q").value.trim()), y = $("yr").value;
@@ -299,7 +300,7 @@ function more() {
   shown = Math.min(shown + PAGE, LIST.length);
   $("loadmore").hidden = shown >= LIST.length;
 }
-new IntersectionObserver(es => { if (es[0].isIntersecting && D && shown < LIST.length) more(); }, {rootMargin: "1200px"}).observe($("loadmore"));
+new IntersectionObserver(es => { if (es[0].isIntersecting && D && shown < LIST.length) more(); }, {rootMargin: "600px"}).observe($("loadmore"));
 $("qx").addEventListener("click", () => { $("q").value = ""; render(); });
 let timer; $("q").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(render, 150); });
 $("yr").addEventListener("change", render);
@@ -446,7 +447,7 @@ getJSON("data/ig.json", 2, 30000, ldShow).then(d => {
   $("stats").innerHTML = st.map(([n, l]) => `<span><b>${n}</b> ${l}</span>`).join("");
   $("mstats").innerHTML = st.map(([n, l]) => `<span><b>${n}</b>${l}</span>`).join("");
   const t = D.posts.map(p => p.time).sort();
-  $("since").textContent = (t.length ? `${ymd(t[0])} – ${ymd(t[t.length - 1])} · ` : "") + T("备份于 ", "Backed up ") + ymd(D.at);
+  $("since").innerHTML = (t.length ? `<span class="nw">${ymd(t[0])} – ${ymd(t[t.length - 1])}</span> · ` : "") + `<span class="nw">${T("备份于 ", "Backed up ")}${ymd(D.at)}</span>`;
   const years = [...new Set(D.posts.map(p => ymd(p.time).slice(0, 4)))].sort().reverse();
   $("yr").insertAdjacentHTML("beforeend", years.map(y => `<option value="${y}">${EN ? y : y + "年"}</option>`).join(""));
   $("tools").hidden = false; render();

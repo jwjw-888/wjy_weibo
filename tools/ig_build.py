@@ -45,3 +45,10 @@ import re
 hp = "public/ig.html"; h = open(hp, encoding="utf-8").read()
 h = re.sub(r'<meta name="data-size" content="[^"]*">', '<meta name="data-size" content="%d">' % os.path.getsize(OUT), h, count=1)
 open(hp, "w", encoding="utf-8").write(h)
+
+# 格子用的小图（400×533，约 25KB）：首页格子不用载 1080 的大图，网路慢也能很快看到（2026-11-14）
+from PIL import Image as _I, ImageOps as _O
+os.makedirs("public/thumbs/igt", exist_ok=True)
+for p in posts:
+  s = p["media"][0]["src"]; o = "public/thumbs/igt/" + os.path.basename(s)
+  if not os.path.exists(o): _O.fit(_I.open(os.path.join("public/thumbs", s)).convert("RGB"), (400, 533)).save(o, quality=72, optimize=True, progressive=True)
