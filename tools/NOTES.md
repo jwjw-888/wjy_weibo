@@ -142,3 +142,11 @@
 - 贴文文字、图片都备份；视频（2026-11-09 起）只存 R2 的 `ig/video/<代码>_<序号>.mp4`，不进 GitHub，ig.json 的 `vsrc` 记路径，大图里直接播放。
 - 抓取（IG 的 /api/v1/ 对脚本一律 404，改为拦截 IG 网页自己的资料、自动卷动到底）：用户在电脑浏览器登入 IG、打开她的主页，Console 贴上 `public/ig_capture.js`（网址 https://wjy-weibo.jwjw888.workers.dev/ig_capture.js） → 点粉红色按钮 → 开出 `ig-receive.html`（IG 的 CSP 不准直接连外站，所以由上传页代传）。上传页把每张图 POST `/r2-ig` 让 worker 从 IG 图床存进 R2，抓不到的由 IG 分页下载后 PUT `/r2-ig?key=`；资料放 `/staging/7`。
 - 整理：`python3 tools/ig_build.py`（会把 ig.json 大小写进 ig.html 的 data-size，网页显示下载百分比；从 /staging/7 取资料、经 `GET /r2-ig/<档名>` 取原图做压缩图、合并进 ig.json，旧贴文保留），确认后 DELETE /staging/7。
+
+## 她的关注名单（2026-11-25 起）
+- `tools/follows.json`：她关注的账号（uid、昵称、认证说明）和关注总数 `total`（当时 547）。微博只给别人看最近关注的约 200 个，按关注先后排、新的在前，所以只存得到这一段，但足够发现新增关注。
+- **每次「更新」都要检查有没有新增关注，有就告诉用户**（用户 2026-11-25 定）：weibo.com `/ajax/friendships/friends?page=N&uid=1278603180`（每页 20，到第 10 页为止），和 follows.json 比对：
+  - 名单里没有的 uid → 新增关注，回报昵称、认证说明、排在第几位。
+  - total 变少、或原本在名单前段的人不见了 → 可能取消关注，也一起提醒（注意：被挤出 200 名以外不算取消）。
+  - 比对完把 follows.json 更新成最新的名单和日期。
+- 微博不显示关注时间，只能从前后账号推算大概时间段。
