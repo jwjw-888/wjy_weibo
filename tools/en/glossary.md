@@ -4,7 +4,7 @@
 - 剧名只用查得到的官方/通用英文名；查不到就保留中文。
 - @用户名、网址、[表情] 原样保留。话题 #...# 翻成英文，保留 # 号；剧名话题用英文剧名。
 - 人名用拼音（姓在前）：吴谨言 Wu Jinyan。
-- 「XX姐」（名字+姐）一律翻成 Sis XX（用户 2026-11-27 定）：静姐 Sis Jing。
+- 「XX姐」（名字+姐）一律翻成 Sis XX（用户 2026-11-27 定）：静姐 Sis Xiaojing。
 
 ## 剧名对照（来源：Wikipedia / MyDramaList / 官方海报）
 延禧攻略 Story of Yanxi Palace | 墨雨云间 The Double | 皓镧传 The Legend of Haolan | 凤不栖 Nirvana in Flames
