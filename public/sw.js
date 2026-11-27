@@ -1,7 +1,7 @@
 // 让网站可以安装成 App。网页和资料一律从网络读最新内容（断网时用存下的版本）；
 // 缩图、头像这类不会变的图片，看过一次就存在手机里，下次直接秒开。
 // 表情可能会换图：先用手机里存的，同时在背景向网站确认，有新图就换掉，下次打开就是新的（2026-11-02）。
-const CACHE = "wjy-weibo-v6", IMG = "wjy-weibo-img-v1";
+const CACHE = "wjy-weibo-v7", IMG = "wjy-weibo-img-v1";
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(["./", "./index.html", "./manifest.webmanifest"])).catch(() => {}));
   self.skipWaiting();
