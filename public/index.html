@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="data-size" content="45521,1511586">
-<meta name="site-build" content="2026-11-27-14">
+<meta name="site-build" content="2026-11-27-15">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -502,7 +502,7 @@ function renderFeed() {
     if (filter === "pic" && !(p.pics.some(x => !x.isVideo) || (p.rt && p.rt.pics.length))) return false;
     if (filter === "video" && !(p.video || p.pics.some(x => x.isVideo) || (p.rt && p.rt.video))) return false;
     if (filter === "essay" && !p.essay) return false;
-    if (filter === "reply" && !((DATA.comments || {})[p.id] && (DATA.comments[p.id].author.length || (DATA.comments[p.id].celeb || []).some(a => a.replies.length)))) return false;
+    if (filter === "reply" && !((DATA.comments || {})[p.id] && (DATA.comments[p.id].author.length))) return false;
     if (ql && !haystack(p).includes(ql)) return false;
     return true;
   });
