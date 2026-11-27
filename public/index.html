@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="谨言微博">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="data-size" content="45127,1511192">
-<meta name="site-build" content="2026-11-27-5">
+<meta name="site-build" content="2026-11-27-6">
 <style>
 /* Layout: Weibo-style feed — profile card on top, filter tabs, white post cards with action bar */
 :root{
@@ -167,6 +167,7 @@ a.pic{display:block;cursor:pointer}
 .replies .t,.cmt.mine .c .t{font-weight:700}
 .replies .t b,.cmt.mine .c .t b{font-weight:700}
 .replies .t .m{font-weight:400}
+.replies.plain{background:var(--card)}
 .cmt.mine{background:var(--mine);border-radius:4px;padding:8px 10px;margin:0 -10px}
 .replies .t b{color:var(--name);font-weight:400}
 .lbl{font-size:12px;color:var(--muted)}
@@ -460,7 +461,7 @@ function commentsHtml(p, q) {
   const cel = c.celeb || [];
   if (cel.length) {
     const hit = q && cel.some(a => [a.comment, ...a.replies].some(x => norm(ctext(x)).includes(norm(q))));
-    h += `<details class="celeb"${hit ? " open" : ""}><summary><span>${T(`艺人与公众人物留言（${cel.length} 则）`, `Comments from celebrities & public figures (${cel.length})`)}</span><i>${T("查看", "View")}</i></summary><div class="list">` + cel.map(a => cmtHtml(a.comment, q).replace('<div class="cmt"', '<div class="cmt vip"') + (a.replies.length ? `<div class="replies">${a.replies.map(r => replyHtml(r, q)).join("")}</div>` : "") + "</div></div>").join("") + `</div></details>`;
+    h += `<details class="celeb"${hit ? " open" : ""}><summary><span>${T(`艺人与公众人物留言（${cel.length} 则）`, `Comments from celebrities & public figures (${cel.length})`)}</span><i>${T("查看", "View")}</i></summary><div class="list">` + cel.map(a => cmtHtml(a.comment, q).replace('<div class="cmt"', '<div class="cmt vip"') + (a.replies.length ? `<div class="replies plain">${a.replies.map(r => replyHtml(r, q)).join("")}</div>` : "") + "</div></div>").join("") + `</div></details>`;
   }
   if (c.top.length) {
     h += `<details class="hot"${q && c.top.some(x => norm(ctext(x)).includes(norm(q))) ? " open" : ""}><summary>${T(`粉丝留言（随机 ${c.top.length} 则）`, `Fan comments (${c.top.length} at random)`)}</summary><div class="list">${c.top.map(x => cmtHtml(x, q, x.uid === "1278603180") + "</div></div>").join("")}</div></details>`;
