@@ -1,0 +1,50 @@
+name: Archive originals to R2
+
+# 只在手动按 Run workflow 时执行，不会自动排程。
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "只列数量，不下载不上传"
+        type: boolean
+        default: true
+      limit:
+        description: "最多处理几张（0 = 全部）"
+        type: string
+        default: "0"
+
+permissions:
+  contents: read
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install boto3 requests
+
+      - name: Archive originals
+        env:
+          R2_ENDPOINT_URL: ${{ secrets.R2_ENDPOINT_URL }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+        run: |
+          ARGS="--limit ${{ inputs.limit }}"
+          if [ "${{ inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          python3 tools/archive_originals.py $ARGS
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: archive-report
+          path: tools/archive_report.json
+          if-no-files-found: ignore
